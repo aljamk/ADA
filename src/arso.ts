@@ -5,6 +5,8 @@ export interface Reading {
   code: string
   name: string
   from: string // "2026-11-21 16:00" (local time, start of the hourly average)
+  lat: number
+  lon: number
   pm25: number | null
   pm10: number | null
 }
@@ -24,6 +26,8 @@ export async function fetchArso(): Promise<Reading[]> {
     code: p.getAttribute('sifra') ?? '',
     name: p.getElementsByTagName('merilno_mesto')[0]?.textContent ?? '?',
     from: p.getElementsByTagName('datum_od')[0]?.textContent ?? '',
+    lat: Number(p.getAttribute('wgs84_sirina')),
+    lon: Number(p.getAttribute('wgs84_dolzina')),
     pm25: num(p, 'pm2.5'),
     pm10: num(p, 'pm10'),
   }))
