@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react'
 import { BUCKETS, fetchArso, levelOf, type Reading } from './arso'
 import Forecast12h from './Forecast12h'
+import Alerts from './components/Alerts'
 import History from './components/History'
+import Me from './components/Me'
+import type { ProfileKey } from './profile'
 import StationSearch from './components/StationSearch'
 import { fetchForecast, next12, type Forecast } from './forecast'
 import { load, save } from './storage'
 import { dateStr, tomorrow8 } from './time'
+
+const TABS = [
+  { key: 'zdaj', label: 'Zdaj', icon: '💨' },
+  { key: 'jaz', label: 'Jaz', icon: '🙂' },
+] as const
+type TabKey = (typeof TABS)[number]['key']
 
 // ARSO readings seen on this device: { stationCode: { "YYYY-MM-DD HH:00": pm25 } }
 type Observations = Record<string, Record<string, number>>
@@ -34,6 +43,12 @@ export default function App() {
   const [bets, setBets] = useState<Bet[]>(() => load('bets', []))
   const [obs, setObs] = useState<Observations>(() => load('obs', {}))
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
+  const [tab, setTab] = useState<TabKey>('zdaj')
+  const [profile, setProfile] = useState<ProfileKey>(() => load('profile', 'splosno'))
+  const [notify, setNotify] = useState(() => load('notify', false))
+
+  useEffect(() => save('profile', profile), [profile])
+  useEffect(() => save('notify', notify), [notify])
 
   // Load ARSO now and every 15 minutes (feed updates ~45 min past the hour)
   useEffect(() => {
@@ -80,6 +95,8 @@ export default function App() {
   const openBet = bets.find((b) => b.station === station && b.target === target)
   const points = bets.reduce((s, b) => s + (b.points ?? 0), 0)
 
+  const hours12 = current && fc ? next12(fc, current.from) : []
+
   return (
     <main>
       <header>
@@ -87,9 +104,15 @@ export default function App() {
         <span className="points">⭐ {points}</span>
       </header>
 
+      {error && <p className="error">{error}</p>}
+
+      {tab === 'jaz' && <Me profile={profile} onProfile={setProfile} notify={notify} onNotify={setNotify} />}
+
+      {tab === 'zdaj' && (
+        <>
       <StationSearch readings={readings} value={station} onChange={setStation} />
 
-      {error && <p className="error">Napaka pri branju ARSO: {error}</p>}
+      {current && <Alerts reading={current} hours={hours12} profile={profile} notify={notify} />}
 
       {current && (
         <section className="card now">
@@ -109,7 +132,7 @@ export default function App() {
         </section>
       )}
 
-      {current && fc && <Forecast12h fc={fc} hours={next12(fc, current.from)} />}
+      {current && fc && <Forecast12h fc={fc} hours={hours12} />}
       {current && fc && <History fc={fc} from={current.from} measured={obs[current.code] ?? {}} />}
 
       <section className="card game">
@@ -146,6 +169,17 @@ export default function App() {
           </ul>
         </section>
       )}
+        </>
+      )}
+
+      <nav className="tabs">
+        {TABS.map((t) => (
+          <button key={t.key} className={t.key === tab ? 'active' : ''} onClick={() => setTab(t.key)}>
+            <span>{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+      </nav>
     </main>
   )
 }
