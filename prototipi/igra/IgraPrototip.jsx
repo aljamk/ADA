@@ -481,6 +481,7 @@ function Beseda({ onBack, onDone, done, saved }) {
   const [cur, setCur] = useState('')
   const [msg, setMsg] = useState('')
   const [copied, setCopied] = useState(false)
+  const [help, setHelp] = useState(!saved && rows.length === 0) // instructions open before the first guess
   const solved = rows.includes(answer)
   const over = solved || rows.length >= 6
 
@@ -509,7 +510,32 @@ function Beseda({ onBack, onDone, done, saved }) {
   }
 
   const grid = rows.map((r) => score(r, answer))
-  const shareText = `Zrak · Beseda dneva ${solved ? rows.length : 'X'}/6\n` + grid.map((g) => g.map((s) => ({ hit: '🟦', near: '🔷', miss: '⬜' })[s]).join('')).join('\n')
+  const shareText = `Zrak · Beseda dneva ${solved ? rows.length : 'X'}/6\n` + grid.map((g) => g.map((s) => ({ hit: '🟩', near: '🟨', miss: '⬜' })[s]).join('')).join('\n')
+
+  if (help)
+    return (
+      <Screen title="Kako igraš?" eyebrow="Beseda dneva" onBack={onBack} footer={<button className="btn" onClick={() => setHelp(false)}>Razumem, začnimo</button>}>
+        <div className="card help">
+          <ol className="body">
+            <li>Ugani besedo s <b>5 črkami</b>. Imaš <b>6 poskusov</b>.</li>
+            <li>Vpiši katerokoli besedo s 5 črkami in pritisni <b>Potrdi</b>.</li>
+            <li>Ploščice se obarvajo in povedo, kako blizu si.</li>
+          </ol>
+        </div>
+        <div className="card help-example">
+          <b className="body">Primer: SONCE</b>
+          <div className="help-row" aria-hidden="true">
+            {[['S', 'hit'], ['O', 'near'], ['N', 'miss'], ['C', 'miss'], ['E', 'miss']].map(([l, s]) => (
+              <div key={l} className={`wcell ${s}`}><span className="wl">{l}</span><span className="wi">{STATE_ICON[s]}</span></div>
+            ))}
+          </div>
+          <p className="help-line"><i className="sw hit">✓</i><span><b>Zelena:</b> S je v besedi in na pravem mestu.</span></p>
+          <p className="help-line"><i className="sw near">↔</i><span><b>Rumena:</b> O je v besedi, a na drugem mestu.</span></p>
+          <p className="help-line"><i className="sw miss">✕</i><span><b>Siva:</b> N, C in E jih v besedi ni.</span></p>
+        </div>
+        <p className="body muted">Vsak dan je nova beseda, povezana z zrakom. Brez časovne omejitve.</p>
+      </Screen>
+    )
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(shareText)
@@ -521,6 +547,10 @@ function Beseda({ onBack, onDone, done, saved }) {
 
   return (
     <Screen title="Ugani besedo" eyebrow="Beseda dneva · 5 črk, 6 poskusov" onBack={onBack}>
+      <div className="row-between">
+        <span className="muted small">Zelena ✓ pravo mesto · rumena ↔ drugje · siva ✕ ni v besedi</span>
+        <button className="help-btn" onClick={() => setHelp(true)} aria-label="Kako igraš?">?</button>
+      </div>
       <div className="wgrid" aria-label="Poskusi">
         {Array.from({ length: 6 }, (_, r) => {
           const word = rows[r] ?? (r === rows.length ? cur : '')
@@ -536,11 +566,6 @@ function Beseda({ onBack, onDone, done, saved }) {
             </div>
           )
         })}
-      </div>
-      <div className="wlegend small">
-        <span><i className="sw hit">✓</i> pravo mesto</span>
-        <span><i className="sw near">↔</i> drugje v besedi</span>
-        <span><i className="sw miss">✕</i> ni v besedi</span>
       </div>
       {msg && <p className="body center" role="status">{msg}</p>}
 
