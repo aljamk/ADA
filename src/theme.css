@@ -79,7 +79,7 @@ p { margin: 0; }
 .chip.model { color: var(--accent); padding: 0 18px; border-radius: 10px; }
 
 /* Tab bar */
-.tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; height: 90px; background: var(--bg); border-top: 1px solid var(--soft); display: flex; justify-content: space-around; padding: 2px 8px calc(env(safe-area-inset-bottom)); }
+.tabbar { position: fixed; z-index: 1100; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; height: 90px; background: var(--bg); border-top: 1px solid var(--soft); display: flex; justify-content: space-around; padding: 2px 8px calc(env(safe-area-inset-bottom)); }
 .tab { flex: 1; max-width: 86px; height: 61px; border-radius: 18px; border: none; background: none; display: grid; justify-items: center; align-content: start; padding-top: 7px; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-2); }
 .tab.active { background: var(--soft); color: var(--accent); }
 .icon { width: 24px; height: 24px; background: currentColor; -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }

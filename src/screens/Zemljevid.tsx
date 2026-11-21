@@ -18,6 +18,9 @@ const ATTR = 'Satelit: Esri, Maxar, Earthstar Geographics · Meritve: ARSO · Mo
 
 /** Ljubljana basin: default view, station list and estimate surface. The challenge is about Ljubljana. */
 const BOUNDS: [[number, number], [number, number]] = [[45.88, 14.2], [46.24, 14.85]]
+/** How far a station's measurement is taken to say something about the air: full within 3 km, fading out by 8 km */
+const FULL_KM = 3
+const REACH_KM = 8
 const VIEW: [[number, number], [number, number]] = [[46.01, 14.43], [46.11, 14.58]]
 
 /** Same colours as --dobro … --nevarno (they don't change with the theme), for the canvas. */
@@ -47,8 +50,8 @@ interface Point {
  */
 function surfaceImage(points: Point[]) {
   const cv = document.createElement('canvas')
-  const cols = 132
-  const rows = 60
+  const cols = 260
+  const rows = 144
   cv.width = cols
   cv.height = rows
   const ctx = cv.getContext('2d')
@@ -60,14 +63,21 @@ function surfaceImage(points: Point[]) {
       const lon = w + ((gx + 0.5) / cols) * (e - w)
       let num = 0
       let den = 0
+      let dmin = Infinity
       for (const p of points) {
         const dx = (p.lon - lon) * 111 * Math.cos((lat * Math.PI) / 180)
         const dy = (p.lat - lat) * 111
-        const wgt = 1 / Math.max(1, dx * dx + dy * dy)
+        const d2 = dx * dx + dy * dy
+        dmin = Math.min(dmin, Math.sqrt(d2))
+        const wgt = 1 / Math.max(1, d2)
         num += wgt * p.pm
         den += wgt
       }
+      // A station tells us about its surroundings only: full colour within FULL_KM, nothing beyond REACH_KM
+      const a = Math.max(0, Math.min(1, (REACH_KM - dmin) / (REACH_KM - FULL_KM)))
+      if (a <= 0) continue
       ctx.fillStyle = LEVEL_HEX[levelOfPm(num / den).key]
+      ctx.globalAlpha = a
       ctx.fillRect(gx, gy, 1, 1)
     }
   return cv.toDataURL()
