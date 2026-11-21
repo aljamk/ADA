@@ -1,0 +1,385 @@
+<title>Zrak · Megla</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<style>
+/* Layout: a phone frame on a dark stage; inside it a full-bleed foggy Ljubljana backdrop, the verdict word set huge
+   over the photo, then horizontal rows. One accent (light blue). The plant is the only warm, saturated object. */
+:root {
+  --teal: #00303f;        /* deep teal, the ground everything fades into */
+  --teal-2: #0a4357;      /* slightly lifted surfaces */
+  --ink: #f4f9fb;         /* near-white text, 13:1 on teal */
+  --ink-2: #b9d3dd;       /* secondary text, 8.6:1 on teal */
+  --accent: #7ec8e3;      /* the only accent */
+  --accent-edge: #3f8fab; /* darker 4 px bottom edge of buttons */
+  --accent-ink: #00303f;  /* text on accent */
+  --zelo-slabo: #e5484d;  /* reserved for the air level, never a brand accent */
+  --dobro: #3bb273; --zmerno: #f2c94c; --slabo: #f2994a;
+  --display: 'Bricolage Grotesque', 'Arial Black', Impact, sans-serif;
+  --body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --spring: cubic-bezier(.3, 1.6, .5, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #001820; color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.4; padding-block: 16px 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+p, h1, h2, h3 { margin: 0; }
+.stage { display: grid; gap: 14px; justify-items: center; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.ctl { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #1f5566; background: var(--teal); color: var(--ink-2); font-size: 14px; font-weight: 600; }
+.ctl[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.phone { position: relative; width: 390px; max-width: 100%; height: 844px; border-radius: 44px; background: var(--teal); overflow: hidden; box-shadow: 0 0 0 10px #0a1b22; }
+.scroll { position: absolute; inset: 0 0 76px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+@media (max-width: 440px) { body { padding: 0; } .stage { gap: 8px; } .phone { width: 100%; height: calc(100dvh - 60px); min-height: 640px; border-radius: 0; box-shadow: none; } }
+
+/* Backdrop: placeholder scene of Ljubljana (castle hill, Nebotičnik, river), fading into teal. Fog is state. */
+.hero { position: relative; height: 470px; }
+.scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: filter .6s; }
+.fog { position: absolute; inset: 0; pointer-events: none; transition: opacity .6s; background:
+  radial-gradient(120% 60% at 20% 70%, rgb(200 215 220 / .55), transparent 60%),
+  radial-gradient(90% 50% at 80% 45%, rgb(190 205 212 / .45), transparent 60%),
+  linear-gradient(180deg, rgb(160 180 190 / .25), rgb(160 180 190 / .55)); }
+.fade { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 48 63 / .15) 0%, rgb(0 48 63 / .35) 45%, var(--teal) 92%); }
+.hero-top { position: absolute; left: 20px; right: 20px; top: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; color: var(--ink); text-shadow: 0 1px 8px rgb(0 0 0 / .5); }
+.tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; background: rgb(0 48 63 / .7); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.tag i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); }
+.verdict { position: absolute; left: 16px; bottom: 112px; font-family: var(--display); font-weight: 800; font-size: 92px; line-height: .86; letter-spacing: -.03em; color: var(--ink); text-shadow: 0 2px 24px rgb(0 0 0 / .45); }
+.verdict.zelo-slabo { color: var(--zelo-slabo); }
+.verdict small { display: block; font-family: var(--body); font-weight: 500; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 10px; }
+.nums { position: absolute; left: 20px; right: 20px; bottom: 28px; display: flex; align-items: baseline; gap: 18px; }
+.nums b { font-family: var(--display); font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: -.02em; }
+.nums span { font-size: 14px; color: var(--ink-2); }
+.nums .sep { flex: 1; }
+.advice { padding: 0 20px 6px; font-size: 17px; color: var(--ink); }
+
+/* Rows */
+.row-head { display: flex; justify-content: space-between; align-items: baseline; padding: 22px 20px 10px; }
+.row-head h2 { font-family: var(--display); font-weight: 800; font-size: 22px; letter-spacing: -.01em; }
+.row-head span { font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--ink-2); }
+.rail { display: flex; gap: 10px; overflow-x: auto; padding: 4px 20px 8px; scroll-snap-type: x proximity; scrollbar-width: none; }
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { flex: none; scroll-snap-align: start; }
+.hour { width: 74px; height: 104px; border-radius: 14px; background: var(--teal-2); display: grid; align-content: end; justify-items: center; gap: 6px; padding-bottom: 8px; font-size: 13px; color: var(--ink-2); position: relative; }
+.hour i { width: 26px; border-radius: 6px 6px 2px 2px; }
+.hour b { color: var(--ink); font-size: 14px; }
+.hour.best::after { content: 'zračenje'; position: absolute; top: 8px; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.task { width: 240px; border-radius: 18px; background: var(--teal-2); padding: 16px; display: grid; gap: 10px; text-align: left; border: none; }
+.task.done { opacity: .72; }
+.task .ico { width: 44px; height: 44px; border-radius: 12px; background: rgb(126 200 227 / .14); color: var(--accent); display: grid; place-items: center; }
+.task h3 { font-family: var(--display); font-weight: 800; font-size: 20px; }
+.task p { font-size: 14px; color: var(--ink-2); }
+.cetrt { width: 150px; border-radius: 16px; background: var(--teal-2); padding: 14px; display: grid; gap: 4px; }
+.cetrt .n { font-size: 12px; color: var(--ink-2); font-weight: 700; }
+.cetrt b { font-family: var(--display); font-size: 19px; font-weight: 800; }
+.cetrt .v { display: flex; align-items: center; gap: 6px; font-size: 14px; }
+.cetrt .v i { width: 10px; height: 10px; border-radius: 3px; }
+
+/* Chunky button: solid, 4 px darker bottom edge; press moves it down and the edge disappears */
+.btn { min-height: 56px; width: 100%; border: none; border-radius: 16px; background: var(--accent); color: var(--accent-ink); font-weight: 700; font-size: 18px; box-shadow: 0 4px 0 var(--accent-edge); transform: translateY(0); transition: transform .12s, box-shadow .12s; }
+.btn:active, .btn.pressed { transform: translateY(4px); box-shadow: 0 0 0 var(--accent-edge); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: var(--teal-2); color: var(--ink); box-shadow: 0 4px 0 #062a37; }
+.btn.small { min-height: 44px; font-size: 15px; width: auto; padding: 0 16px; border-radius: 12px; }
+
+/* Plant */
+.plant-card { margin: 22px 20px 0; border-radius: 22px; background: var(--teal-2); padding: 16px; display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: center; }
+.plant { transform-origin: 50% 90%; }
+.plant.bounce { animation: bounce .7s var(--spring); }
+@keyframes bounce { 0% { transform: scale(1); } 30% { transform: scale(1.12, .9); } 60% { transform: scale(.95, 1.08); } 100% { transform: scale(1); } }
+.plant-info { display: grid; gap: 8px; }
+.plant-info h3 { font-family: var(--display); font-size: 22px; font-weight: 800; }
+.plant-info p { font-size: 14px; color: var(--ink-2); }
+.drops { display: flex; gap: 6px; }
+.grow { height: 6px; border-radius: 3px; background: rgb(255 255 255 / .12); overflow: hidden; }
+.grow i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width 1s linear; }
+
+/* Tab bar */
+.tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 76px; display: flex; justify-content: space-around; align-items: center; background: linear-gradient(180deg, transparent, var(--teal) 30%); padding: 10px 8px 12px; }
+.tab { border: none; background: none; display: grid; justify-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--ink-2); min-width: 64px; min-height: 48px; }
+.tab.on { color: var(--accent); }
+
+/* Task screens: one step per screen, progress at the top */
+.task-screen { min-height: 100%; display: flex; flex-direction: column; padding: 20px 20px 24px; gap: 18px; }
+.progress { height: 6px; border-radius: 3px; background: rgb(255 255 255 / .12); overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--accent); transition: width .25s var(--spring); }
+.task-screen h1 { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1.1; letter-spacing: -.02em; text-wrap: balance; }
+.answers { display: grid; gap: 10px; }
+.answer { min-height: 60px; border-radius: 16px; border: 2px solid #1f5566; background: var(--teal-2); text-align: left; padding: 12px 16px; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.answer.right { border-color: var(--accent); background: rgb(126 200 227 / .16); }
+.answer.wrong { border-style: dashed; border-color: var(--ink-2); opacity: .8; }
+.answer small { font-size: 13px; font-weight: 700; white-space: nowrap; }
+.why { border-radius: 16px; background: var(--teal-2); padding: 14px 16px; font-size: 16px; color: var(--ink); }
+.foot { margin-top: auto; display: grid; gap: 10px; }
+.celebrate { min-height: 100%; display: grid; place-items: center; align-content: center; gap: 18px; text-align: center; padding: 24px; }
+.celebrate h1 { font-family: var(--display); font-weight: 800; font-size: 36px; letter-spacing: -.02em; }
+.celebrate .drop-big { animation: pop .6s var(--spring); }
+@keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.back { background: none; border: none; color: var(--accent); font-weight: 700; font-size: 16px; padding: 8px 0; justify-self: start; }
+@media (prefers-reduced-motion: reduce) { .plant.bounce, .celebrate .drop-big { animation: none; } .btn, .progress i, .scene, .fog { transition: none; } }
+</style>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React
+
+/* Demo air states. Values are examples, not live data. */
+const AIR = {
+  dobro: { word: 'DOBRO', key: 'dobro', pm: 9, aqi: 38, color: '#3bb273', fog: 0.12, blur: 0, advice: 'Za vse: zrak je čist, pojdi ven.' },
+  zmerno: { word: 'ZMERNO', key: 'zmerno', pm: 23, aqi: 77, color: '#f2c94c', fog: 0.55, blur: 1.2, advice: 'Za občutljive: krajši sprehod, raje do 18h.' },
+  zeloSlabo: { word: 'ZELO SLABO', key: 'zelo-slabo', pm: 61, aqi: 155, color: '#e5484d', fog: 0.95, blur: 2.6, advice: 'Za vse: ostani notri, okna zapri, zračenje opoldne.' },
+}
+const HOURS = [23, 25, 27, 24, 20, 17, 15, 14, 16, 22, 29, 33]
+const levelColor = (pm) => (pm < 15 ? '#3bb273' : pm < 25 ? '#f2c94c' : pm < 50 ? '#f2994a' : '#e5484d')
+const TASKS = [
+  { key: 'napoved', title: 'Napoved', sub: 'Kakšen bo zrak jutri?', ico: 'cloud' },
+  { key: 'kviz', title: 'Kviz', sub: 'Tri vprašanja o zraku', ico: 'quiz' },
+  { key: 'beseda', title: 'Beseda dneva', sub: 'Ugani besedo s 5 črkami', ico: 'word' },
+  { key: 'dih', title: 'Dih', sub: 'Minuta mirnega dihanja', ico: 'breath' },
+]
+const CETRTI = [['Trnovo', 58], ['Moste', 41], ['Vič', 40], ['Jarše', 35], ['Polje', 35], ['Bežigrad', 33], ['Center', 30], ['Šiška', 27]]
+const QUIZ = [
+  { q: 'Kdaj je pozimi zrak v Ljubljani najslabši?', a: ['Zjutraj ob 7h', 'Opoldne', 'Zvečer med 21. in 23. uro'], c: 2, why: 'Zvečer se ogrevanje in promet ujameta pod inverzijo, zato delci dosežejo vrh med 21. in 23. uro.' },
+  { q: 'Kaj je inverzija?', a: ['Topel zrak nad hladnim, ki zapre kotlino', 'Močan veter z gora', 'Dež, ki spere delce'], c: 0, why: 'Topla plast nad kotlino deluje kot pokrov, zato delci ostanejo pri tleh.' },
+  { q: 'Kdaj je pozimi najbolje prezračiti stanovanje?', a: ['Pozno zvečer', 'Sredi dneva, na kratko', 'Ponoči z odprtim oknom'], c: 1, why: 'Sredi dneva je zrak najčistejši, kratko in močno zračenje pa ga zamenja hitro.' },
+]
+
+/* Icons: simple, original, no emoji */
+function Icon({ name, size = 22 }) {
+  const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      {name === 'cloud' && <path {...p} d="M7 17h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.1 10 3.5 3.5 0 0 0 7 17ZM9 20l-1 2M15 20l1 2" />}
+      {name === 'quiz' && <><circle {...p} cx="12" cy="12" r="9" /><path {...p} d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 1-1 1.7M12 17h.01" /></>}
+      {name === 'word' && <><rect {...p} x="3" y="7" width="5" height="10" rx="1.2" /><rect {...p} x="9.5" y="7" width="5" height="10" rx="1.2" /><rect {...p} x="16" y="7" width="5" height="10" rx="1.2" /></>}
+      {name === 'breath' && <><path {...p} d="M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h6" /></>}
+      {name === 'home' && <path {...p} d="M3 10 12 3l9 7v10H3V10ZM9 20v-7h6v7" />}
+      {name === 'map' && <path {...p} d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6ZM9 4v14M15 6v14" />}
+      {name === 'leaf' && <path {...p} d="M5 19c0-8 5-13 14-13-1 9-5 13-13 13M5 19l8-8" />}
+      {name === 'bell' && <path {...p} d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2ZM10 20a2 2 0 0 0 4 0" />}
+      {name === 'check' && <path {...p} d="m5 12 5 5 9-10" />}
+    </svg>
+  )
+}
+function Drop({ filled, size = 18 }) {
+  return (
+    <svg width={size} height={size * 1.25} viewBox="0 0 20 25" aria-hidden="true">
+      <path d="M10 1.5C10 1.5 2 10.5 2 16a8 8 0 0 0 16 0C18 10.5 10 1.5 10 1.5Z" fill={filled ? '#7ec8e3' : 'none'} stroke="#7ec8e3" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+/* Placeholder backdrop: Ljubljana silhouette drawn with simple shapes (castle hill, Nebotičnik, river). Swap for a photo. */
+function Scene({ blur }) {
+  return (
+    <svg className="scene" viewBox="0 0 390 470" preserveAspectRatio="xMidYMid slice" style={{ filter: `blur(${blur}px)` }} aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1b5a70" /><stop offset="1" stopColor="#0d3b4c" /></linearGradient>
+        <linearGradient id="hill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2a5b58" /><stop offset="1" stopColor="#13383f" /></linearGradient>
+      </defs>
+      <rect width="390" height="470" fill="url(#sky)" />
+      <circle cx="300" cy="90" r="34" fill="#dfe9ec" opacity=".55" />
+      <path d="M-20 320c80-70 160-120 260-110 70 8 110 40 170 70v200H-20Z" fill="#1d4e55" opacity=".8" />
+      <path d="M60 330c40-60 90-95 150-92 50 3 80 30 110 60v180H60Z" fill="url(#hill)" />
+      <rect x="208" y="196" width="26" height="60" fill="#0f3038" /><rect x="214" y="186" width="14" height="12" fill="#0f3038" />
+      <rect x="236" y="206" width="30" height="50" fill="#0f3038" /><rect x="268" y="214" width="12" height="42" fill="#0f3038" />
+      <rect x="92" y="270" width="18" height="90" fill="#0b2a31" /><rect x="88" y="262" width="26" height="10" fill="#0b2a31" />
+      <path d="M0 360h390v110H0Z" fill="#0b2d37" />
+      {Array.from({ length: 26 }, (_, i) => <rect key={i} x={6 + i * 15} y={372 + (i % 3) * 6} width="9" height={70 - (i % 4) * 8} fill="#0f3a46" />)}
+      <path d="M-10 430c80-10 150 18 230 6 70-10 120-24 180-10v60H-10Z" fill="#1f6478" opacity=".9" />
+    </svg>
+  )
+}
+
+/* The plant: warm, rounded, hand-drawn feel. stage 0 = thirsty, 4 = flower. */
+function Plant({ stage, bounce }) {
+  const top = [120, 104, 88, 72, 58][stage]
+  const leaf = stage === 0 ? '#9fb3a0' : '#5cc26b'
+  const dark = stage === 0 ? '#7e9484' : '#2f9a4d'
+  return (
+    <svg className={`plant${bounce ? ' bounce' : ''}`} width="150" height="150" viewBox="0 0 200 200" role="img" aria-label={stage === 0 ? 'Rastlina je žejna' : `Rastlina, stopnja ${stage} od 4`}>
+      <ellipse cx="100" cy="182" rx="54" ry="8" fill="#001820" opacity=".5" />
+      <path d="M62 128h76l-8 52H70Z" fill="#e07a3f" />
+      <path d="M58 122h84a6 6 0 0 1 0 12H58a6 6 0 0 1 0-12Z" fill="#f29a5c" />
+      <ellipse cx="100" cy="128" rx="34" ry="6" fill="#6b4a2e" />
+      <path d={stage === 0 ? 'M100 128C100 110 104 100 116 94' : `M100 128C100 ${128 - (128 - top) / 2} 100 ${top + 8} 100 ${top}`} fill="none" stroke={dark} strokeWidth="6" strokeLinecap="round" />
+      {stage === 0 ? (
+        <><path d="M116 94c10 2 15 12 13 22-10-2-15-11-13-22Z" fill={leaf} /><path d="M103 110c-11-1-18 6-18 15 11 0 18-6 18-15Z" fill={leaf} /></>
+      ) : (
+        <>
+          <path d="M100 118c-14-8-28-3-33 9 14 5 26 3 33-9Z" fill={leaf} /><path d="M100 118c14-8 28-3 33 9-14 5-26 3-33-9Z" fill={dark} />
+          {stage >= 2 && <><path d="M100 96c-14-9-29-4-34 8 14 6 27 4 34-8Z" fill={leaf} /><path d="M100 96c14-9 29-4 34 8-14 6-27 4-34-8Z" fill={dark} /></>}
+          {stage >= 3 && <><path d="M100 74c-13-9-27-5-31 7 13 6 24 4 31-7Z" fill={leaf} /><path d="M100 74c13-9 27-5 31 7-13 6-24 4-31-7Z" fill={dark} /></>}
+          {stage >= 4 && <g>{[0, 72, 144, 216, 288].map((r) => <ellipse key={r} cx="100" cy={top - 10} rx="7" ry="11" fill="#f2c94c" transform={`rotate(${r} 100 ${top})`} />)}<circle cx="100" cy={top} r="6" fill="#e07a3f" /></g>}
+          {stage === 1 && <circle cx="100" cy={top} r="5" fill={leaf} />}
+        </>
+      )}
+    </svg>
+  )
+}
+
+function Home({ air, done, onOpen, bounce, growPct, nextLeaf }) {
+  const a = AIR[air]
+  const drops = Object.keys(done).length
+  const best = HOURS.indexOf(Math.min(...HOURS))
+  return (
+    <div>
+      <section className="hero" aria-label={`Zrak zdaj: ${a.word.toLowerCase()}`}>
+        <Scene blur={a.blur} />
+        <div className="fog" style={{ opacity: a.fog }} />
+        <div className="fade" />
+        <div className="hero-top"><span>Bežigrad · 14:00</span><span className="tag"><i />MERITEV</span></div>
+        <h1 className={`verdict ${a.key}`}><small>Zrak zdaj</small>{a.word}</h1>
+        <div className="nums"><b>{a.pm}</b><span>µg/m³ PM2,5</span><span className="sep" /><b>{a.aqi}</b><span>AQI</span></div>
+      </section>
+      <p className="advice">{a.advice}</p>
+
+      <section className="plant-card">
+        <Plant stage={drops} bounce={bounce} />
+        <div className="plant-info">
+          <h3>{drops === 0 ? 'Žejna.' : drops === 4 ? 'V cvetu.' : 'Raste.'}</h3>
+          <div className="drops" aria-label={`${drops} od 4 kapljic`}>{[0, 1, 2, 3].map((i) => <Drop key={i} filled={i < drops} />)}</div>
+          <p>{drops === 4 ? 'Vse naloge za danes so opravljene.' : `Nov list čez ${nextLeaf}`}</p>
+          <div className="grow" aria-hidden="true"><i style={{ width: `${growPct}%` }} /></div>
+        </div>
+      </section>
+
+      <div className="row-head"><h2>Naslednjih 12 ur</h2><span>MODEL</span></div>
+      <div className="rail" aria-label="Napoved po urah">
+        {HOURS.map((v, i) => (
+          <div key={i} className={`hour${i === best ? ' best' : ''}`} title={`${(15 + i) % 24}h: ~${v} µg/m³`}>
+            <i style={{ height: `${Math.max(8, v * 1.4)}px`, background: levelColor(v) }} />
+            <b>{v}</b>
+            <span>{(15 + i) % 24}h</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="row-head"><h2>Današnje naloge</h2><span>{drops} / 4</span></div>
+      <div className="rail" aria-label="Naloge">
+        {TASKS.map((t) => (
+          <button key={t.key} className={`task${done[t.key] ? ' done' : ''}`} onClick={() => onOpen(t.key)}>
+            <span className="ico"><Icon name={t.ico} /></span>
+            <h3>{t.title}</h3>
+            <p>{t.sub}</p>
+            <span className="btn small" style={{ justifySelf: 'start' }}>{done[t.key] ? 'Opravljeno' : 'Začni'}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="row-head"><h2>Četrti</h2><span>OD NAJBOLJ ONESNAŽENE</span></div>
+      <div className="rail" aria-label="Četrti po onesnaženosti">
+        {CETRTI.map(([n, v], i) => (
+          <div key={n} className="cetrt"><span className="n">{i + 1}.</span><b>{n}</b><span className="v"><i style={{ background: levelColor(v) }} />{v} µg/m³ · ocena</span></div>
+        ))}
+      </div>
+      <div style={{ height: 24 }} />
+    </div>
+  )
+}
+
+/* One step per screen, progress at the top, celebration at the end */
+function Kviz({ onDone, onBack }) {
+  const [i, setI] = useState(0)
+  const [picked, setPicked] = useState(null)
+  const [correct, setCorrect] = useState(0)
+  const q = QUIZ[i]
+  const answered = picked != null
+  const next = () => {
+    const c = correct + (picked === q.c ? 1 : 0)
+    if (i + 1 >= QUIZ.length) return onDone(c)
+    setCorrect(c); setI(i + 1); setPicked(null)
+  }
+  return (
+    <div className="task-screen">
+      <div className="progress" role="progressbar" aria-valuenow={i + (answered ? 1 : 0)} aria-valuemax={QUIZ.length}><i style={{ width: `${((i + (answered ? 1 : 0)) / QUIZ.length) * 100}%` }} /></div>
+      <button className="back" onClick={onBack}>‹ Nazaj</button>
+      <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.08em', color: 'var(--ink-2)' }}>KVIZ · {i + 1} OD {QUIZ.length}</p>
+      <h1>{q.q}</h1>
+      <div className="answers">
+        {q.a.map((t, k) => {
+          const right = answered && k === q.c
+          const wrong = answered && k === picked && k !== q.c
+          return (
+            <button key={t} className={`answer${right ? ' right' : ''}${wrong ? ' wrong' : ''}`} disabled={answered && !right && !wrong} onClick={() => !answered && setPicked(k)}>
+              <span>{t}</span>{right && <small>Pravilno</small>}{wrong && <small>Ni pravilno</small>}
+            </button>
+          )
+        })}
+      </div>
+      {answered && <div className="why">{q.why}</div>}
+      <div className="foot">{answered && <button className="btn" onClick={next}>{i + 1 < QUIZ.length ? 'Naprej' : 'Zaključi'}</button>}</div>
+    </div>
+  )
+}
+function Simple({ title, text, onDone, onBack }) {
+  return (
+    <div className="task-screen">
+      <div className="progress"><i style={{ width: '50%' }} /></div>
+      <button className="back" onClick={onBack}>‹ Nazaj</button>
+      <h1>{title}</h1>
+      <p style={{ color: 'var(--ink-2)' }}>{text}</p>
+      <div className="foot"><button className="btn" onClick={onDone}>Opravi (demo)</button></div>
+    </div>
+  )
+}
+function Celebrate({ title, line, onHome }) {
+  return (
+    <div className="celebrate">
+      <div className="drop-big"><Drop filled size={64} /></div>
+      <h1>{title}</h1>
+      <p style={{ color: 'var(--ink-2)' }}>{line}</p>
+      <button className="btn" style={{ maxWidth: 300 }} onClick={onHome}>Zalij rastlino</button>
+    </div>
+  )
+}
+
+function App() {
+  const [air, setAir] = useState('zmerno')
+  const [view, setView] = useState('home')
+  const [done, setDone] = useState({})
+  const [bounce, setBounce] = useState(false)
+  const [tick, setTick] = useState(0)
+  const [pending, setPending] = useState(null)
+  const scroller = useRef(null)
+  useEffect(() => { scroller.current?.scrollTo(0, 0) }, [view])
+  useEffect(() => { const id = setInterval(() => setTick((t) => t + 1), 1000); return () => clearInterval(id) }, [])
+  const growPct = (tick % 180) / 1.8 // demo: a leaf every 3 "hours" = 180 s
+  const left = 180 - (tick % 180)
+  const nextLeaf = `${Math.floor(left / 60)} h ${String(left % 60).padStart(2, '0')} min`
+  const finish = (key, line) => setPending({ key, line })
+  const water = () => {
+    setDone((d) => ({ ...d, [pending.key]: true })); setPending(null); setView('home')
+    setBounce(true); setTimeout(() => setBounce(false), 800)
+  }
+  return (
+    <div className="stage">
+      <div className="controls" role="toolbar" aria-label="Stanje zraka (demo)">
+        {[['dobro', 'Dobro'], ['zmerno', 'Zmerno'], ['zeloSlabo', 'Zelo slabo']].map(([k, l]) => (
+          <button key={k} className="ctl" aria-pressed={air === k} onClick={() => setAir(k)}>{l}</button>
+        ))}
+        <button className="ctl" onClick={() => { setDone({}); setView('home') }}>Ponastavi dan</button>
+      </div>
+      <div className="phone">
+        <div className="scroll" ref={scroller}>
+          {pending ? <Celebrate title="Kapljica zate." line={pending.line} onHome={water} /> :
+            view === 'home' ? <Home air={air} done={done} onOpen={setView} bounce={bounce} growPct={growPct} nextLeaf={nextLeaf} /> :
+            view === 'kviz' ? <Kviz onBack={() => setView('home')} onDone={(c) => finish('kviz', `${c} od ${QUIZ.length} pravilnih. +${c * 30} točk.`)} /> :
+            view === 'napoved' ? <Simple title="Kakšen bo zrak jutri ob 8h?" text="Boljše, enako ali slabše kot danes ob 8h (23 µg/m³)? Rezultat izveš jutri zjutraj." onBack={() => setView('home')} onDone={() => finish('napoved', 'Napoved je oddana. Rezultat jutri ob 9h.')} /> :
+            view === 'beseda' ? <Simple title="Ugani besedo s 5 črkami" text="Šest poskusov. Zelena črka je na pravem mestu, rumena je drugje v besedi." onBack={() => setView('home')} onDone={() => finish('beseda', 'MEGLA, v 3. poskusu. +40 točk.')} /> :
+            <Simple title="Minuta mirnega dihanja" text="Vdih 4 s, izdih 6 s. Brez zadrževanja diha. Če ti postane slabo, nehaj." onBack={() => setView('home')} onDone={() => finish('dih', 'Lepo opravljeno.')} />}
+        </div>
+        <nav className="tabbar" aria-label="Glavni zavihki">
+          {[['home', 'Zdaj'], ['map', 'Zemljevid'], ['leaf', 'Igra'], ['bell', 'Opozorila']].map(([ic, l], i) => (
+            <button key={l} className={`tab${i === 0 ? ' on' : ''}`} onClick={() => setView('home')}><Icon name={ic} />{l}</button>
+          ))}
+        </nav>
+      </div>
+    </div>
+  )
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+</script>
