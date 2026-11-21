@@ -2,7 +2,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useState } from 'react'
 import { levelOfPm, usAqi } from '../aqi'
-import { shortName, type Reading } from '../arso'
+import { distanceKm, shortName, type Reading } from '../arso'
 import { atHour, type Forecast } from '../forecast'
 import { hourStr } from '../time'
 
@@ -16,8 +16,12 @@ const SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 const PLACES = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
 const ATTR = 'Satelit: Esri, Maxar, Earthstar Geographics · Meritve: ARSO · Model: CAMS'
 
-/** Slovenia, for the estimate surface */
-const BOUNDS: [[number, number], [number, number]] = [[45.4, 13.35], [46.9, 16.65]]
+/** Ljubljana basin: default view, station list and estimate surface. The challenge is about Ljubljana. */
+const LJ = { lat: 46.0569, lon: 14.5058 }
+const LJ_RADIUS_KM = 25
+const BOUNDS: [[number, number], [number, number]] = [[45.88, 14.2], [46.24, 14.85]]
+const VIEW: [[number, number], [number, number]] = [[46.01, 14.43], [46.11, 14.58]]
+const inBasin = (r: Reading) => distanceKm(r.lat, r.lon, LJ.lat, LJ.lon) <= LJ_RADIUS_KM
 
 /** Same colours as --dobro … --nevarno (they don't change with the theme), for the canvas. */
 const LEVEL_HEX = { dobro: '#3bb273', zmerno: '#f2c94c', slabo: '#f2994a', zeloslabo: '#e5484d', nevarno: '#8e4ec6' } as const
@@ -85,8 +89,8 @@ interface Props {
 }
 
 /**
- * 03 · Zemljevid: satellite map of Slovenia with every ARSO station at its real place.
- * MERITEV: the latest hourly measurement for every station that reports PM2.5.
+ * 03 · Zemljevid: satellite map of the Ljubljana basin with the ARSO stations at their real place.
+ * MERITEV: the latest hourly measurement for every basin station that reports PM2.5.
  * MODEL: only the stations the user picked (home, work, …), with a slider from 10 h back to 10 h ahead.
  */
 export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation, initialMode = 'meritev' }: Props) {
@@ -113,7 +117,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
 
   const selReading = readings.find((r) => r.code === selected)
   const selValue = valueAt(selected)
-  const withPm = readings.filter((r) => r.pm25 != null)
+  const withPm = readings.filter((r) => r.pm25 != null && inBasin(r))
   const shown = mode === 'meritev' ? withPm : readings.filter((r) => mine.includes(r.code))
   const points: Point[] = shown.flatMap((r) => {
     const v = valueAt(r.code)
@@ -125,9 +129,10 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   useEffect(() => {
     if (!mapEl.current || map.current) return
     const m = L.map(mapEl.current, { zoomControl: false, attributionControl: true, minZoom: 7, maxZoom: 15 })
+    L.control.zoom({ position: 'bottomright' }).addTo(m)
     L.tileLayer(SAT, { attribution: ATTR, maxZoom: 18 }).addTo(m)
     L.tileLayer(PLACES, { maxZoom: 18, opacity: 0.9 }).addTo(m)
-    m.fitBounds([[45.42, 13.4], [46.88, 16.6]], { padding: [8, 8] })
+    m.fitBounds(VIEW, { padding: [8, 8] })
     markers.current = L.layerGroup().addTo(m)
     map.current = m
     return () => {
@@ -185,7 +190,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   return (
     <div className="screen">
       <div>
-        <p className="t-label">Slovenija · satelit</p>
+        <p className="t-label">Ljubljanska kotlina · satelit</p>
         <p className="t-title">Zemljevid</p>
       </div>
 
@@ -268,7 +273,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
       {mode === 'meritev' && (
         <>
           <div className="section-head">
-            <p className="t-sub">Vse postaje</p>
+            <p className="t-sub">Postaje v kotlini</p>
             <span className="t-small" style={{ fontSize: 11 }}>PM2,5 · zadnja ura</span>
           </div>
           <div className="rows">

@@ -120,6 +120,8 @@ p { margin: 0; }
 .map-canvas { position: absolute; inset: 0; background: #1d2a2a; }
 .map-canvas .leaflet-control-attribution { font-size: 9px; background: rgb(255 255 255 / 0.7); color: #294b3d; }
 .map .seg, .map .legend { z-index: 1000; }
+.map .leaflet-bottom.leaflet-right { bottom: 64px; }
+.map .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; font-size: 20px; }
 .map .leaflet-marker-icon { z-index: 600 !important; }
 .map-surface { filter: blur(10px); }
 .seg { position: absolute; left: 24px; right: 24px; top: 16px; height: 44px; background: var(--surface); border-radius: 14px; padding: 4px; display: flex; }
