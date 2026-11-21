@@ -1,0 +1,36 @@
+:root {
+  --navy: #002f3f;
+  --ink: #0b2530;
+  --muted: #5b7380;
+  --bg: #eef5f8;
+  --card: #fff;
+  --accent: #0a6e99;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+body { margin: 0; }
+main { max-width: 480px; margin: 0 auto; padding: 16px; display: grid; gap: 12px; }
+header { display: flex; justify-content: space-between; align-items: center; }
+h1 { font-size: 20px; margin: 0; color: var(--navy); }
+h2 { font-size: 16px; margin: 0 0 8px; }
+.points { font-weight: 700; }
+select { font-size: 16px; padding: 10px; border-radius: 10px; border: 1px solid #c7d6dd; background: #fff; }
+.card { background: var(--card); border-radius: 16px; padding: 16px; box-shadow: 0 1px 3px rgb(0 0 0 / 0.08); }
+.now { background: var(--navy); color: #fff; }
+.tag { font-size: 11px; letter-spacing: 0.06em; opacity: 0.7; }
+.value { font-size: 44px; font-weight: 700; display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.value small { font-size: 14px; font-weight: 400; opacity: 0.8; }
+.dot { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
+.level { font-size: 18px; }
+.sub { opacity: 0.8; margin-top: 4px; }
+.buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.buttons button {
+  font-size: 16px; padding: 14px 8px; border-radius: 12px; border: 2px solid var(--accent);
+  background: #fff; color: var(--accent); font-weight: 600; cursor: pointer; display: grid; gap: 2px;
+}
+.buttons button:hover { background: var(--accent); color: #fff; }
+.buttons small { font-weight: 400; font-size: 12px; }
+.placed { color: var(--muted); }
+.error { color: #b00020; }
+ul { margin: 0; padding-left: 18px; }
