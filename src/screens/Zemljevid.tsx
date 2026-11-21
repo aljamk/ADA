@@ -1,39 +1,23 @@
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useState } from 'react'
 import { levelOfPm, usAqi } from '../aqi'
 import { shortName, type Reading } from '../arso'
 import { atHour, type Forecast } from '../forecast'
 import { hourStr } from '../time'
 
-// Schematic map of the Ljubljana basin from Figma (node 29:1781), 390 × 429 design px.
-const W = 390
-const H = 429
-const pctX = (x: number) => `${(x / W) * 100}%`
-const pctY = (y: number) => `${(y / H) * 100}%`
-
-const LAYERS = [
-  { src: 'map-1', x: 0, y: 0, w: 135, h: 236 },
-  { src: 'map-2', x: 280, y: 0, w: 110, h: 429 },
-  { src: 'map-3', x: 10, y: 71.33, w: 389, h: 42.67 },
-  { src: 'map-4', x: 192.77, y: 220, w: 97.23, h: 210 },
-  { src: 'map-5', x: 0, y: 0, w: 390, h: 398 },
-  { src: 'map-6', x: 28, y: 88, w: 325, h: 273 },
-]
-const LABELS = [
-  { t: 'ŠIŠKA', x: 39, y: 123 },
-  { t: 'BEŽIGRAD', x: 235, y: 125 },
-  { t: 'TIVOLI', x: 83, y: 202 },
-  { t: 'CENTER', x: 214, y: 248 },
-  { t: 'VIČ', x: 78, y: 330 },
-  { t: 'RUDNIK', x: 272, y: 356 },
-]
-// The three official ARSO stations in Ljubljana, at their place on the schematic
-export const MAP_STATIONS = [
-  { code: 'E403', x: 219, y: 153 }, // LJ Bežigrad
-  { code: 'E405', x: 184, y: 234 }, // LJ Celovška
-  { code: 'E404', x: 102, y: 299 }, // LJ Vič
-]
+// The three official ARSO stations in Ljubljana: their forecasts are always fetched (home-town default)
+export const MAP_STATIONS = [{ code: 'E403' }, { code: 'E405' }, { code: 'E404' }]
 
 const SPAN = 10 // hours back and ahead on the slider (model)
+
+// Satellite imagery and place labels (Esri; attribution required and shown on the map)
+const SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+const PLACES = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
+const ATTR = 'Satelit: Esri, Maxar, Earthstar Geographics · Meritve: ARSO · Model: CAMS'
+
+/** Slovenia, for the estimate surface */
+const BOUNDS: [[number, number], [number, number]] = [[45.4, 13.35], [46.9, 16.65]]
 
 /** Same colours as --dobro … --nevarno (they don't change with the theme), for the canvas. */
 const LEVEL_HEX = { dobro: '#3bb273', zmerno: '#f2c94c', slabo: '#f2994a', zeloslabo: '#e5484d', nevarno: '#8e4ec6' } as const
@@ -49,45 +33,43 @@ export function relHour(n: number) {
   return `Čez ${a} ${a === 1 ? 'uro' : a === 2 ? 'uri' : a <= 4 ? 'ure' : 'ur'}`
 }
 
-/**
- * Coloured surface like the EEA air-quality maps: every cell gets the level of an
- * inverse-distance-weighted estimate from the stations, drawn small and blurred.
- * It is an ESTIMATE between three stations, not a measurement.
- */
-function Surface({ points }: { points: { x: number; y: number; pm: number }[] }) {
-  const ref = useRef<HTMLCanvasElement>(null)
-  useEffect(() => {
-    const cv = ref.current
-    const ctx = cv?.getContext('2d')
-    if (!cv || !ctx) return
-    const cell = 6
-    cv.width = Math.ceil(W / cell)
-    cv.height = Math.ceil(H / cell)
-    ctx.clearRect(0, 0, cv.width, cv.height)
-    if (!points.length) return
-    for (let gy = 0; gy < cv.height; gy++)
-      for (let gx = 0; gx < cv.width; gx++) {
-        const x = gx * cell + cell / 2
-        const y = gy * cell + cell / 2
-        let num = 0
-        let den = 0
-        for (const p of points) {
-          const w = 1 / Math.max(1, (p.x - x) ** 2 + (p.y - y) ** 2)
-          num += w * p.pm
-          den += w
-        }
-        ctx.fillStyle = LEVEL_HEX[levelOfPm(num / den).key]
-        ctx.fillRect(gx, gy, 1, 1)
-      }
-  }, [points])
-  return <canvas ref={ref} className="map-surface" aria-hidden="true" />
+interface Point {
+  lat: number
+  lon: number
+  pm: number
 }
 
-/** Keep the same array object while the values don't change, so the canvas redraws only when it must. */
-function useStablePoints<T>(points: T, key: string) {
-  const ref = useRef({ key, points })
-  if (ref.current.key !== key) ref.current = { key, points }
-  return ref.current.points
+/**
+ * Coloured surface like the EEA air-quality maps: every cell gets the level of an
+ * inverse-distance-weighted estimate from the stations (distance in km). It is an
+ * ESTIMATE between stations, not a measurement. Returned as a PNG data URL.
+ */
+function surfaceImage(points: Point[]) {
+  const cv = document.createElement('canvas')
+  const cols = 132
+  const rows = 60
+  cv.width = cols
+  cv.height = rows
+  const ctx = cv.getContext('2d')
+  if (!ctx || !points.length) return null
+  const [[s, w], [n, e]] = BOUNDS
+  for (let gy = 0; gy < rows; gy++)
+    for (let gx = 0; gx < cols; gx++) {
+      const lat = n - ((gy + 0.5) / rows) * (n - s)
+      const lon = w + ((gx + 0.5) / cols) * (e - w)
+      let num = 0
+      let den = 0
+      for (const p of points) {
+        const dx = (p.lon - lon) * 111 * Math.cos((lat * Math.PI) / 180)
+        const dy = (p.lat - lat) * 111
+        const wgt = 1 / Math.max(1, dx * dx + dy * dy)
+        num += wgt * p.pm
+        den += wgt
+      }
+      ctx.fillStyle = LEVEL_HEX[levelOfPm(num / den).key]
+      ctx.fillRect(gx, gy, 1, 1)
+    }
+  return cv.toDataURL()
 }
 
 interface Props {
@@ -99,17 +81,22 @@ interface Props {
   mine: string[]
   onMine: (codes: string[]) => void
   onAddStation: () => void
+  initialMode?: 'meritev' | 'model'
 }
 
 /**
- * 03 · Zemljevid.
- * MERITEV: the latest ARSO measurement, for every station that reports PM2.5 (map bubbles for Ljubljana, a list for all).
+ * 03 · Zemljevid: satellite map of Slovenia with every ARSO station at its real place.
+ * MERITEV: the latest hourly measurement for every station that reports PM2.5.
  * MODEL: only the stations the user picked (home, work, …), with a slider from 10 h back to 10 h ahead.
  */
-export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation, initialMode = 'meritev' }: Props & { initialMode?: 'meritev' | 'model' }) {
+export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation, initialMode = 'meritev' }: Props) {
   const [mode, setMode] = useState<'meritev' | 'model'>(initialMode)
   const [sel, setSel] = useState(station)
   const [step, setStep] = useState(0) // -SPAN..SPAN hours from the last measured hour (model only)
+  const mapEl = useRef<HTMLDivElement>(null)
+  const map = useRef<L.Map | null>(null)
+  const markers = useRef<L.LayerGroup | null>(null)
+  const overlay = useRef<L.ImageOverlay | null>(null)
 
   // In the model view the selection is always one of my stations
   const selected = mode === 'model' && !mine.includes(sel) ? mine[0] : sel
@@ -127,12 +114,66 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   const selReading = readings.find((r) => r.code === selected)
   const selValue = valueAt(selected)
   const withPm = readings.filter((r) => r.pm25 != null)
-  const points = MAP_STATIONS.flatMap((s) => {
-    const v = valueAt(s.code)
-    return v ? [{ x: s.x, y: s.y, pm: v.pm }] : []
+  const shown = mode === 'meritev' ? withPm : readings.filter((r) => mine.includes(r.code))
+  const points: Point[] = shown.flatMap((r) => {
+    const v = valueAt(r.code)
+    return v ? [{ lat: r.lat, lon: r.lon, pm: v.pm }] : []
   })
-  const stablePoints = useStablePoints(points, points.map((p) => p.pm).join(','))
-  const shownOnMap = mode === 'meritev' ? MAP_STATIONS : MAP_STATIONS.filter((s) => mine.includes(s.code))
+  const pointsKey = points.map((p) => `${p.lat},${p.lon},${p.pm}`).join(';')
+
+  // Map once
+  useEffect(() => {
+    if (!mapEl.current || map.current) return
+    const m = L.map(mapEl.current, { zoomControl: false, attributionControl: true, minZoom: 7, maxZoom: 15 })
+    L.tileLayer(SAT, { attribution: ATTR, maxZoom: 18 }).addTo(m)
+    L.tileLayer(PLACES, { maxZoom: 18, opacity: 0.9 }).addTo(m)
+    m.fitBounds([[45.42, 13.4], [46.88, 16.6]], { padding: [8, 8] })
+    markers.current = L.layerGroup().addTo(m)
+    map.current = m
+    return () => {
+      m.remove()
+      map.current = null
+    }
+  }, [])
+
+  // Estimate surface (redrawn when the values change: slider, mode, my stations, new readings)
+  useEffect(() => {
+    const m = map.current
+    if (!m) return
+    // An estimate between stations needs at least three of them; one or two would colour the whole country
+    const url = points.length >= 3 ? surfaceImage(points) : null
+    overlay.current?.remove()
+    overlay.current = null
+    if (!url) return
+    overlay.current = L.imageOverlay(url, BOUNDS, { opacity: 0.45, className: 'map-surface', interactive: false }).addTo(m)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pointsKey])
+
+  // Station bubbles
+  useEffect(() => {
+    const g = markers.current
+    if (!g) return
+    g.clearLayers()
+    for (const r of shown) {
+      const v = valueAt(r.code)
+      const lvl = v ? levelOfPm(v.pm) : null
+      const icon = L.divIcon({
+        className: '',
+        html: `<button class="bubble${r.code === selected ? ' sel' : ''}" style="background:${lvl ? lvl.color : 'var(--soft)'}" aria-label="${shortName(r.name)}">${v ? usAqi(v.pm) : '–'}</button>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+      })
+      L.marker([r.lat, r.lon], { icon, keyboard: false }).on('click', () => setSel(r.code)).addTo(g)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pointsKey, selected, mode, readings])
+
+  // Keep the selected station in view
+  useEffect(() => {
+    const m = map.current
+    if (!m || !selReading) return
+    if (!m.getBounds().pad(-0.15).contains([selReading.lat, selReading.lon])) m.panTo([selReading.lat, selReading.lon])
+  }, [selReading])
 
   const pick = (code: string) => setSel(code)
   const remove = (code: string) => {
@@ -144,22 +185,12 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   return (
     <div className="screen">
       <div>
-        <p className="t-label">Ljubljanska kotlina</p>
+        <p className="t-label">Slovenija · satelit</p>
         <p className="t-title">Zemljevid</p>
       </div>
 
       <div className="map">
-        {LAYERS.map((l) => (
-          <img key={l.src} src={`/figma/${l.src}.svg`} alt="" style={{ left: pctX(l.x), top: pctY(l.y), width: pctX(l.w), height: pctY(l.h) }} />
-        ))}
-        <Surface points={stablePoints} />
-        {LABELS.map((l) => (
-          <span key={l.t} className="map-label" style={{ left: pctX(l.x), top: pctY(l.y) }}>
-            {l.t}
-          </span>
-        ))}
-        <span className="map-label" style={{ left: pctX(113), top: pctY(68), fontWeight: 400 }}>Sava</span>
-        <span className="map-label" style={{ left: pctX(257), top: pctY(302), fontWeight: 400, fontSize: 11 }}>Ljubljanica</span>
+        <div ref={mapEl} className="map-canvas" aria-label="Satelitski zemljevid s postajami ARSO" />
 
         <div className="seg">
           <button className={mode === 'meritev' ? 'on' : ''} onClick={() => { setMode('meritev'); setStep(0) }}>
@@ -170,27 +201,11 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
           </button>
         </div>
 
-        {shownOnMap.map((s) => {
-          const v = valueAt(s.code)
-          return (
-            <button
-              key={s.code}
-              className={`bubble${s.code === selected ? ' sel' : ''}`}
-              style={{ left: pctX(s.x), top: pctY(s.y), background: v ? levelOfPm(v.pm).color : 'var(--soft)' }}
-              onClick={() => pick(s.code)}
-              aria-label={readings.find((r) => r.code === s.code)?.name}
-            >
-              {v ? usAqi(v.pm) : '–'}
-            </button>
-          )
-        })}
-
         <div className="legend">
           <span>{mode === 'meritev' ? `● MERITEV · ${withPm.length} postaj` : `MODEL · ${mine.length} ${mine.length === 1 ? 'postaja' : mine.length === 2 ? 'postaji' : 'postaje'}`}</span>
-          <span>Barvna ploskev: ocena med postajami</span>
+          <span>{points.length >= 3 ? 'Barvna ploskev: ocena med postajami' : 'Dodaj vsaj 3 postaje za barvno ploskev'}</span>
         </div>
       </div>
-
 
       {selReading && (
         <section className="sheet">
@@ -244,7 +259,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             </>
           ) : (
             <p className="t-small" style={{ fontSize: 11 }}>
-              Zadnja urna meritev ARSO ({selValue ? `${Number(selValue.time.slice(11, 13))}h` : '–'}) · barvna ploskev je ocena med tremi ljubljanskimi postajami
+              Zadnja urna meritev ARSO ({selValue ? `${Number(selValue.time.slice(11, 13))}h` : '–'}) · barvna ploskev je ocena med postajami, ne meritev
             </p>
           )}
         </section>
