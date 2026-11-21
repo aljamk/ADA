@@ -130,7 +130,7 @@ p { margin: 0; }
 .sheet::before { content: ''; position: absolute; top: 10px; left: 50%; width: 58px; height: 4px; margin-left: -29px; border-radius: 3px; background: #ccdde4; }
 .timeline { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; margin-top: 8px; }
 .timeline input { flex: 1; accent-color: var(--accent); }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
 .chips .chip { height: 36px; padding: 0 4px 0 12px; gap: 4px; font-size: 14px; }
 .chips .chip.on { background: var(--accent); color: var(--on-accent); }
 .chips .chip button { background: none; border: none; padding: 0 6px; color: inherit; font: inherit; font-weight: 700; }
