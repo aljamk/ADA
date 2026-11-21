@@ -33,7 +33,7 @@ export const MAP_STATIONS = [
   { code: 'E404', x: 102, y: 299 }, // LJ Vič
 ]
 
-const SPAN = 10 // hours back and ahead on the slider
+const SPAN = 10 // hours back and ahead on the slider (model)
 
 /** Same colours as --dobro … --nevarno (they don't change with the theme), for the canvas. */
 const LEVEL_HEX = { dobro: '#3bb273', zmerno: '#f2c94c', slabo: '#f2994a', zeloslabo: '#e5484d', nevarno: '#8e4ec6' } as const
@@ -83,36 +83,63 @@ function Surface({ points }: { points: { x: number; y: number; pm: number }[] })
   return <canvas ref={ref} className="map-surface" aria-hidden="true" />
 }
 
+/** Keep the same array object while the values don't change, so the canvas redraws only when it must. */
+function useStablePoints<T>(points: T, key: string) {
+  const ref = useRef({ key, points })
+  if (ref.current.key !== key) ref.current = { key, points }
+  return ref.current.points
+}
+
 interface Props {
   readings: Reading[]
   forecasts: Record<string, Forecast>
+  /** Station chosen in the Zdaj tab */
+  station: string
+  /** User's own stations for the model view (home, work, …), at least one */
+  mine: string[]
+  onMine: (codes: string[]) => void
+  onAddStation: () => void
 }
 
-/** 03 · Zemljevid: measurement or model per station, with a time slider over the next 12 hours (model). */
-export default function Zemljevid({ readings, forecasts }: Props) {
+/**
+ * 03 · Zemljevid.
+ * MERITEV: the latest ARSO measurement, for every station that reports PM2.5 (map bubbles for Ljubljana, a list for all).
+ * MODEL: only the stations the user picked (home, work, …), with a slider from 10 h back to 10 h ahead.
+ */
+export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation }: Props) {
   const [mode, setMode] = useState<'meritev' | 'model'>('meritev')
-  const [sel, setSel] = useState('E403')
-  const [step, setStep] = useState(0) // -SPAN..SPAN hours from the last measured hour; ≠ 0 is always the model
+  const [sel, setSel] = useState(station)
+  const [step, setStep] = useState(0) // -SPAN..SPAN hours from the last measured hour (model only)
+
+  // In the model view the selection is always one of my stations
+  const selected = mode === 'model' && !mine.includes(sel) ? mine[0] : sel
 
   const valueAt = (code: string): { pm: number; time: string; source: 'MERITEV' | 'MODEL' } | null => {
     const r = readings.find((x) => x.code === code)
     if (!r) return null
+    if (mode === 'meritev') return r.pm25 != null ? { pm: r.pm25, time: r.from, source: 'MERITEV' } : null
     const fc = forecasts[code]
-    if (step === 0 && mode === 'meritev') return r.pm25 != null ? { pm: r.pm25, time: r.from, source: 'MERITEV' } : null
     if (!fc) return null
     const h = atHour(fc, addHours(r.from, step))
     return h ? { pm: h.value, time: h.time, source: 'MODEL' } : null
   }
 
-  const selReading = readings.find((r) => r.code === sel)
-  const selValue = valueAt(sel)
-  const source = step !== 0 ? 'MODEL' : mode === 'meritev' ? 'MERITEV' : 'MODEL'
+  const selReading = readings.find((r) => r.code === selected)
+  const selValue = valueAt(selected)
+  const withPm = readings.filter((r) => r.pm25 != null)
   const points = MAP_STATIONS.flatMap((s) => {
     const v = valueAt(s.code)
     return v ? [{ x: s.x, y: s.y, pm: v.pm }] : []
   })
-  const pointsKey = points.map((p) => p.pm).join(',')
-  const stablePoints = useStablePoints(points, pointsKey)
+  const stablePoints = useStablePoints(points, points.map((p) => p.pm).join(','))
+  const shownOnMap = mode === 'meritev' ? MAP_STATIONS : MAP_STATIONS.filter((s) => mine.includes(s.code))
+
+  const pick = (code: string) => setSel(code)
+  const remove = (code: string) => {
+    if (mine.length <= 1) return
+    onMine(mine.filter((c) => c !== code))
+    if (selected === code) setSel(mine.find((c) => c !== code) ?? mine[0])
+  }
 
   return (
     <div className="screen">
@@ -135,22 +162,22 @@ export default function Zemljevid({ readings, forecasts }: Props) {
         <span className="map-label" style={{ left: pctX(257), top: pctY(302), fontWeight: 400, fontSize: 11 }}>Ljubljanica</span>
 
         <div className="seg">
-          <button className={mode === 'meritev' && step === 0 ? 'on' : ''} onClick={() => { setMode('meritev'); setStep(0) }}>
+          <button className={mode === 'meritev' ? 'on' : ''} onClick={() => { setMode('meritev'); setStep(0) }}>
             ● Meritev
           </button>
-          <button className={mode === 'model' || step !== 0 ? 'on' : ''} onClick={() => setMode('model')}>
-            Model
+          <button className={mode === 'model' ? 'on' : ''} onClick={() => setMode('model')}>
+            Model · moje postaje
           </button>
         </div>
 
-        {MAP_STATIONS.map((s) => {
+        {shownOnMap.map((s) => {
           const v = valueAt(s.code)
           return (
             <button
               key={s.code}
-              className={`bubble${s.code === sel ? ' sel' : ''}`}
+              className={`bubble${s.code === selected ? ' sel' : ''}`}
               style={{ left: pctX(s.x), top: pctY(s.y), background: v ? levelOfPm(v.pm).color : 'var(--soft)' }}
-              onClick={() => setSel(s.code)}
+              onClick={() => pick(s.code)}
               aria-label={readings.find((r) => r.code === s.code)?.name}
             >
               {v ? usAqi(v.pm) : '–'}
@@ -159,53 +186,87 @@ export default function Zemljevid({ readings, forecasts }: Props) {
         })}
 
         <div className="legend">
-          <span>● {source} · 3 postaje</span>
+          <span>{mode === 'meritev' ? `● MERITEV · ${withPm.length} postaj` : `MODEL · ${mine.length} ${mine.length === 1 ? 'postaja' : mine.length === 2 ? 'postaji' : 'postaje'}`}</span>
           <span>Barvna ploskev: ocena med postajami</span>
         </div>
       </div>
+
+      {mode === 'model' && (
+        <div className="chips" aria-label="Moje postaje">
+          {mine.map((code) => {
+            const r = readings.find((x) => x.code === code)
+            return (
+              <span key={code} className={`chip${code === selected ? ' on' : ''}`}>
+                <button onClick={() => pick(code)}>{r ? shortName(r.name) : code}</button>
+                {mine.length > 1 && <button className="x" aria-label={`Odstrani ${r ? shortName(r.name) : code}`} onClick={() => remove(code)}>×</button>}
+              </span>
+            )
+          })}
+          <button className="chip add" onClick={onAddStation}>+ Dodaj postajo</button>
+        </div>
+      )}
 
       {selReading && (
         <section className="sheet">
           <div className="now-top">
             <p className="t-sub">{shortName(selReading.name)}</p>
-            <span className="chip">{source === 'MERITEV' ? '● MERITEV' : 'MODEL'}</span>
+            <span className="chip">{mode === 'meritev' ? '● MERITEV' : 'MODEL'}</span>
           </div>
           {selValue ? (
             <p className="t-sub">
               {levelOfPm(selValue.pm).symbol} {levelOfPm(selValue.pm).label} · AQI {usAqi(selValue.pm)}
             </p>
           ) : (
-            <p className="t-body t-2">Ni podatka za to uro.</p>
+            <p className="t-body t-2">{mode === 'model' && !forecasts[selected] ? 'Nalagam model…' : 'Ni podatka za to uro.'}</p>
           )}
           <p className="t-small">
             PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · uradna postaja ARSO
           </p>
-          <p className="timeline-now" aria-live="polite">{relHour(step)}</p>
-          <div className="timeline">
-            <span className="t-small">pred {SPAN} h</span>
-            <input
-              type="range"
-              min={-SPAN}
-              max={SPAN}
-              value={step}
-              onChange={(e) => setStep(Number(e.target.value))}
-              aria-label="Čas: nazaj in naprej po urah"
-              aria-valuetext={relHour(step)}
-            />
-            <span className="t-small">čez {SPAN} h</span>
-          </div>
-          <p className="t-small" style={{ fontSize: 11 }}>
-            Shematski prikaz · {step === 0 && mode === 'meritev' ? 'zdaj je meritev ARSO' : 'za vsako uro nazaj in naprej je izračun modela CAMS, umerjen na meritev'} · barvna ploskev je ocena med tremi postajami
-          </p>
+          {mode === 'model' ? (
+            <>
+              <p className="timeline-now" aria-live="polite">{relHour(step)}</p>
+              <div className="timeline">
+                <span className="t-small">pred {SPAN} h</span>
+                <input
+                  type="range"
+                  min={-SPAN}
+                  max={SPAN}
+                  value={step}
+                  onChange={(e) => setStep(Number(e.target.value))}
+                  aria-label="Čas: nazaj in naprej po urah"
+                  aria-valuetext={relHour(step)}
+                />
+                <span className="t-small">čez {SPAN} h</span>
+              </div>
+              <p className="t-small" style={{ fontSize: 11 }}>
+                Za vsako uro nazaj in naprej je izračun modela CAMS, umerjen na zadnjo meritev · postaje izbereš sam(a), npr. doma in v službi
+              </p>
+            </>
+          ) : (
+            <p className="t-small" style={{ fontSize: 11 }}>
+              Zadnja urna meritev ARSO ({selValue ? `${Number(selValue.time.slice(11, 13))}h` : '–'}) · barvna ploskev je ocena med tremi ljubljanskimi postajami
+            </p>
+          )}
         </section>
+      )}
+
+      {mode === 'meritev' && (
+        <>
+          <div className="section-head">
+            <p className="t-sub">Vse postaje</p>
+            <span className="t-small" style={{ fontSize: 11 }}>PM2,5 · zadnja ura</span>
+          </div>
+          <div className="rows">
+            {withPm.map((r) => (
+              <button key={r.code} className={`row station${r.code === selected ? ' me' : ''}`} onClick={() => pick(r.code)}>
+                <span className="n" style={{ color: levelOfPm(r.pm25 as number).color }}>{levelOfPm(r.pm25 as number).symbol}</span>
+                <span>{shortName(r.name)}</span>
+                <span className="p">{r.pm25} µg/m³</span>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )
-}
-
-/** Keep the same array object while the values don't change, so the canvas redraws only when it must. */
-function useStablePoints<T>(points: T, key: string) {
-  const ref = useRef({ key, points })
-  if (ref.current.key !== key) ref.current = { key, points }
-  return ref.current.points
 }

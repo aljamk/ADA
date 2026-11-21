@@ -3,14 +3,13 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { shortName, type Reading } from '../../arso'
 import { atHour, type Forecast } from '../../forecast'
-import { totalXp, type GameLog, type RoundResult } from '../../game'
+import { totalXp, type GameLog } from '../../game'
 import {
-  direction, guessPoints, loadGuesses, loadTasks, playStreak, saveGuesses, saveTasks, taskTotalPoints, vsModel,
+  direction, guessPoints, loadGuesses, loadTasks, playStreak, saveGuesses, saveTasks, taskTotalPoints,
   type Guess, type TaskKey, type TaskResult, type TaskLog,
 } from '../../naloge'
 import type { ProfileKey } from '../../profile'
 import { dateStr, hh, hourStr, tomorrow8 } from '../../time'
-import Igra from '../Igra'
 import { BREATH, LEVELS, QUIZ, QUIZ_SOURCE, TASKS, WORD_FACTS, WORDS, levelOf, type Level } from './vsebina'
 import './naloge.css'
 
@@ -601,13 +600,11 @@ function Dih({ onBack, onDone, saved, profile }: { onBack: () => void; onDone: (
 /* ============================================================================
  * Home
  * ========================================================================== */
-function Home({ done, onOpen, streak, xp, vs, uganiDone }: {
+function Home({ done, onOpen, streak, xp }: {
   done: Partial<Record<TaskKey, TaskResult>>
   onOpen: (v: View) => void
   streak: number
   xp: number
-  vs: { me: number; model: number; n: number }
-  uganiDone: number
 }) {
   const drops = Object.keys(done).length
   return (
@@ -649,28 +646,6 @@ function Home({ done, onOpen, streak, xp, vs, uganiDone }: {
           </button>
         ))}
       </section>
-
-      <p className="section-label">Dnevni izziv</p>
-      <button className="ugani" onClick={() => onOpen('ugani')}>
-        <span className="task-ico"><TaskIcon name="map" /></span>
-        <span className="task-text">
-          <b>Ugani zrak</b>
-          <span>Pet krajev, kakšen je bil zrak?</span>
-          <span className="small">{Math.min(uganiDone, 5)} od 5 krogov · točke za četrt</span>
-        </span>
-        <span className="status-chip">{uganiDone >= 5 ? '✓ Opravljeno' : uganiDone ? 'Nadaljuj' : 'Začni'}</span>
-      </button>
-
-      <section className="card vs">
-        <div className="row-between">
-          <b className="h3">Ti proti modelu</b>
-          <b className="h3">{vs.me} : {vs.model}</b>
-        </div>
-        <p className="muted small">
-          Pri nalogi Napoved ugibaš jutrišnji zrak. Naslednji dan tvojo napoved in napoved modela CAMS primerjamo z meritvijo ARSO. Kdor je bliže, dobi točko.
-          {vs.n === 0 ? ' Ta teden še ni primerjav.' : ` Ta teden: ti ${vs.me}, model ${vs.model}.`}
-        </p>
-      </section>
     </div>
   )
 }
@@ -678,20 +653,18 @@ function Home({ done, onOpen, streak, xp, vs, uganiDone }: {
 /* ============================================================================
  * Tab root
  * ========================================================================== */
-type View = 'home' | TaskKey | 'ugani'
+type View = 'home' | TaskKey
 
 interface Props {
   reading?: Reading
   fc?: Forecast
   profile: ProfileKey
   log: GameLog
-  onRound: (r: RoundResult) => void
   cetrt: string
-  startRound?: boolean
 }
 
-export default function Naloge({ reading, fc, profile, log, onRound, cetrt, startRound }: Props) {
-  const [view, setView] = useState<View>(startRound ? 'ugani' : 'home')
+export default function Naloge({ reading, fc, profile, log, cetrt }: Props) {
+  const [view, setView] = useState<View>('home')
   const [tasks, setTasks] = useState<TaskLog>(loadTasks)
   const [guesses, setGuesses] = useState<(Guess & { seen?: boolean })[]>(loadGuesses)
   useEffect(() => { saveTasks(tasks) }, [tasks])
@@ -731,16 +704,11 @@ export default function Naloge({ reading, fc, profile, log, onRound, cetrt, star
 
   const resolved = guesses.filter((g) => g.actual != null)
   const xp = totalXp(log) + taskTotalPoints(tasks) + resolved.reduce((s, g) => s + guessPoints(g), 0) + Object.values(tasks).reduce((s, d) => s + Object.keys(d).length * 10, 0)
-  const vs = useMemo(() => {
-    const week = resolved.filter((g) => Date.now() - new Date(g.target.replace(' ', 'T')).getTime() < 7 * 86400000)
-    const r = week.map(vsModel).filter((x): x is 1 | 0 | -1 => x != null)
-    return { me: r.filter((x) => x > 0).length, model: r.filter((x) => x < 0).length, n: r.length }
-  }, [resolved])
 
   return (
     <div className="ng">
       {view === 'home' && (
-        <Home done={done} onOpen={setView} streak={playStreak(tasks, log)} xp={xp} vs={vs} uganiDone={log[today]?.length ?? 0} />
+        <Home done={done} onOpen={setView} streak={playStreak(tasks, log)} xp={xp} />
       )}
       {view === 'napoved' && (
         <Napoved
@@ -759,7 +727,6 @@ export default function Naloge({ reading, fc, profile, log, onRound, cetrt, star
       {view === 'kviz' && <Kviz onBack={back} onDone={finish('kviz')} saved={done.kviz} />}
       {view === 'beseda' && <Beseda onBack={back} onDone={finish('beseda')} saved={done.beseda} />}
       {view === 'dih' && <Dih onBack={back} onDone={finish('dih')} saved={done.dih} profile={profile} />}
-      {view === 'ugani' && <Igra log={log} onRound={onRound} cetrt={cetrt} startRound={startRound} onBack={back} />}
     </div>
   )
 }
