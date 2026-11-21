@@ -124,7 +124,7 @@ p, h1, h2, h3, ol { margin: 0; }
 .league .zone { font-size: 12px; color: var(--primary); }
 .league .down .zone { color: var(--fg-2); }
 .league .pts { font-weight: 700; }
-.vs { color: var(--fg-2); }
+.vs { display: grid; gap: 6px; }
 
 /* Scale */
 .scale { position: relative; padding: 28px 0 22px; }
@@ -970,7 +970,7 @@ function Liga({ weekPoints }) {
     .map(([name, pts]) => ({ name, pts }))
     .sort((a, b) => b.pts - a.pts)
   const me = table.findIndex((r) => r.name === MOCK.myCetrt)
-  const show = new Set([0, 1, 2, me - 1, me, me + 1].filter((i) => i >= 0 && i < table.length))
+  const show = new Set(table.map((_, i) => i)) // ves seznam: liga ima svoj zavihek
   const rows = []
   let prev = -1
   ;[...show].sort((a, b) => a - b).forEach((i) => {
@@ -1047,9 +1047,13 @@ function Home({ done, onOpen, weekPoints, streak, xp }) {
         ))}
       </section>
 
-      <Liga weekPoints={weekPoints} />
-
-      <p className="vs body center">Ti proti modelu: <b>{MOCK.vsModel.me} : {MOCK.vsModel.model}</b> ta teden</p>
+      <section className="card vs">
+        <div className="row-between">
+          <b className="h3">Ti proti modelu</b>
+          <b className="h3">{MOCK.vsModel.me} : {MOCK.vsModel.model}</b>
+        </div>
+        <p className="muted small">Pri nalogi Napoved ugibaš jutrišnji zrak. Vsak dan primerjamo tvojo napoved in napoved računalniškega modela CAMS z izmerjeno vrednostjo ARSO. Kdor je bliže, dobi točko. Ta teden: ti {MOCK.vsModel.me}, model {MOCK.vsModel.model}.</p>
+      </section>
     </div>
   )
 }
@@ -1095,12 +1099,13 @@ function IgraPrototip({ initialProfile = 'nihce' }) {
             {view === 'kviz' && <Kviz onBack={back} onDone={finish('kviz')} done={!!done.kviz} saved={done.kviz} />}
             {view === 'beseda' && <Beseda onBack={back} onDone={finish('beseda')} done={!!done.beseda} saved={done.beseda} />}
             {view === 'dih' && <Dih onBack={back} onDone={finish('dih')} done={!!done.dih} profile={profile} onProfile={setProfile} />}
-            {view.startsWith('tab-') && (
+            {view === 'tab-Liga' && <div className="screen"><h1 className="h1">Liga</h1><Liga weekPoints={weekPoints} /></div>}
+            {view.startsWith('tab-') && view !== 'tab-Liga' && (
               <div className="screen"><h1 className="h1">{view.slice(4)}</h1><p className="body muted">V tem prototipu deluje samo zavihek Igra.</p></div>
             )}
           </div>
           <nav className="tabbar" aria-label="Glavni zavihki">
-            {['Zdaj', 'Zemljevid', 'Igra', 'Opozorila'].map((t) => {
+            {['Zdaj', 'Zemljevid', 'Igra', 'Liga', 'Opozorila'].map((t) => {
               const active = t === 'Igra' ? !view.startsWith('tab-') : view === `tab-${t}`
               return (
                 <button key={t} className={active ? 'tab active' : 'tab'} aria-current={active ? 'page' : undefined} onClick={() => setView(t === 'Igra' ? 'home' : `tab-${t}`)}>
@@ -1124,6 +1129,7 @@ function TabIcon({ name }) {
       {name === 'Zdaj' && <path {...p} d="M3 10 12 3l9 7v10H3V10ZM9 20v-7h6v7" />}
       {name === 'Zemljevid' && <path {...p} d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6ZM9 4v14M15 6v14" />}
       {name === 'Igra' && (<><rect {...p} x="3" y="7" width="18" height="11" rx="4" /><path {...p} d="M8 11v3M6.5 12.5h3M15.5 12h.01M17.5 13.5h.01" /></>)}
+      {name === 'Liga' && <path {...p} d="M8 4h8v6a4 4 0 0 1-8 0V4ZM8 6H5v1.5A3 3 0 0 0 8 10.5M16 6h3v1.5a3 3 0 0 1-3 3M12 14v3M8 20h8M9.5 17h5" />}
       {name === 'Opozorila' && <path {...p} d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2ZM10 20a2 2 0 0 0 4 0" />}
     </svg>
   )

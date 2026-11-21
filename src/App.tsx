@@ -8,6 +8,7 @@ import type { GameLog, RoundResult } from './game'
 import { onResume, syncWidget } from './native'
 import { thresholdAqi, type ProfileKey } from './profile'
 import Igra from './screens/Igra'
+import Liga from './screens/Liga'
 import Odlocevalci, { publicNoticeWindow } from './screens/Odlocevalci'
 import Onboarding from './screens/Onboarding'
 import Opozorila, { DEFAULT_ALERTS, type AlertSettings } from './screens/Opozorila'
@@ -56,7 +57,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
   const requested = useRef(new Set<string>())
-  // Deep links: #zdaj, #zemljevid, #igra, #ugani (straight into a round), #opozorila, #odlocevalci
+  // Deep links: #zdaj, #zemljevid, #igra, #liga, #ugani (straight into a round), #opozorila, #odlocevalci
   const hash = location.hash.slice(1)
   const [tab, setTab] = useState<TabKey>(hash === 'ugani' ? 'igra' : TABS.some((t) => t.key === hash) ? (hash as TabKey) : 'zdaj')
   const [overlay, setOverlay] = useState<'odlocevalci' | 'picker' | null>(hash === 'odlocevalci' ? 'odlocevalci' : null)
@@ -160,7 +161,8 @@ export default function App() {
               <div className="screen"><p className="t-title">Zdaj</p><p className="t-body t-2">Nalagam meritve ARSO…</p></div>
             ))}
           {tab === 'zemljevid' && <Zemljevid readings={readings} forecasts={forecasts} />}
-          {tab === 'igra' && <Igra log={log} onRound={addRound} cetrt={cetrt} onCetrt={setCetrt} startRound={hash === 'ugani'} />}
+          {tab === 'igra' && <Igra log={log} onRound={addRound} cetrt={cetrt} startRound={hash === 'ugani'} />}
+          {tab === 'liga' && <Liga log={log} cetrt={cetrt} onCetrt={setCetrt} />}
           {tab === 'opozorila' && (
             <Opozorila settings={alerts} onChange={setAlerts} stationName={current ? shortName(current.name) : 'tvojo postajo'} />
           )}
