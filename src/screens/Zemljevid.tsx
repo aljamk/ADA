@@ -104,6 +104,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   const [mode, setMode] = useState<'meritev' | 'model'>(initialMode)
   const [sel, setSel] = useState(station)
   const [step, setStep] = useState(0) // -SPAN..SPAN hours from the last measured hour (model only)
+  const [info, setInfo] = useState(false) // explanation of the values, behind the round i
   const mapEl = useRef<HTMLDivElement>(null)
   const map = useRef<L.Map | null>(null)
   const markers = useRef<L.LayerGroup | null>(null)
@@ -237,7 +238,12 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
           )}
           <div className="now-top">
             <p className="t-sub">{shortName(selReading.name)}</p>
-            <span className="chip">{mode === 'meritev' ? '● MERITEV' : 'MODEL'}</span>
+            <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span className="chip">{mode === 'meritev' ? '● MERITEV' : 'MODEL'}</span>
+              <button className="info-btn" aria-label="Kaj pomenijo vrednosti?" aria-expanded={info} onClick={() => setInfo(!info)}>
+                i
+              </button>
+            </span>
           </div>
           {selValue ? (
             <p className="t-sub">
@@ -265,13 +271,14 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
                 />
                 <span className="t-small">čez {SPAN} h</span>
               </div>
-              <p className="t-small" style={{ fontSize: 11 }}>
-                Za vsako uro nazaj in naprej je izračun modela CAMS, umerjen na zadnjo meritev · postaje izbereš sam(a), npr. doma in v službi
-              </p>
             </>
-          ) : (
-            <p className="t-small" style={{ fontSize: 11 }}>
-              Zadnja urna meritev ARSO ({selValue ? `${Number(selValue.time.slice(11, 13))}h` : '–'}) · barvna ploskev je ocena med postajami, ne meritev
+          ) : null}
+          {info && (
+            <p className="t-small">
+              {mode === 'model'
+                ? 'Vrednosti so izračun modela CAMS (Copernicus), umerjen na zadnjo meritev ARSO na tej postaji. Za vsako uro nazaj in naprej. Postaje izbereš sam(a), npr. doma in v službi.'
+                : `Vrednost je zadnja urna meritev ARSO (${selValue ? `${Number(selValue.time.slice(11, 13))}h` : '–'}) na tej postaji, PM2,5 v µg/m³, AQI po lestvici US EPA.`}
+              {' '}Barvna ploskev je ocena med postajami, ne meritev: polna barva do 3 km od postaje, do 8 km izginja, dlje je ne rišemo.
             </p>
           )}
         </section>
