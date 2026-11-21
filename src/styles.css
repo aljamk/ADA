@@ -40,3 +40,11 @@ ul { margin: 0; padding-left: 18px; }
 .bar { width: 100%; min-height: 4px; border-radius: 4px 4px 0 0; }
 .bar-col span { font-size: 11px; color: var(--muted); }
 .tip { margin: 12px 0 6px; }
+.station-btn { text-align: left; font-size: 16px; padding: 12px; border-radius: 12px; border: 1px solid #c7d6dd; background: #fff; cursor: pointer; color: var(--ink); }
+.search { display: grid; gap: 8px; }
+.search input { font-size: 16px; padding: 10px; border-radius: 10px; border: 1px solid #c7d6dd; }
+.link { background: none; border: none; color: var(--accent); text-align: left; padding: 4px 0; cursor: pointer; font-size: 14px; }
+.station-list { list-style: none; padding: 0; max-height: 320px; overflow-y: auto; }
+.station-list button { width: 100%; display: flex; justify-content: space-between; padding: 10px 8px; border: none; border-bottom: 1px solid #eef2f4; background: none; font-size: 15px; cursor: pointer; color: var(--ink); }
+.station-list button.active { background: #e3f1f7; font-weight: 600; }
+.dot.small { width: 10px; height: 10px; }

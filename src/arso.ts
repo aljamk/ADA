@@ -33,6 +33,22 @@ export async function fetchArso(): Promise<Reading[]> {
   }))
 }
 
+// ARSO uses city abbreviations in station names; expand them so "Maribor" finds "MB Titova".
+const CITY: Record<string, string> = {
+  LJ: 'Ljubljana', MB: 'Maribor', CE: 'Celje', MS: 'Murska Sobota', NG: 'Nova Gorica', IB: 'Ilirska Bistrica',
+}
+export const searchText = (r: Reading) =>
+  `${r.name} ${CITY[r.name.split(' ')[0]] ?? ''}`.toLowerCase()
+
+export const isLjubljana = (r: Reading) => r.name.startsWith('LJ ') || r.name.startsWith('Brezje')
+
+/** Nearest station (equirectangular distance is plenty for Slovenia) */
+export function nearest(readings: Reading[], lat: number, lon: number) {
+  const k = Math.cos((lat * Math.PI) / 180)
+  const d = (r: Reading) => (r.lat - lat) ** 2 + ((r.lon - lon) * k) ** 2
+  return readings.reduce((a, b) => (d(b) < d(a) ? b : a))
+}
+
 // PM2.5 levels (EEA European Air Quality Index bands, µg/m³). TODO: confirm with ARSO.
 export const LEVELS = [
   { min: 0, label: 'Dober', color: '#50F0E6' },

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { BUCKETS, fetchArso, levelOf, type Reading } from './arso'
 import Forecast12h from './Forecast12h'
+import StationSearch from './components/StationSearch'
+import { load, save } from './storage'
+import { tomorrow8 } from './time'
 
 interface Bet {
   station: string
@@ -8,28 +11,6 @@ interface Bet {
   bucket: string
   points?: number
   actual?: number
-}
-
-const pad = (n: number) => String(n).padStart(2, '0')
-function tomorrow8() {
-  const d = new Date(Date.now() + 86400000)
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} 08:00`
-}
-
-function load<T>(key: string, fallback: T): T {
-  try {
-    const v = localStorage.getItem(key)
-    return v ? (JSON.parse(v) as T) : fallback
-  } catch {
-    return fallback
-  }
-}
-function save(key: string, v: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(v))
-  } catch {
-    /* storage unavailable */
-  }
 }
 
 export default function App() {
@@ -71,14 +52,7 @@ export default function App() {
         <span className="points">⭐ {points}</span>
       </header>
 
-      <select value={station} onChange={(e) => setStation(e.target.value)}>
-        {readings.length === 0 && <option value={station}>Nalagam postaje…</option>}
-        {readings.map((r) => (
-          <option key={r.code} value={r.code}>
-            {r.name}
-          </option>
-        ))}
-      </select>
+      <StationSearch readings={readings} value={station} onChange={setStation} />
 
       {error && <p className="error">Napaka pri branju ARSO: {error}</p>}
 
