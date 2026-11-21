@@ -83,7 +83,7 @@ export const CETRTI = [
 ]
 
 /**
- * DEMO league and friends: there is no server yet, so the other players and četrti have
+ * DEMO league: there is no server yet, so the other players and četrti have
  * stable pseudo-random scores. Replace with a real leaderboard API after the hackathon.
  */
 export function demoLeague(myCetrt: string, myWeek: number) {
@@ -93,13 +93,4 @@ export function demoLeague(myCetrt: string, myWeek: number) {
     for (const ch of c) h = (h * 33 + ch.charCodeAt(0)) % 100003
     return { cetrt: c, points: 3000 + (h % 4000) + (c === myCetrt ? myWeek : 0) }
   }).sort((a, b) => b.points - a.points)
-}
-
-export function demoFriends(me: number) {
-  const day = Number(dateStr(new Date()).replace(/-/g, ''))
-  const friends = [
-    { name: 'Nika', points: 900 + (day % 400), me: false },
-    { name: 'Luka', points: 700 + ((day * 7) % 450), me: false },
-  ]
-  return [...friends, { name: 'Ti', points: me, me: true }].sort((a, b) => b.points - a.points)
 }

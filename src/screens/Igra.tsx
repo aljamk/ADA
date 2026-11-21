@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { LEARN, learnLevel } from '../aqi'
 import {
-  accuracyPoints, badges, CETRTI, dayTotal, dayVerdict, demoFriends, demoLeague, streak, streakBonus,
+  accuracyPoints, badges, dayTotal, dayVerdict, demoLeague, streak, streakBonus,
   verdict, weekPoints, xpProgress, type GameLog, type RoundResult,
 } from '../game'
 import { dailyRounds, loadRound, roundDate, type Round } from '../rounds'
@@ -20,14 +20,13 @@ interface Props {
   log: GameLog
   onRound: (r: RoundResult) => void
   cetrt: string
-  onCetrt: (c: string) => void
 }
 
 /** 1240 -> "1.240" (sl-SI locale doesn't group 4-digit numbers, Figma does) */
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
 /** 04 · Ugani zrak (hub) → 05 · Tvoja ocena → 06 · Razkritje → 07 · Rezultati */
-export default function Igra({ log, onRound, cetrt, onCetrt, startRound }: Props & { startRound?: boolean }) {
+export default function Igra({ log, onRound, cetrt, startRound }: Props & { startRound?: boolean }) {
   const today = dateStr(new Date())
   const done = log[today] ?? []
   const [view, setView] = useState<'hub' | 'round' | 'reveal' | 'results'>(startRound && done.length < 5 ? 'round' : 'hub')
@@ -51,9 +50,6 @@ export default function Igra({ log, onRound, cetrt, onCetrt, startRound }: Props
   if (view === 'results') return <Results log={log} cetrt={cetrt} onBack={() => setView('hub')} />
 
   const xp = xpProgress(log)
-  const league = demoLeague(cetrt, weekPoints(log))
-  const rank = league.findIndex((l) => l.cetrt === cetrt) + 1
-  const friends = demoFriends(weekPoints(log))
   const s = streak(log)
 
   return (
@@ -88,32 +84,6 @@ export default function Igra({ log, onRound, cetrt, onCetrt, startRound }: Props
         <div className="progress"><div style={{ width: `${(xp.xp / xp.of) * 100}%` }} /></div>
       </section>
 
-      <section className="card">
-        <p className="t-h3">Liga četrtnih skupnosti</p>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-          <select value={cetrt} onChange={(e) => onCetrt(e.target.value)} style={{ font: 'inherit', fontSize: 22, fontWeight: 700, color: 'var(--text)', background: 'none', border: 'none', padding: 0 }}>
-            {CETRTI.map((c) => <option key={c}>{c}</option>)}
-          </select>
-          <b className="t-sub" style={{ color: 'var(--accent)' }}>{rank}. / 17</b>
-        </div>
-        <p className="t-small" style={{ fontWeight: 500 }}>
-          {rank <= 2 ? 'Zlata' : rank <= 8 ? 'Srebrna' : 'Bronasta'} liga · ta teden · primer
-        </p>
-      </section>
-
-      <div className="section-head">
-        <p className="t-sub">Prijatelji</p>
-        <span className="t-small" style={{ fontSize: 11 }}>Tedenski prikaz · primer</span>
-      </div>
-      <div className="rows">
-        {friends.map((f, i) => (
-          <div key={f.name} className={f.me ? 'row me' : 'row'}>
-            <span className="n">{i + 1}</span>
-            <span>{f.name}</span>
-            <span className="p">{fmt(f.points)}</span>
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
@@ -242,8 +212,6 @@ function Results({ log, cetrt, onBack }: { log: GameLog; cetrt: string; onBack: 
   const rs = log[dateStr(new Date())] ?? []
   const total = dayTotal(rs)
   const perfect = rs.filter((r) => Math.abs(r.guess - r.actual) <= 1).length
-  const friends = demoFriends(total)
-  const myRank = friends.findIndex((f) => f.me) + 1
   const league = demoLeague(cetrt, weekPoints(log))
   const leagueRank = league.findIndex((l) => l.cetrt === cetrt) + 1
   const s = streak(log)
@@ -279,24 +247,11 @@ function Results({ log, cetrt, onBack }: { log: GameLog; cetrt: string; onBack: 
           <span key={i} className="confetti" style={{ left: `${((x as number) / 342) * 100}%`, top: y as number, width: w as number, height: 12, background: c as string, transform: `rotate(${rot}deg)` }} />
         ))}
       </section>
-      <section className="card" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto 1fr', gap: '0 12px', alignItems: 'center' }}>
-        <b style={{ fontSize: 32 }}>{myRank}.</b>
-        <span className="t-body" style={{ fontWeight: 500 }}>med prijatelji</span>
+      <section className="card" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0 12px', alignItems: 'center' }}>
         <b style={{ fontSize: 32 }}>{leagueRank}.</b>
-        <span className="t-body" style={{ fontWeight: 500 }}>v ligi</span>
-        <span className="t-small" style={{ gridColumn: 'span 2' }}>Prijatelji · primer</span>
-        <span className="t-small" style={{ gridColumn: 'span 2' }}>{cetrt} · od 17 četrti</span>
+        <span className="t-body" style={{ fontWeight: 500 }}>v ligi · {cetrt}</span>
+        <span className="t-small" style={{ gridColumn: 'span 2' }}>od {league.length} četrti · celotna lestvica je v zavihku Liga</span>
       </section>
-      <p className="t-h3">Prijatelji · danes</p>
-      <div className="rows">
-        {friends.map((f, i) => (
-          <div key={f.name} className={f.me ? 'row me' : 'row'} style={{ height: 40 }}>
-            <span className="n">{i + 1}</span>
-            <span>{f.name}</span>
-            <span className="p">{fmt(f.points)}</span>
-          </div>
-        ))}
-      </div>
       <div className="badges">
         {badges(log).map((b) => (
           <div key={b.key} className={b.earned ? 'badge' : 'badge off'} title={b.earned ? 'Osvojeno' : 'Še ne'}>
