@@ -85,5 +85,20 @@ main { padding-bottom: 88px; }
 .ring-legend { list-style: none; padding: 0; display: grid; gap: 8px; margin: 12px 0; }
 .league li { cursor: pointer; }
 .places { display: grid; gap: 10px; }
+.widget-home { background: var(--navy); color: #fff; border-radius: 22px; padding: 14px; display: grid; gap: 8px; max-width: 340px; }
+.wh-top { display: flex; justify-content: space-between; font-size: 15px; }
+.wh-strip { display: flex; align-items: flex-end; gap: 2px; height: 36px; }
+.wh-strip div { flex: 1; min-height: 3px; border-radius: 2px 2px 0 0; }
+.wh-tip { font-size: 13px; opacity: 0.85; }
+.wh-bet { display: grid; gap: 6px; font-size: 13px; }
+.widget-home .buttons button { background: transparent; color: #fff; border-color: #7cc6e0; padding: 6px; font-size: 13px; }
+.widget-home .placed { color: #cfe6ef; margin: 0; font-size: 13px; }
+.widget-row { display: flex; gap: 24px; margin: 16px 0 8px; }
+.widget-row figure { margin: 0; display: grid; justify-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.widget-lock { width: 72px; height: 72px; background: #1b1b1f; border-radius: 50%; }
+.widget-lock text { fill: #fff; font-size: 16px; font-weight: 700; }
+.widget-watch { background: #000; border-radius: 28px; padding: 12px 16px; display: grid; justify-items: center; gap: 4px; }
+.widget-watch .widget-lock { width: 56px; height: 56px; }
+.ww-time { color: #fff; font-size: 18px; font-weight: 600; }
 .places label { display: grid; gap: 4px; font-weight: 600; }
 .mdot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); border: 2px solid #fff; transform: translateY(50%); }
