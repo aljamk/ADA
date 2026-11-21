@@ -227,13 +227,16 @@ p, h1, h2, h3, ol { margin: 0; }
 /* Widget preview (no interactive controls) */
 .widgets { display: grid; gap: 16px; align-content: start; width: 340px; max-width: 100%; }
 .w22, .w42 { background: var(--hero); color: var(--hero-fg); border-radius: 24px; padding: 16px; position: relative; }
-.w22 { width: 170px; height: 170px; display: grid; align-content: start; gap: 6px; }
-.w42 { width: 340px; max-width: 100%; height: 160px; display: flex; gap: 12px; }
+.w22 { width: 170px; min-height: 170px; display: grid; align-content: start; gap: 6px; padding-bottom: 52px; }
+.w42 { width: 340px; max-width: 100%; min-height: 160px; display: flex; gap: 12px; }
 .w42-main { flex: 1; display: grid; align-content: start; gap: 8px; min-width: 0; }
 .w42-side { display: grid; justify-items: center; align-content: end; font-size: 12px; color: var(--accent); text-align: center; }
 .w-verdict { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 800; letter-spacing: 0.02em; }
 .w-pm { font-size: 15px; }
 .w-advice { font-size: 15px; line-height: 1.3; }
+.w-what { font-size: 12px; line-height: 1.3; opacity: 0.85; }
+.nowrap { white-space: nowrap; }
+.w22 .tag { max-width: 100%; white-space: normal; padding: 4px 8px; line-height: 1.2; flex-wrap: wrap; gap: 4px; }
 .w-plant { position: absolute; right: 8px; bottom: 6px; }
 .w22 .tag, .w42 .tag { background: rgb(255 255 255 / 0.12); color: var(--hero-fg); justify-self: start; }
 </style>
@@ -326,6 +329,11 @@ const LEVELS = [
   { key: 'nevarno', word: 'Nevarno', color: '#8E4EC6', icon: '!!', max: 100 },
 ]
 const levelOf = (pm) => LEVELS.find((l) => pm < l.max) ?? LEVELS[LEVELS.length - 1]
+/** Razpon stopnje v µg/m³, npr. "15–25" za Zmerno. */
+const levelRange = (l) => {
+  const i = LEVELS.indexOf(l)
+  return i === LEVELS.length - 1 ? `nad ${LEVELS[i - 1].max}` : `${i === 0 ? 0 : LEVELS[i - 1].max}–${l.max}`
+}
 
 const PROFILES = {
   nihce: { label: 'Nihče posebej', inhale: 4, exhale: 6, minutes: 2, inWord: 'Vdihni', outWord: 'Izdihni' },
@@ -936,7 +944,8 @@ function Widgets({ drops }) {
       <p className="eyebrow light">Začetni zaslon · predogled</p>
       <div className="w22">
         <span className="w-verdict"><span className="level-ico" style={{ background: l.color }}>{l.icon}</span>{l.word.toUpperCase()}</span>
-        <span className="w-pm">{MOCK.now.pm25} <small>µg/m³</small></span>
+        <span className="w-pm">{MOCK.now.pm25} <small>µg/m³ PM2,5</small></span>
+        <span className="w-what">Merimo fine delce PM2,5. {l.word} je <span className="nowrap">{levelRange(l)} µg/m³</span>.</span>
         <Tag kind="MERITEV">{MOCK.station} · {MOCK.now.time}</Tag>
         <div className="w-plant"><Plant stage={drops} size={40} /></div>
       </div>
@@ -944,6 +953,7 @@ function Widgets({ drops }) {
         <div className="w42-main">
           <span className="w-verdict"><span className="level-ico" style={{ background: l.color }}>{l.icon}</span>{l.word.toUpperCase()}</span>
           <span className="w-advice">{MOCK.now.advice}</span>
+          <span className="w-what">Fini delci PM2,5: {MOCK.now.pm25} µg/m³ · {l.word.toLowerCase()} je <span className="nowrap">{levelRange(l)} µg/m³</span></span>
           <Tag kind="MERITEV">{MOCK.station} · {MOCK.now.time}</Tag>
         </div>
         <div className="w42-side"><Plant stage={drops} size={48} /><span>{tasksLeft}</span></div>
@@ -997,16 +1007,6 @@ function Liga({ weekPoints }) {
 
 function Home({ done, onOpen, weekPoints, streak, xp }) {
   const drops = Object.keys(done).length
-  const [msg, setMsg] = useState('')
-  const challenge = async () => {
-    const text = `Izzivam te v igri Zrak! Danes imam ${drops} od 4 kapljic. Kako dobro poznaš zrak v Ljubljani?`
-    try {
-      await navigator.clipboard.writeText(text)
-      setMsg('Povabilo je kopirano. Prilepi ga prijatelju.')
-    } catch {
-      setMsg(text)
-    }
-  }
   return (
     <div className="screen home">
       <header className="hero">
@@ -1050,8 +1050,6 @@ function Home({ done, onOpen, weekPoints, streak, xp }) {
       <Liga weekPoints={weekPoints} />
 
       <p className="vs body center">Ti proti modelu: <b>{MOCK.vsModel.me} : {MOCK.vsModel.model}</b> ta teden</p>
-      <button className="btn-soft" onClick={challenge}>Izzovi prijatelja</button>
-      {msg && <p className="body center" role="status">{msg}</p>}
     </div>
   )
 }
@@ -1130,6 +1128,5 @@ function TabIcon({ name }) {
     </svg>
   )
 }
-
 ReactDOM.createRoot(document.getElementById('root')).render(<IgraPrototip />)
 </script>

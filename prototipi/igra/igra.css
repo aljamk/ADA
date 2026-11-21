@@ -222,12 +222,15 @@ p, h1, h2, h3, ol { margin: 0; }
 /* Widget preview (no interactive controls) */
 .widgets { display: grid; gap: 16px; align-content: start; width: 340px; max-width: 100%; }
 .w22, .w42 { background: var(--hero); color: var(--hero-fg); border-radius: 24px; padding: 16px; position: relative; }
-.w22 { width: 170px; height: 170px; display: grid; align-content: start; gap: 6px; }
-.w42 { width: 340px; max-width: 100%; height: 160px; display: flex; gap: 12px; }
+.w22 { width: 170px; min-height: 170px; display: grid; align-content: start; gap: 6px; padding-bottom: 52px; }
+.w42 { width: 340px; max-width: 100%; min-height: 160px; display: flex; gap: 12px; }
 .w42-main { flex: 1; display: grid; align-content: start; gap: 8px; min-width: 0; }
 .w42-side { display: grid; justify-items: center; align-content: end; font-size: 12px; color: var(--accent); text-align: center; }
 .w-verdict { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 800; letter-spacing: 0.02em; }
 .w-pm { font-size: 15px; }
 .w-advice { font-size: 15px; line-height: 1.3; }
+.w-what { font-size: 12px; line-height: 1.3; opacity: 0.85; }
+.nowrap { white-space: nowrap; }
+.w22 .tag { max-width: 100%; white-space: normal; padding: 4px 8px; line-height: 1.2; flex-wrap: wrap; gap: 4px; }
 .w-plant { position: absolute; right: 8px; bottom: 6px; }
 .w22 .tag, .w42 .tag { background: rgb(255 255 255 / 0.12); color: var(--hero-fg); justify-self: start; }

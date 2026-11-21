@@ -82,6 +82,11 @@ const LEVELS = [
   { key: 'nevarno', word: 'Nevarno', color: '#8E4EC6', icon: '!!', max: 100 },
 ]
 const levelOf = (pm) => LEVELS.find((l) => pm < l.max) ?? LEVELS[LEVELS.length - 1]
+/** Razpon stopnje v µg/m³, npr. "15–25" za Zmerno. */
+const levelRange = (l) => {
+  const i = LEVELS.indexOf(l)
+  return i === LEVELS.length - 1 ? `nad ${LEVELS[i - 1].max}` : `${i === 0 ? 0 : LEVELS[i - 1].max}–${l.max}`
+}
 
 const PROFILES = {
   nihce: { label: 'Nihče posebej', inhale: 4, exhale: 6, minutes: 2, inWord: 'Vdihni', outWord: 'Izdihni' },
@@ -692,7 +697,8 @@ function Widgets({ drops }) {
       <p className="eyebrow light">Začetni zaslon · predogled</p>
       <div className="w22">
         <span className="w-verdict"><span className="level-ico" style={{ background: l.color }}>{l.icon}</span>{l.word.toUpperCase()}</span>
-        <span className="w-pm">{MOCK.now.pm25} <small>µg/m³</small></span>
+        <span className="w-pm">{MOCK.now.pm25} <small>µg/m³ PM2,5</small></span>
+        <span className="w-what">Merimo fine delce PM2,5. {l.word} je <span className="nowrap">{levelRange(l)} µg/m³</span>.</span>
         <Tag kind="MERITEV">{MOCK.station} · {MOCK.now.time}</Tag>
         <div className="w-plant"><Plant stage={drops} size={40} /></div>
       </div>
@@ -700,6 +706,7 @@ function Widgets({ drops }) {
         <div className="w42-main">
           <span className="w-verdict"><span className="level-ico" style={{ background: l.color }}>{l.icon}</span>{l.word.toUpperCase()}</span>
           <span className="w-advice">{MOCK.now.advice}</span>
+          <span className="w-what">Fini delci PM2,5: {MOCK.now.pm25} µg/m³ · {l.word.toLowerCase()} je <span className="nowrap">{levelRange(l)} µg/m³</span></span>
           <Tag kind="MERITEV">{MOCK.station} · {MOCK.now.time}</Tag>
         </div>
         <div className="w42-side"><Plant stage={drops} size={48} /><span>{tasksLeft}</span></div>
@@ -753,16 +760,6 @@ function Liga({ weekPoints }) {
 
 function Home({ done, onOpen, weekPoints, streak, xp }) {
   const drops = Object.keys(done).length
-  const [msg, setMsg] = useState('')
-  const challenge = async () => {
-    const text = `Izzivam te v igri Zrak! Danes imam ${drops} od 4 kapljic. Kako dobro poznaš zrak v Ljubljani?`
-    try {
-      await navigator.clipboard.writeText(text)
-      setMsg('Povabilo je kopirano. Prilepi ga prijatelju.')
-    } catch {
-      setMsg(text)
-    }
-  }
   return (
     <div className="screen home">
       <header className="hero">
@@ -806,8 +803,6 @@ function Home({ done, onOpen, weekPoints, streak, xp }) {
       <Liga weekPoints={weekPoints} />
 
       <p className="vs body center">Ti proti modelu: <b>{MOCK.vsModel.me} : {MOCK.vsModel.model}</b> ta teden</p>
-      <button className="btn-soft" onClick={challenge}>Izzovi prijatelja</button>
-      {msg && <p className="body center" role="status">{msg}</p>}
     </div>
   )
 }

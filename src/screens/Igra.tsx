@@ -56,16 +56,6 @@ export default function Igra({ log, onRound, cetrt, onCetrt, startRound }: Props
   const friends = demoFriends(weekPoints(log))
   const s = streak(log)
 
-  const challenge = async () => {
-    const text = `Izzivam te v igri Ugani zrak! Danes imam ${fmt(dayTotal(done))} točk. Kako dobro poznaš zrak v Ljubljani?`
-    try {
-      if (navigator.share) await navigator.share({ text })
-      else await navigator.clipboard.writeText(text)
-    } catch {
-      /* cancelled */
-    }
-  }
-
   return (
     <div className="screen">
       <div>
@@ -124,7 +114,6 @@ export default function Igra({ log, onRound, cetrt, onCetrt, startRound }: Props
           </div>
         ))}
       </div>
-      <button className="btn-soft" onClick={challenge}>Izzovi prijatelja  ↗</button>
     </div>
   )
 }
