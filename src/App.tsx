@@ -4,7 +4,7 @@ import { distanceKm, fetchArso, shortName, type Reading } from './arso'
 import StationPicker from './components/StationPicker'
 import TabBar, { TABS, type TabKey } from './components/TabBar'
 import { fetchForecast, next12, type Forecast, type ForecastHour } from './forecast'
-import type { GameLog, RoundResult } from './game'
+import type { GameLog } from './game'
 import { onResume, syncWidget } from './native'
 import { thresholdAqi, type ProfileKey } from './profile'
 import Liga from './screens/Liga'
@@ -66,9 +66,11 @@ export default function App() {
   const [onboarded, setOnboarded] = useStored('onboarded', false)
   const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce')
   const [station, setStation] = useStored('station', 'E403') // LJ Bežigrad
-  const [log, setLog] = useStored<GameLog>('ugani', {})
+  const [log] = useStored<GameLog>('ugani', {})
   const [cetrt, setCetrt] = useStored('cetrt', 'Šiška')
   const [alerts, setAlerts] = useStored<AlertSettings>('alerts', DEFAULT_ALERTS)
+  const [mine, setMine] = useStored<string[]>('mojePostaje', ['E403']) // model view on the map: home, work, …
+  const [pickFor, setPickFor] = useState<'zdaj' | 'zemljevid'>('zdaj')
 
   // ARSO on start, on resume and every 15 minutes (feed updates ~45 min past the hour)
   useEffect(() => {
@@ -89,9 +91,9 @@ export default function App() {
     }
   }, [])
 
-  // Model forecast for the chosen station and the three map stations
+  // Model forecast for the chosen station, my map stations and the three map stations
   useEffect(() => {
-    for (const code of new Set([station, ...MAP_STATIONS.map((s) => s.code)])) {
+    for (const code of new Set([station, ...mine, ...MAP_STATIONS.map((s) => s.code)])) {
       const r = readings.find((x) => x.code === code)
       if (!r || forecasts[code] || requested.current.has(code)) continue
       requested.current.add(code)
@@ -99,7 +101,7 @@ export default function App() {
         .then((fc) => setForecasts((f) => ({ ...f, [code]: fc })))
         .catch((e) => setError(`Napoved ni na voljo: ${e}`))
     }
-  }, [readings, station, forecasts])
+  }, [readings, station, mine, forecasts])
 
   const current = readings.find((r) => r.code === station)
   const fc = forecasts[station]
@@ -115,16 +117,16 @@ export default function App() {
 
   // Distance is shown only if the user chose "use my location" in the picker (one-time, not stored)
   const pickStation = (code: string, at?: { lat: number; lon: number }) => {
-    setStation(code)
     setOverlay(null)
+    if (pickFor === 'zemljevid') {
+      if (!mine.includes(code)) setMine([...mine, code])
+      return
+    }
+    setStation(code)
     const r = readings.find((x) => x.code === code)
     setDistance(at && r ? distanceKm(at.lat, at.lon, r.lat, r.lon) : undefined)
   }
 
-  const addRound = (r: RoundResult) => {
-    const day = dateStr(new Date())
-    setLog((l) => ({ ...l, [day]: [...(l[day] ?? []), r] }))
-  }
 
   // ?intro=0 skips the welcome screen (demos and screenshots)
   if (!onboarded && new URLSearchParams(location.search).get('intro') !== '0')
@@ -154,14 +156,16 @@ export default function App() {
                 hours={hours12}
                 profile={profile}
                 distance={distance}
-                onStation={() => setOverlay('picker')}
+                onStation={() => { setPickFor('zdaj'); setOverlay('picker') }}
                 onDecisionMakers={() => setOverlay('odlocevalci')}
               />
             ) : (
               <div className="screen"><p className="t-title">Zdaj</p><p className="t-body t-2">Nalagam meritve ARSO…</p></div>
             ))}
-          {tab === 'zemljevid' && <Zemljevid readings={readings} forecasts={forecasts} />}
-          {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} onRound={addRound} cetrt={cetrt} startRound={hash === 'ugani'} />}
+          {tab === 'zemljevid' && (
+            <Zemljevid readings={readings} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} />
+          )}
+          {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} cetrt={cetrt} />}
           {tab === 'liga' && <Liga log={log} cetrt={cetrt} onCetrt={setCetrt} />}
           {tab === 'opozorila' && (
             <Opozorila settings={alerts} onChange={setAlerts} stationName={current ? shortName(current.name) : 'tvojo postajo'} />
