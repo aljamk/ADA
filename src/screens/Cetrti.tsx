@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { levelOfPm } from '../aqi'
-import { shortName, type Reading } from '../arso'
+import { distanceKm, shortName, type Reading } from '../arso'
 import { MAP_STATIONS } from './Zemljevid'
 
 interface Cetrt {
@@ -29,6 +29,8 @@ const when = (t: string) => `${Number(t.slice(8, 10))}. ${Number(t.slice(5, 7))}
 
 interface Props {
   readings: Reading[]
+  /** Station chosen in the Zdaj tab: its četrt is marked as yours */
+  station: string
 }
 
 /**
@@ -36,7 +38,7 @@ interface Props {
  * The value per četrt is an ESTIMATE: the current measurement of the three ARSO stations, interpolated
  * to the četrt and scaled by its long-term exposure index. It refreshes with every ARSO hour.
  */
-export default function Cetrti({ readings }: Props) {
+export default function Cetrti({ readings, station }: Props) {
   const [cetrti, setCetrti] = useState<Cetrt[]>([])
   const [info, setInfo] = useState(false)
   useEffect(() => {
@@ -45,6 +47,8 @@ export default function Cetrti({ readings }: Props) {
 
   const stations = readings.filter((r) => MAP_STATIONS.some((s) => s.code === r.code) && r.pm25 != null)
   const updated = stations.map((s) => s.from).sort().pop()
+  const my = readings.find((r) => r.code === station)
+  const mine = my && cetrti.length ? cetrti.reduce((best, c) => (distanceKm(c.lat, c.lon, my.lat, my.lon) < distanceKm(best.lat, best.lon, my.lat, my.lon) ? c : best)).ime : null
   const rows = cetrti
     .map((c) => {
       const base = idw(c.lat, c.lon, stations)
@@ -79,10 +83,15 @@ export default function Cetrti({ readings }: Props) {
         {rows.map((c, i) => {
           const lvl = c.pm != null ? levelOfPm(c.pm) : null
           return (
-            <div key={c.ime} role="row" className="row" style={{ height: 52 }}>
+            <div key={c.ime} role="row" className={c.ime === mine ? 'row me' : 'row'} style={{ height: 52 }} aria-current={c.ime === mine ? 'true' : undefined}>
               <span className="n">{i + 1}</span>
               <span>
                 {c.ime}
+                {c.ime === mine && my && (
+                  <span className="chip" style={{ height: 20, fontSize: 11, marginLeft: 8, background: 'var(--accent)', color: 'var(--on-accent)' }} title={`Postaja ${shortName(my.name)} z zaslona Zdaj`}>
+                    tvoja četrt
+                  </span>
+                )}
                 {lvl && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>{lvl.symbol} {lvl.label} · ocena</span>}
               </span>
               <span className="p" style={{ color: lvl?.color }}>{c.pm != null ? `${c.pm} µg/m³` : '–'}</span>

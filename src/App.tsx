@@ -165,7 +165,7 @@ export default function App() {
             <Zemljevid readings={readings} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'model' ? 'model' : 'meritev'} />
           )}
           {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} />}
-          {tab === 'cetrti' && <Cetrti readings={readings} />}
+          {tab === 'cetrti' && <Cetrti readings={readings} station={station} />}
           {tab === 'opozorila' && (
             <Opozorila settings={alerts} onChange={setAlerts} stationName={current ? shortName(current.name) : 'tvojo postajo'} />
           )}
