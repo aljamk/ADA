@@ -4,6 +4,7 @@ import Forecast12h from './Forecast12h'
 import Alerts from './components/Alerts'
 import DayRing from './components/DayRing'
 import Places from './components/Places'
+import Ranking from './components/Ranking'
 import Game from './components/Game'
 import History from './components/History'
 import League from './components/League'
@@ -20,6 +21,7 @@ const TABS = [
   { key: 'zdaj', label: 'Zdaj', icon: '💨' },
   { key: 'igra', label: 'Igra', icon: '🎯' },
   { key: 'dan', label: 'Moj dan', icon: '🕓' },
+  { key: 'postaje', label: 'Postaje', icon: '📊' },
   { key: 'jaz', label: 'Jaz', icon: '🙂' },
 ] as const
 type TabKey = (typeof TABS)[number]['key']
@@ -173,6 +175,8 @@ export default function App() {
           <Places readings={readings} home={home} work={work} onHome={setHome} onWork={setWork} />
         </>
       )}
+
+      {tab === 'postaje' && <Ranking readings={readings} station={station} onPick={setStation} />}
 
       {tab === 'jaz' && <Me profile={profile} onProfile={setProfile} notify={notify} onNotify={setNotify} />}
 
