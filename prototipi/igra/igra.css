@@ -163,16 +163,25 @@ p, h1, h2, h3, ol { margin: 0; }
 .quiz-summary li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; background: var(--surface); border-radius: 16px; padding: 12px 14px; font-size: 16px; line-height: 1.35; }
 .quiz-summary li > span:first-child { font-weight: 800; color: var(--primary); }
 
-/* Beseda: blues + icons, never green/yellow (those belong to the air scale) */
+/* Beseda: familiar word-game colours (green / yellow / grey), always paired with an icon */
+:root { --w-hit: #538d4e; --w-near: #b59f3b; --w-miss: #787c7e; --w-fg: #ffffff; }
 .wgrid { display: grid; gap: 6px; justify-content: center; }
 .wrow { display: grid; grid-template-columns: repeat(5, 52px); gap: 6px; }
 .wcell { position: relative; height: 52px; border-radius: 10px; border: 2px solid var(--line); display: grid; place-items: center; background: var(--surface); }
 .wcell.typed { border-color: var(--fg-2); }
 .wl { font-size: 24px; font-weight: 700; }
 .wi { position: absolute; top: 2px; right: 4px; font-size: 11px; font-weight: 800; }
-.wcell.hit, .sw.hit, .key.hit, .sq.hit { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
-.wcell.near, .sw.near, .key.near, .sq.near { background: var(--accent); border-color: var(--accent); color: #00303f; }
-.wcell.miss, .sw.miss, .key.miss, .sq.miss { background: var(--miss); border-color: var(--miss); color: var(--miss-fg); }
+.wcell.hit, .sw.hit, .key.hit, .sq.hit { background: var(--w-hit); border-color: var(--w-hit); color: var(--w-fg); }
+.wcell.near, .sw.near, .key.near, .sq.near { background: var(--w-near); border-color: var(--w-near); color: var(--w-fg); }
+.wcell.miss, .sw.miss, .key.miss, .sq.miss { background: var(--w-miss); border-color: var(--w-miss); color: var(--w-fg); }
+.help { display: grid; gap: 12px; }
+.help ol { padding-left: 20px; display: grid; gap: 4px; }
+.help-example { display: grid; gap: 10px; }
+.help-row { display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; }
+.help-row .wcell { height: 40px; }
+.help-row .wl { font-size: 18px; }
+.help-line { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; font-size: 16px; line-height: 1.35; }
+.help-btn { min-width: 48px; min-height: 48px; border-radius: 24px; border: 2px solid var(--line); background: var(--surface); color: var(--primary); font-weight: 800; font-size: 18px; }
 .wlegend { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; color: var(--fg-2); }
 .sw { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; font-style: normal; font-size: 11px; font-weight: 800; margin-right: 4px; }
 .kbd { display: grid; gap: 6px; margin-top: auto; }
