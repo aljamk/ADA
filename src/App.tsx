@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchArso, type Reading } from './arso'
 import Forecast12h from './Forecast12h'
 import Alerts from './components/Alerts'
+import DayRing from './components/DayRing'
+import Places from './components/Places'
 import Game from './components/Game'
 import History from './components/History'
 import League from './components/League'
 import Me from './components/Me'
 import NowCard from './components/NowCard'
 import StationSearch from './components/StationSearch'
-import { atHour, fetchForecast, next12, type Forecast } from './forecast'
+import { atHour, fetchForecast, next12, ofDay, type Forecast } from './forecast'
 import { randomNickname, resolveBet, type Bet, type BucketKey } from './game'
 import type { ProfileKey } from './profile'
 import { load, save } from './storage'
@@ -17,6 +19,7 @@ import { dateStr, isoWeek, tomorrow8 } from './time'
 const TABS = [
   { key: 'zdaj', label: 'Zdaj', icon: '💨' },
   { key: 'igra', label: 'Igra', icon: '🎯' },
+  { key: 'dan', label: 'Moj dan', icon: '🕓' },
   { key: 'jaz', label: 'Jaz', icon: '🙂' },
 ] as const
 type TabKey = (typeof TABS)[number]['key']
@@ -48,6 +51,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
   const [tab, setTab] = useState<TabKey>('zdaj')
+  const requested = useRef(new Set<string>()) // stations whose forecast is being fetched
 
   const [station, setStation] = useStored('station', 'E403') // LJ Bežigrad
   const [bets, setBets] = useStored<Bet[]>('bets', [])
@@ -56,6 +60,8 @@ export default function App() {
   const [notify, setNotify] = useStored('notify', false)
   const [nickname] = useStored('nickname', randomNickname)
   const [cetrt, setCetrt] = useStored('cetrt', 'Bežigrad')
+  const [home, setHome] = useStored('home', 'E403') // LJ Bežigrad
+  const [work, setWork] = useStored('work', 'E404') // LJ Vič
 
   // Load ARSO now and every 15 minutes (feed updates ~45 min past the hour)
   useEffect(() => {
@@ -65,6 +71,7 @@ export default function App() {
           setReadings(rs)
           setObs((o) => addObservations(o, rs))
           setForecasts({})
+          requested.current.clear()
         })
         .catch((e) => setError(`Napaka pri branju ARSO: ${e}`))
     get()
@@ -74,13 +81,17 @@ export default function App() {
 
   const current = readings.find((r) => r.code === station)
 
-  // Model forecast per station (fetched on demand, calibrated to that station's last reading)
+  // Model forecast per station in use (fetched on demand, calibrated to that station's last reading)
   useEffect(() => {
-    if (!current || forecasts[current.code]) return
-    fetchForecast(current)
-      .then((fc) => setForecasts((f) => ({ ...f, [current.code]: fc })))
-      .catch((e) => setError(`Napoved ni na voljo: ${e}`))
-  }, [current, forecasts])
+    for (const code of new Set([station, home, work])) {
+      const r = readings.find((x) => x.code === code)
+      if (!r || forecasts[code] || requested.current.has(code)) continue
+      requested.current.add(code)
+      fetchForecast(r)
+        .then((fc) => setForecasts((f) => ({ ...f, [code]: fc })))
+        .catch((e) => setError(`Napoved ni na voljo: ${e}`))
+    }
+  }, [readings, station, home, work, forecasts])
   const fc = current ? forecasts[current.code] : undefined
   const hours12 = current && fc ? next12(fc, current.from) : []
 
@@ -144,6 +155,22 @@ export default function App() {
             onDemoResolve={DEMO ? demoResolve : undefined}
           />
           <League cetrt={cetrt} onCetrt={setCetrt} weekPoints={weekPoints} />
+        </>
+      )}
+
+      {tab === 'dan' && (
+        <>
+          <DayRing
+            rings={[
+              { label: 'Dom', code: home },
+              { label: 'Služba', code: work },
+            ].map(({ label, code }) => ({
+              label,
+              station: readings.find((r) => r.code === code)?.name ?? code,
+              hours: forecasts[code] ? ofDay(forecasts[code], dateStr(new Date())) : [],
+            }))}
+          />
+          <Places readings={readings} home={home} work={work} onHome={setHome} onWork={setWork} />
         </>
       )}
 
