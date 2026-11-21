@@ -1,0 +1,201 @@
+/* Igra (rastlina + 4 naloge), prenešeno iz prototipa prototipi/igra. Vse je pod .ng, da se ne tepe s theme.css.
+   Žetoni prototipa so preslikani na zelene barve aplikacije. */
+.ng {
+  --surface-0: var(--bg);
+  --fg: var(--text);
+  --fg-2: var(--text-2);
+  --primary: #476e57;
+  --on-primary: #f9faf4;
+  --accent: #7fa889;
+  --hero: var(--hero-a);
+  --hero-fg: var(--hero-text);
+  --line: #d9e0d4;
+  --lung: #e8ede3;
+  --soil: #b9a58f;
+  --fog: linear-gradient(180deg, #e3ebdc 0%, var(--bg) 70%);
+  --miss: #c9d1c4;
+  --font: 'DM Sans', system-ui, sans-serif;
+  color: var(--fg);
+  font-size: 17px;
+}
+@media (prefers-color-scheme: dark) {
+  .ng {
+    --primary: #b8d5a4; --on-primary: #182f32; --accent: #8fb79a; --line: #35585b; --lung: #2b4c4f;
+    --soil: #6e5d4d; --fog: linear-gradient(180deg, #23443f 0%, var(--bg) 70%); --miss: #3d5d60;
+  }
+}
+.ng p, .ng h1, .ng h2, .ng h3, .ng ol { margin: 0; }
+.ng button:focus-visible, .ng input:focus-visible, .ng select:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+/* Type */
+.ng .h1 { font-size: 28px; font-weight: 700; line-height: 1.2; text-wrap: balance; }
+.ng .h2 { font-size: 30px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.ng .h3 { font-size: 20px; font-weight: 700; }
+.ng .body { font-size: 17px; line-height: 1.45; }
+.ng .small { font-size: 14px; line-height: 1.4; }
+.ng .muted { color: var(--fg-2); }
+.ng .center { text-align: center; }
+.ng .big { font-size: 56px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; display: block; }
+.ng .unit { font-size: 14px; color: var(--fg-2); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ng .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--primary); }
+.ng .eyebrow.light { color: var(--fg-2); }
+
+/* Screens */
+.ng .screen { min-height: 100%; padding: 24px 20px 24px; display: flex; flex-direction: column; gap: 16px; position: relative; }
+.ng .screen-head { display: flex; justify-content: space-between; align-items: center; min-height: 48px; }
+.ng .screen-body { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.ng .screen-foot { position: sticky; bottom: 0; padding-top: 12px; background: linear-gradient(transparent, var(--surface-0) 30%); display: grid; gap: 8px; }
+.ng .back { min-height: 48px; padding: 0 6px; border: none; background: none; color: var(--primary); font-size: 18px; font-weight: 700; }
+.ng .card { background: var(--surface); border-radius: 20px; padding: 18px; display: grid; gap: 10px; }
+.ng .row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ng .col-end { display: grid; justify-items: end; gap: 8px; }
+.ng .center-col { justify-items: center; text-align: center; }
+.ng .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ng .duo > div { display: grid; gap: 6px; justify-items: start; }
+
+.ng .btn { min-height: 56px; width: 100%; border: none; border-radius: 16px; background: var(--primary); color: var(--on-primary); font-size: 18px; font-weight: 700; }
+.ng .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.ng .btn-soft { min-height: 52px; width: 100%; border: 2px solid var(--primary); border-radius: 16px; background: transparent; color: var(--primary); font-size: 17px; font-weight: 700; }
+
+/* Tags: MERITEV filled dot, MODEL dashed outline, OCENA hollow dot */
+.ng .tag { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; background: var(--lung); color: var(--fg); white-space: nowrap; }
+.ng .tag-rest { font-weight: 500; letter-spacing: 0; }
+.ng .tag-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.ng .tag-model { background: transparent; border: 1.5px dashed var(--fg-2); }
+.ng .tag-ocena .tag-dot { background: transparent; border: 1.5px solid currentColor; }
+.ng .level-pill { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; }
+.ng .level-ico { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding: 0 4px; border-radius: 12px; color: #00303f; font-size: 13px; font-weight: 800; }
+
+/* Home */
+.ng .home { background: var(--fog); gap: 18px; }
+.ng .hero { display: grid; justify-items: center; gap: 4px; padding-top: 8px; }
+.ng .hero-line { font-size: 17px; color: var(--fg-2); text-align: center; }
+.ng .stem, .ng .leaves, .ng .flower { transition: all 0.6s ease; }
+.ng .status { background: var(--surface); border-radius: 20px; padding: 16px 18px; display: grid; gap: 10px; }
+.ng .drops { display: flex; gap: 6px; }
+.ng .streak { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.ng .xp { height: 8px; border-radius: 4px; background: var(--lung); overflow: hidden; }
+.ng .xp > div { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.6s; }
+.ng .tasks { display: grid; gap: 10px; }
+.ng .task { min-height: 84px; display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 20px; border: 2px solid transparent; background: var(--surface); color: var(--fg); text-align: left; }
+.ng .task:hover { border-color: var(--accent); }
+.ng .task.done { background: var(--lung); }
+.ng .task-ico { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--lung); color: var(--primary); }
+.ng .task.done .task-ico { background: var(--surface); }
+.ng .task-text { display: grid; gap: 2px; min-width: 0; }
+.ng .task-text b { font-size: 18px; }
+.ng .status-chip { font-size: 13px; font-weight: 700; padding: 6px 10px; border-radius: 999px; border: 1.5px solid var(--line); color: var(--fg-2); white-space: nowrap; }
+.ng .status-chip.ok { border-color: var(--primary); color: var(--primary); }
+.ng .league { list-style: none; padding: 0; display: grid; gap: 2px; }
+.ng .league li { display: grid; grid-template-columns: 28px 1fr auto auto; gap: 8px; align-items: center; min-height: 40px; padding: 0 10px; border-radius: 10px; font-variant-numeric: tabular-nums; }
+.ng .league li.me { background: var(--lung); font-weight: 700; }
+.ng .league li.gap { min-height: 18px; color: var(--fg-2); justify-items: center; grid-template-columns: 1fr; }
+.ng .league .rank { color: var(--fg-2); font-weight: 700; }
+.ng .league .zone { font-size: 12px; color: var(--primary); }
+.ng .league .down .zone { color: var(--fg-2); }
+.ng .league .pts { font-weight: 700; }
+.ng .vs { display: grid; gap: 6px; }
+
+/* Scale */
+.ng .scale { position: relative; padding: 28px 0 22px; }
+.ng .scale-track { height: 14px; border-radius: 7px; overflow: hidden; display: flex; }
+.ng .scale-gap { position: absolute; top: 46px; height: 4px; background: var(--fg); border-radius: 2px; transition: left 1s ease, width 1s ease; }
+.ng .scale-mark { position: absolute; top: 4px; transform: translateX(-50%); display: grid; justify-items: center; transition: left 0.2s; }
+.ng .scale-mark span { font-size: 12px; font-weight: 700; }
+.ng .scale-mark::after { content: ''; width: 4px; height: 26px; border-radius: 2px; background: var(--fg); }
+.ng .scale-mark.guess::after { background: var(--primary); }
+.ng .scale-mark.guess span { color: var(--primary); }
+.ng .scale-ticks { display: flex; justify-content: space-between; font-size: 12px; color: var(--fg-2); margin-top: 6px; }
+.ng .range { width: 100%; height: 48px; accent-color: var(--primary); }
+.ng .points-card { background: var(--hero); color: var(--hero-fg); border-radius: 20px; padding: 18px; display: flex; align-items: baseline; gap: 12px; }
+.ng .points-card b { font-size: 48px; }
+
+/* Napoved */
+.ng .switch-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--surface); border-radius: 20px; padding: 14px 18px; }
+.ng .switch-row > span { display: grid; gap: 2px; }
+.ng .switch { width: 60px; height: 36px; border-radius: 18px; border: none; background: var(--miss); position: relative; flex: none; }
+.ng .switch span { position: absolute; top: 4px; left: 4px; width: 28px; height: 28px; border-radius: 14px; background: #fff; transition: left 0.15s; }
+.ng .switch.on { background: var(--primary); }
+.ng .switch.on span { left: 28px; }
+.ng .choice3 { display: grid; gap: 10px; }
+.ng .big-choice { position: relative; min-height: 72px; display: flex; align-items: center; gap: 14px; padding: 0 20px; border-radius: 20px; border: 2px solid var(--line); background: var(--surface); font-size: 22px; font-weight: 700; text-align: left; }
+.ng .big-choice.on { border-color: var(--primary); background: var(--lung); }
+.ng .big-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--lung); color: var(--primary); font-size: 22px; }
+.ng .check { margin-left: auto; color: var(--primary); }
+
+/* Kviz */
+.ng .answers { display: grid; gap: 10px; }
+.ng .answer { min-height: 64px; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 18px; border: 2px solid var(--line); background: var(--surface); font-size: 18px; font-weight: 600; text-align: left; }
+.ng .answer:disabled { opacity: 0.55; cursor: default; }
+.ng .answer.right { border-color: var(--primary); background: var(--lung); }
+.ng .answer.wrong { border-style: dashed; border-color: var(--fg-2); }
+.ng .verdict { font-size: 14px; font-weight: 700; white-space: nowrap; }
+.ng .quiz-steps { display: flex; gap: 6px; }
+.ng .quiz-steps span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.ng .quiz-steps span.done { background: var(--primary); }
+.ng .quiz-steps span.cur { background: var(--accent); }
+.ng .quiz-summary { list-style: none; padding: 0; display: grid; gap: 8px; }
+.ng .quiz-summary li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; background: var(--surface); border-radius: 16px; padding: 12px 14px; font-size: 16px; line-height: 1.35; }
+.ng .quiz-summary li > span:first-child { font-weight: 800; color: var(--primary); }
+
+/* Beseda: familiar word-game colours (green / yellow / grey), always paired with an icon */
+.ng { --w-hit: #538d4e; --w-near: #b59f3b; --w-miss: #787c7e; --w-fg: #ffffff; }
+.ng .wgrid { display: grid; gap: 6px; justify-content: center; }
+.ng .wrow { display: grid; grid-template-columns: repeat(5, 52px); gap: 6px; }
+.ng .wcell { position: relative; height: 52px; border-radius: 10px; border: 2px solid var(--line); display: grid; place-items: center; background: var(--surface); }
+.ng .wcell.typed { border-color: var(--fg-2); }
+.ng .wl { font-size: 24px; font-weight: 700; }
+.ng .wi { position: absolute; top: 2px; right: 4px; font-size: 11px; font-weight: 800; }
+.ng .wcell.hit, .ng .sw.hit, .ng .key.hit, .ng .sq.hit { background: var(--w-hit); border-color: var(--w-hit); color: var(--w-fg); }
+.ng .wcell.near, .ng .sw.near, .ng .key.near, .ng .sq.near { background: var(--w-near); border-color: var(--w-near); color: var(--w-fg); }
+.ng .wcell.miss, .ng .sw.miss, .ng .key.miss, .ng .sq.miss { background: var(--w-miss); border-color: var(--w-miss); color: var(--w-fg); }
+.ng .help { display: grid; gap: 12px; }
+.ng .help ol { padding-left: 20px; display: grid; gap: 4px; }
+.ng .help-example { display: grid; gap: 10px; }
+.ng .help-row { display: grid; grid-template-columns: repeat(5, 40px); gap: 5px; }
+.ng .help-row .wcell { height: 40px; }
+.ng .help-row .wl { font-size: 18px; }
+.ng .help-line { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; font-size: 16px; line-height: 1.35; }
+.ng .help-btn { min-width: 48px; min-height: 48px; border-radius: 24px; border: 2px solid var(--line); background: var(--surface); color: var(--primary); font-weight: 800; font-size: 18px; }
+.ng .wlegend { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; color: var(--fg-2); }
+.ng .sw { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; font-style: normal; font-size: 11px; font-weight: 800; margin-right: 4px; }
+.ng .kbd { display: grid; gap: 6px; margin-top: auto; }
+.ng .krow { display: flex; gap: 4px; justify-content: center; }
+.ng .key { position: relative; flex: 1; max-width: 36px; min-height: 52px; border: none; border-radius: 8px; background: var(--surface); font-size: 17px; font-weight: 700; padding: 0; display: grid; place-items: center; }
+.ng .key small { position: absolute; top: 2px; right: 3px; font-size: 9px; }
+.ng .key.wide { max-width: 64px; flex: 1.8; font-size: 14px; }
+.ng .share-grid { display: grid; gap: 4px; justify-content: start; }
+.ng .share-grid > div { display: flex; gap: 4px; }
+.ng .sq { width: 22px; height: 22px; border-radius: 4px; display: inline-block; }
+.ng .share-pre { font-family: var(--font); font-size: 14px; white-space: pre-wrap; user-select: all; background: var(--lung); padding: 10px; border-radius: 10px; }
+
+/* Dih */
+.ng .breath { justify-content: space-between; }
+.ng .breath-stage { flex: 1; display: grid; place-items: center; position: relative; min-height: 420px; }
+.ng .breath-circle { width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, var(--accent), var(--primary)); opacity: 0.85; transition-property: transform; transition-timing-function: ease-in-out; }
+.ng .breath-word { position: absolute; font-size: 34px; font-weight: 700; text-align: center; max-width: 300px; color: var(--fg); text-wrap: balance; }
+.ng .breath.large .breath-word { font-size: 42px; }
+.ng .breath-progress { height: 6px; border-radius: 3px; background: var(--lung); overflow: hidden; }
+.ng .breath-progress > div { height: 100%; background: var(--accent); transition: width 1s linear; }
+.ng .demo-select { display: flex; align-items: center; gap: 8px; color: var(--fg-2); }
+.ng .demo-select select { min-height: 44px; font: inherit; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 0 8px; }
+
+/* Confetti (exact hit only) */
+.ng .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+.ng .confetti span { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation: ng-fall 2.4s ease-in forwards; }
+@keyframes ng-fall { to { top: 110%; transform: rotate(540deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ng .confetti { display: none; }
+  .ng .scale-gap, .ng .xp > div, .ng .stem, .ng .leaves, .ng .flower { transition: none; }
+}
+
+/* Uskladitev z razredi iz theme.css, ki imajo enaka imena */
+.ng .screen { padding: 48px 20px 110px; min-height: 100vh; }
+.ng .hero { background: none; color: inherit; border-radius: 0; padding: 8px 0 0; }
+.ng .btn { height: auto; }
+.ng .btn-soft { height: auto; }
+.ng .screen-foot { bottom: 90px; }
+.ng .ugani { display: grid; grid-template-columns: 48px 1fr auto; gap: 12px; align-items: center; min-height: 84px; padding: 14px 16px; border-radius: 20px; border: none; text-align: left; background: linear-gradient(125deg, var(--hero-a) 0%, var(--hero-b) 72%); color: var(--hero-text); }
+.ng .ugani .task-ico { background: rgb(255 255 255 / 0.14); color: var(--hero-text); }
+.ng .ugani .status-chip { border-color: rgb(255 255 255 / 0.4); color: var(--hero-text); }
+.ng .section-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--fg-2); margin-top: 4px; }

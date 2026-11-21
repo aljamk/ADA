@@ -7,8 +7,8 @@ import { fetchForecast, next12, type Forecast, type ForecastHour } from './forec
 import type { GameLog, RoundResult } from './game'
 import { onResume, syncWidget } from './native'
 import { thresholdAqi, type ProfileKey } from './profile'
-import Igra from './screens/Igra'
 import Liga from './screens/Liga'
+import Naloge from './screens/naloge/Naloge'
 import Odlocevalci, { publicNoticeWindow } from './screens/Odlocevalci'
 import Onboarding from './screens/Onboarding'
 import Opozorila, { DEFAULT_ALERTS, type AlertSettings } from './screens/Opozorila'
@@ -161,7 +161,7 @@ export default function App() {
               <div className="screen"><p className="t-title">Zdaj</p><p className="t-body t-2">Nalagam meritve ARSO…</p></div>
             ))}
           {tab === 'zemljevid' && <Zemljevid readings={readings} forecasts={forecasts} />}
-          {tab === 'igra' && <Igra log={log} onRound={addRound} cetrt={cetrt} startRound={hash === 'ugani'} />}
+          {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} onRound={addRound} cetrt={cetrt} startRound={hash === 'ugani'} />}
           {tab === 'liga' && <Liga log={log} cetrt={cetrt} onCetrt={setCetrt} />}
           {tab === 'opozorila' && (
             <Opozorila settings={alerts} onChange={setAlerts} stationName={current ? shortName(current.name) : 'tvojo postajo'} />
