@@ -14,6 +14,7 @@ import NowCard from './components/NowCard'
 import StationSearch from './components/StationSearch'
 import { atHour, fetchForecast, next12, ofDay, type Forecast } from './forecast'
 import { randomNickname, resolveBet, type Bet, type BucketKey } from './game'
+import { onResume, syncWidget, takeWidgetBet } from './native'
 import type { ProfileKey } from './profile'
 import { load, save } from './storage'
 import { dateStr, isoWeek, tomorrow8 } from './time'
@@ -115,6 +116,27 @@ export default function App() {
   const weekPoints = bets
     .filter((b) => b.points && isoWeek(new Date(b.target.replace(' ', 'T'))) === week)
     .reduce((s, b) => s + (b.points ?? 0), 0)
+
+  // Android widget: tell it the station and tomorrow's bet, and import bets placed from the widget
+  useEffect(() => {
+    syncWidget({
+      station,
+      stationName: current?.name ?? '',
+      betTarget: openBet?.target ?? '',
+      betBucket: openBet?.bucket ?? '',
+    })
+  }, [station, current?.name, openBet?.target, openBet?.bucket])
+
+  useEffect(
+    () =>
+      onResume(() =>
+        takeWidgetBet().then((wb) => {
+          if (!wb) return
+          setBets((bs) => (bs.some((b) => b.station === wb.station && b.target === wb.target) ? bs : [...bs, wb]))
+        }),
+      ),
+    [setBets],
+  )
 
   const placeBet = (bucket: BucketKey) => {
     if (openBet) return
