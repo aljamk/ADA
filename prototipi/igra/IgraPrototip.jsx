@@ -688,6 +688,25 @@ function Dih({ onBack, onDone, done, profile, onProfile }) {
 /* ============================================================================
  * Widget (predogled, brez interakcije)
  * ========================================================================== */
+/** Barvna lestvica PM2,5 z oznako, kje je zdajšnja vrednost (vsaka stopnja enako široka). */
+function WidgetScale({ pm }) {
+  const l = levelOf(pm)
+  const i = LEVELS.indexOf(l)
+  const lo = i === 0 ? 0 : LEVELS[i - 1].max
+  const pos = ((i + Math.min(1, (pm - lo) / (l.max - lo))) / LEVELS.length) * 100
+  return (
+    <div className="w-scale" role="img" aria-label={`PM2,5 ${pm} µg/m³ je na lestvici ${l.word.toLowerCase()}, od ${levelRange(l)} µg/m³`}>
+      <div className="w-scale-bar">
+        {LEVELS.map((x) => <span key={x.key} style={{ background: x.color, opacity: x === l ? 1 : 0.45 }} />)}
+        <i style={{ left: `${pos}%` }} />
+      </div>
+      <div className="w-scale-ticks" aria-hidden="true">
+        {[0, ...LEVELS.slice(0, -1).map((x) => x.max)].map((t) => <span key={t}>{t}</span>)}
+      </div>
+    </div>
+  )
+}
+
 function Widgets({ drops }) {
   const l = levelOf(MOCK.now.pm25)
   const left = 4 - drops
@@ -697,16 +716,18 @@ function Widgets({ drops }) {
       <p className="eyebrow light">Začetni zaslon · predogled</p>
       <div className="w22">
         <span className="w-verdict"><span className="level-ico" style={{ background: l.color }}>{l.icon}</span>{l.word.toUpperCase()}</span>
-        <span className="w-pm">{MOCK.now.pm25} <small>µg/m³ PM2,5</small></span>
-        <span className="w-what">Merimo fine delce PM2,5. {l.word} je <span className="nowrap">{levelRange(l)} µg/m³</span>.</span>
+        <span className="w-pm"><b>{MOCK.now.pm25}</b> µg/m³ <small>fini delci PM2,5</small></span>
+        <WidgetScale pm={MOCK.now.pm25} />
+        <span className="w-what">{l.word} = {levelRange(l)} µg/m³</span>
         <Tag kind="MERITEV">{MOCK.station} · {MOCK.now.time}</Tag>
         <div className="w-plant"><Plant stage={drops} size={40} /></div>
       </div>
       <div className="w42">
         <div className="w42-main">
           <span className="w-verdict"><span className="level-ico" style={{ background: l.color }}>{l.icon}</span>{l.word.toUpperCase()}</span>
+          <span className="w-pm"><b>{MOCK.now.pm25}</b> µg/m³ <small>fini delci PM2,5 · {l.word.toLowerCase()} je {levelRange(l)}</small></span>
+          <WidgetScale pm={MOCK.now.pm25} />
           <span className="w-advice">{MOCK.now.advice}</span>
-          <span className="w-what">Fini delci PM2,5: {MOCK.now.pm25} µg/m³ · {l.word.toLowerCase()} je <span className="nowrap">{levelRange(l)} µg/m³</span></span>
           <Tag kind="MERITEV">{MOCK.station} · {MOCK.now.time}</Tag>
         </div>
         <div className="w42-side"><Plant stage={drops} size={48} /><span>{tasksLeft}</span></div>

@@ -228,11 +228,18 @@ p, h1, h2, h3, ol { margin: 0; }
 .widgets { display: grid; gap: 16px; align-content: start; width: 340px; max-width: 100%; }
 .w22, .w42 { background: var(--hero); color: var(--hero-fg); border-radius: 24px; padding: 16px; position: relative; }
 .w22 { width: 170px; min-height: 170px; display: grid; align-content: start; gap: 6px; padding-bottom: 52px; }
-.w42 { width: 340px; max-width: 100%; min-height: 160px; display: flex; gap: 12px; }
+.w42 { width: 340px; max-width: 100%; min-height: 180px; display: flex; gap: 12px; }
 .w42-main { flex: 1; display: grid; align-content: start; gap: 8px; min-width: 0; }
 .w42-side { display: grid; justify-items: center; align-content: end; font-size: 12px; color: var(--accent); text-align: center; }
 .w-verdict { display: flex; align-items: center; gap: 8px; font-size: 24px; font-weight: 800; letter-spacing: 0.02em; }
-.w-pm { font-size: 15px; }
+.w-pm { font-size: 14px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; }
+.w-pm b { font-size: 30px; font-weight: 800; line-height: 1; }
+.w-pm small { flex-basis: 100%; font-size: 12px; opacity: 0.85; }
+.w-scale { display: grid; gap: 3px; }
+.w-scale-bar { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; height: 8px; }
+.w-scale-bar span { border-radius: 4px; }
+.w-scale-bar i { position: absolute; top: -4px; width: 4px; height: 16px; margin-left: -2px; border-radius: 2px; background: var(--hero-fg); box-shadow: 0 0 0 2px var(--hero); }
+.w-scale-ticks { display: grid; grid-template-columns: repeat(5, 1fr); font-size: 10px; opacity: 0.75; }
 .w-advice { font-size: 15px; line-height: 1.3; }
 .w-what { font-size: 12px; line-height: 1.3; opacity: 0.85; }
 .nowrap { white-space: nowrap; }
@@ -935,6 +942,25 @@ function Dih({ onBack, onDone, done, profile, onProfile }) {
 /* ============================================================================
  * Widget (predogled, brez interakcije)
  * ========================================================================== */
+/** Barvna lestvica PM2,5 z oznako, kje je zdajšnja vrednost (vsaka stopnja enako široka). */
+function WidgetScale({ pm }) {
+  const l = levelOf(pm)
+  const i = LEVELS.indexOf(l)
+  const lo = i === 0 ? 0 : LEVELS[i - 1].max
+  const pos = ((i + Math.min(1, (pm - lo) / (l.max - lo))) / LEVELS.length) * 100
+  return (
+    <div className="w-scale" role="img" aria-label={`PM2,5 ${pm} µg/m³ je na lestvici ${l.word.toLowerCase()}, od ${levelRange(l)} µg/m³`}>
+      <div className="w-scale-bar">
+        {LEVELS.map((x) => <span key={x.key} style={{ background: x.color, opacity: x === l ? 1 : 0.45 }} />)}
+        <i style={{ left: `${pos}%` }} />
+      </div>
+      <div className="w-scale-ticks" aria-hidden="true">
+        {[0, ...LEVELS.slice(0, -1).map((x) => x.max)].map((t) => <span key={t}>{t}</span>)}
+      </div>
+    </div>
+  )
+}
+
 function Widgets({ drops }) {
   const l = levelOf(MOCK.now.pm25)
   const left = 4 - drops
@@ -944,16 +970,18 @@ function Widgets({ drops }) {
       <p className="eyebrow light">Začetni zaslon · predogled</p>
       <div className="w22">
         <span className="w-verdict"><span className="level-ico" style={{ background: l.color }}>{l.icon}</span>{l.word.toUpperCase()}</span>
-        <span className="w-pm">{MOCK.now.pm25} <small>µg/m³ PM2,5</small></span>
-        <span className="w-what">Merimo fine delce PM2,5. {l.word} je <span className="nowrap">{levelRange(l)} µg/m³</span>.</span>
+        <span className="w-pm"><b>{MOCK.now.pm25}</b> µg/m³ <small>fini delci PM2,5</small></span>
+        <WidgetScale pm={MOCK.now.pm25} />
+        <span className="w-what">{l.word} = {levelRange(l)} µg/m³</span>
         <Tag kind="MERITEV">{MOCK.station} · {MOCK.now.time}</Tag>
         <div className="w-plant"><Plant stage={drops} size={40} /></div>
       </div>
       <div className="w42">
         <div className="w42-main">
           <span className="w-verdict"><span className="level-ico" style={{ background: l.color }}>{l.icon}</span>{l.word.toUpperCase()}</span>
+          <span className="w-pm"><b>{MOCK.now.pm25}</b> µg/m³ <small>fini delci PM2,5 · {l.word.toLowerCase()} je {levelRange(l)}</small></span>
+          <WidgetScale pm={MOCK.now.pm25} />
           <span className="w-advice">{MOCK.now.advice}</span>
-          <span className="w-what">Fini delci PM2,5: {MOCK.now.pm25} µg/m³ · {l.word.toLowerCase()} je <span className="nowrap">{levelRange(l)} µg/m³</span></span>
           <Tag kind="MERITEV">{MOCK.station} · {MOCK.now.time}</Tag>
         </div>
         <div className="w42-side"><Plant stage={drops} size={48} /><span>{tasksLeft}</span></div>
