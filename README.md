@@ -2,62 +2,70 @@
 
 Prototip aplikacije za izziv Abelium × ARSO. Brez prijave: odpreš in vidiš zrak.
 Ciljna skupina: občutljivi (nosečnice, astmatiki, starejši, otroci) in vsi, ki se želijo naučiti predvideti slab zrak.
+UI sledi Figmi "Svež zrak · Redesign" (svetli in temni način po nastavitvi telefona).
 
 ## Zagon
 
 ```bash
 npm install
-npm run dev          # odpre na http://localhost:5173
+npm run dev
 ```
 
-Za pitch: `http://localhost:5173/?demo=1` doda gumb, ki jutrišnjo napoved razreši takoj z zadnjo meritvijo.
+Neposredne povezave (za pitch): `#zdaj`, `#zemljevid`, `#igra`, `#ugani` (takoj v krog igre), `#opozorila`, `#odlocevalci`. `?intro=0` preskoči uvodni zaslon.
 
-## Kaj je notri
+## Zasloni
 
-| Zavihek | Kaj pokaže | Podatki |
+| Zaslon | Kaj pokaže | Podatki |
 |---|---|---|
-| 💨 Zdaj | Meritev zdaj + nasvet za tvoj profil, hitra napoved za jutri, pametno opozorilo, naslednjih 12 ur z najboljšim časom za zračenje, zadnjih 24 ur | MERITEV ARSO, MODEL CAMS |
-| 🎯 Igra | "Napovej jutri" (PM2.5 jutri ob 8h), točke, niz 🔥, Premagaj model, deljenje rezultata, liga četrti | MERITEV ARSO razreši napoved |
-| 🕓 Moj dan | 24-urni krog za dom (zunanji) in službo (notranji) | MODEL CAMS, umerjen |
-| 📊 Postaje | Postaje razvrščene po trenutnem PM2.5 | MERITEV ARSO |
-| 🙂 Jaz | Profil v enem dotiku, obvestila, predogled widgetov | — |
+| 01 Dobrodošli | Komu prilagodimo nasvete (neobvezno, ostane na napravi) | — |
+| 02 Zdaj | AQI in PM2,5 zdaj, nasvet za profil, naslednjih 12 ur z oknom za zračenje in večernim vrhom, zakaj | MERITEV ARSO, MODEL CAMS |
+| 03 Zemljevid | Tri uradne postaje v Ljubljani, preklop meritev/model, drsnik +12 h | MERITEV ARSO, MODEL CAMS |
+| 04–07 Igra "Ugani zrak" | Dnevni izziv 5 krogov: kraj + čas, oceni PM2,5, razkritje, točke, niz, liga četrti, prijatelji, značke, deljenje | MERITEV ARSO 2020–2026 iz paketa |
+| 08 Za odločevalce | Priporočilo za obvestilo javnosti jutri, indeks izpostavljenosti po 17 četrtih, občutljive ustanove | MODEL CAMS, OCENA (zvezek 04), OSM |
+| 09 Opozorila | Obvestilo za zračenje, opozorilo večer prej, mirne ure | iz napovedi |
 
 ## Viri podatkov
 
-- **ARSO XML** (`ones_zrak_urni_podatki_zadnji.xml`): zadnja ura vseh postaj, odprt CORS. Aplikacija ga bere vsakih 15 min in meritve shrani na napravi (7 dni) za zgodovino in razreševanje igre.
-- **CAMS prek Open-Meteo**: urni model PM2.5. CAMS pozimi v Ljubljani precenjuje (+70 %), zato ga umerimo z razmerjem meritev/model ob zadnji izmerjeni uri na isti postaji (omejeno na 0,3–2). Vedno označeno kot MODEL.
-- Stopnje: EEA European Air Quality Index za PM2.5 (TODO: potrdi z ARSO).
+- **ARSO XML** (`ones_zrak_urni_podatki_zadnji.xml`): zadnja ura vseh postaj, odprt CORS, osvežitev vsakih 15 min.
+- **CAMS prek Open-Meteo**: urni model PM2,5. CAMS pozimi v Ljubljani precenjuje (+70 %), zato ga umerimo z razmerjem meritev/model ob zadnji izmerjeni uri na isti postaji (omejeno na 0,3–2). Vedno označeno kot MODEL.
+- **Podatkovni paket** [vidacex/ARSOhack](https://github.com/vidacex/ARSOhack) → `public/data/` s skripto:
+  ```bash
+  python scripts/build_data.py --paket POT/DO/ARSOhack --out public/data
+  ```
+  - `ugani-krogi.json`: urne meritve ARSO PM2,5 (Bežigrad, Celovška, Vič), zimski meseci. Vir: ARSO; urni podatki niso formalno validirani.
+  - `cetrti.json`: indeks izpostavljenosti iz `primeri/cs_kazalniki.csv` (stavbe, omrežja, relief, meritve), prikazan relativno na povprečje mesta.
+  - `ustanove.json`: vrtci, šole, domovi starejših. © OpenStreetMap contributors (ODbL).
+- **AQI**: lestvica US EPA (2024), izračunana iz urne meritve PM2,5. ARSO ne objavlja AQI števila. Igra uporablja učno lestvico µg/m³, ne zdravstvenih mej.
 
 ## Poštena raba podatkov
 
-- Meritev in model sta povsod ločeno označena.
-- Liga četrti razvršča po točnosti napovedi, ne po kakovosti zraka (tri uradne postaje so v isti celici modela).
-- Lestvica postaj razvršča merilna mesta, ne ulic.
-- Krog "Moj dan" je zunanji zrak na najbližji postaji, ne zrak v prostoru.
+- Meritev, model in ocena so povsod ločeno označeni (● MERITEV, MODEL, ○ OCENA).
+- Liga četrti razvršča po točkah v igri, ne po kakovosti zraka.
+- Zemljevid kaže samo tri uradne postaje; občanski senzorji so v pripravi.
+- Liga in prijatelji so primer (DEMO), dokler ni strežnika.
 
 ## Struktura
 
 ```
 src/
-  arso.ts, forecast.ts      viri podatkov (ARSO, CAMS + umerjanje)
-  game.ts, profile.ts       logika igre in profilov
-  storage.ts, time.ts       pomožne funkcije
-  components/               ena komponenta na funkcijo
-  App.tsx                   stanje in zavihki
+  arso.ts, forecast.ts, rounds.ts   viri podatkov (ARSO, CAMS + umerjanje, krogi igre)
+  aqi.ts, profile.ts, game.ts       lestvice, nasveti, logika igre
+  screens/                          en zaslon na Figma okvir
+  components/                       zavihki, izbira postaje
+  theme.css                         barve in pisave iz Figme (svetlo/temno)
+scripts/build_data.py               podatki iz paketa → public/data
+android/                            Capacitor + nativni widget
 ```
 
 ## Omejitve prototipa
 
-- Vse je v `localStorage` na napravi. Liga uporablja DEMO točke drugih četrti.
-- Napoved se razreši le, če je bila aplikacija odprta v uri po objavi meritve (~9:45–10:45). Rešitev: strežnik ali 5-dnevni zajem iz paketa (`v_zivo/README.md`).
+- Vse je v `localStorage` na napravi. Liga in prijatelji so DEMO.
 - Obvestila delujejo samo, ko je aplikacija odprta (ni push strežnika).
-- Widgeti so predogled; pravi potrebujejo nativno kodo.
+- Android widget še ni prenovljen po Figmi.
 
 ## Naslednji koraki
 
 - Strežnik za ligo (anonimni ID naprave + četrt) in push obvestila
-- Pravi widgeti: iOS WidgetKit (home, lock screen, Apple Watch) in Android App Widgets
-- Vadnica v slogu GeoGuessr na 10 letih meritev ARSO iz paketa
-- Občanski senzorji (Sensor.Community, umerjeni) za gostejšo lestvico
-- Družinska povezava: pošlji opozorilo babici po SMS / Viber
-- Višina mejne plasti (Open-Meteo) za razlago "zakaj" (inverzija)
+- Widgeti po Figmi (krožni, pravokotni, srednji "Vstop v igro"), iOS WidgetKit in Apple Watch
+- Občanski senzorji (Sensor.Community, PurpleAir, umerjeni) na zemljevidu kot OCENA
+- Postavitev za tablico (Za odločevalce · Tablica)

@@ -1,27 +1,29 @@
-import { levelOf } from './arso'
+import { usAqi } from './aqi'
+import type { ForecastHour } from './forecast'
+import { hh } from './time'
 
-// One-tap profile, no personal data. Sensitive groups get a lower alert threshold.
-// Thresholds follow the EEA index: "Zmeren" (≥15) for sensitive groups, "Slab" (≥50) for everyone.
+// Onboarding choice "Komu prilagodimo nasvete?" — optional, stays on the device.
 export const PROFILES = [
-  { key: 'splosno', label: 'Splošno', emoji: '🙂', threshold: 50 },
-  { key: 'nosecnica', label: 'Nosečnica', emoji: '🤰', threshold: 15 },
-  { key: 'astma', label: 'Astma / pljuča', emoji: '🫁', threshold: 15 },
-  { key: 'starejsi', label: '65+', emoji: '👵', threshold: 15 },
-  { key: 'otroci', label: 'Otroci', emoji: '🧒', threshold: 15 },
+  { key: 'starejsi', label: 'Starejši', who: 'starejše', sensitive: true },
+  { key: 'nosecnost', label: 'Nosečnost', who: 'nosečnice', sensitive: true },
+  { key: 'astma', label: 'Astma/pljuča', who: 'občutljiva pljuča', sensitive: true },
+  { key: 'otroci', label: 'Otroci', who: 'otroke', sensitive: true },
+  { key: 'nihce', label: 'Nihče posebej', who: 'vse', sensitive: false },
 ] as const
 
 export type ProfileKey = (typeof PROFILES)[number]['key']
-export const profileOf = (k: ProfileKey) => PROFILES.find((p) => p.key === k) ?? PROFILES[0]
+export const profileOf = (k: ProfileKey) => PROFILES.find((p) => p.key === k) ?? PROFILES[4]
 
-export function adviceFor(v: number, profile: ProfileKey) {
-  const sensitive = profileOf(profile).threshold < 50
-  const level = levelOf(v).label
-  if (v < 15) return 'Zrak je čist. Odlično za sprehod in zračenje.'
-  if (v < 50)
-    return sensitive
-      ? `${level}: daljši napor na prostem raje prestavi, zračí na kratko.`
-      : `${level}: za večino brez omejitev.`
-  if (v < 90)
-    return sensitive ? `${level}: ostani raje v zaprtem, ne zrači.` : `${level}: zmanjšaj daljši napor zunaj.`
-  return sensitive ? `${level}: ostani v zaprtem.` : `${level}: omeji čas zunaj, ne zrači.`
+/** AQI above which we advise caution: "Zmerno" for sensitive groups, "Slabo" for everyone else. */
+export const thresholdAqi = (k: ProfileKey) => (profileOf(k).sensitive ? 50 : 100)
+
+/** Two-line advice for the hero card, e.g. "Za občutljiva pljuča:\nkrajši sprehod do 18h." */
+export function adviceFor(pm25: number, hours: ForecastHour[], k: ProfileKey) {
+  const p = profileOf(k)
+  const limit = thresholdAqi(k)
+  const head = `Za ${p.who}:`
+  if (usAqi(pm25) > limit) return `${head}\nraje ostani v zaprtem.`
+  const bad = hours.find((h) => usAqi(h.value) > limit)
+  if (bad) return `${head}\nkrajši sprehod do ${Number(hh(bad.time))}h.`
+  return `${head}\nzrak je primeren za sprehod.`
 }

@@ -33,14 +33,14 @@ export async function fetchArso(): Promise<Reading[]> {
   }))
 }
 
+/** "LJ Bežigrad" -> "Bežigrad" for compact UI */
+export const shortName = (name: string) => name.replace(/^LJ /, '')
+
 // ARSO uses city abbreviations in station names; expand them so "Maribor" finds "MB Titova".
 const CITY: Record<string, string> = {
   LJ: 'Ljubljana', MB: 'Maribor', CE: 'Celje', MS: 'Murska Sobota', NG: 'Nova Gorica', IB: 'Ilirska Bistrica',
 }
-export const searchText = (r: Reading) =>
-  `${r.name} ${CITY[r.name.split(' ')[0]] ?? ''}`.toLowerCase()
-
-export const isLjubljana = (r: Reading) => r.name.startsWith('LJ ') || r.name.startsWith('Brezje')
+export const searchText = (r: Reading) => `${r.name} ${CITY[r.name.split(' ')[0]] ?? ''}`.toLowerCase()
 
 /** Nearest station (equirectangular distance is plenty for Slovenia) */
 export function nearest(readings: Reading[], lat: number, lon: number) {
@@ -49,23 +49,8 @@ export function nearest(readings: Reading[], lat: number, lon: number) {
   return readings.reduce((a, b) => (d(b) < d(a) ? b : a))
 }
 
-// PM2.5 levels (EEA European Air Quality Index bands, µg/m³). TODO: confirm with ARSO.
-export const LEVELS = [
-  { min: 0, label: 'Dober', color: '#50F0E6' },
-  { min: 5, label: 'Sprejemljiv', color: '#50CCAA' },
-  { min: 15, label: 'Zmeren', color: '#F0E641' },
-  { min: 50, label: 'Slab', color: '#FF5050' },
-  { min: 90, label: 'Zelo slab', color: '#960032' },
-  { min: 140, label: 'Izjemno slab', color: '#7D2181' },
-]
-
-export function levelOf(v: number) {
-  return [...LEVELS].reverse().find((l) => v >= l.min)!
+/** Distance in km (for "Najbližji senzor: Bežigrad, 1,8 km") */
+export function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const k = Math.cos((lat1 * Math.PI) / 180)
+  return Math.hypot(lat2 - lat1, (lon2 - lon1) * k) * 111.2
 }
-
-// Game buckets for "Napovej jutri"
-export const BUCKETS = [
-  { key: 'dober', label: 'Dober', hint: '< 15', test: (v: number) => v < 15 },
-  { key: 'zmeren', label: 'Zmeren', hint: '15–50', test: (v: number) => v >= 15 && v < 50 },
-  { key: 'slab', label: 'Slab', hint: '≥ 50', test: (v: number) => v >= 50 },
-] as const

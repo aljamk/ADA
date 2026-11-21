@@ -1,0 +1,138 @@
+import { levelOfAqi, levelOfPm, usAqi } from '../aqi'
+import { shortName, type Reading } from '../arso'
+import type { ForecastHour } from '../forecast'
+import { adviceFor, type ProfileKey } from '../profile'
+import { hh } from '../time'
+
+interface Props {
+  reading: Reading
+  hours: ForecastHour[] // next 12 h, calibrated model
+  profile: ProfileKey
+  distance?: number // km to nearest station, only if the user shared location once
+  onStation: () => void
+  onDecisionMakers: () => void
+}
+
+/** Lowest 3-hour window while people are awake (7–22h) and highest 3-hour window in the forecast */
+function windows(hours: ForecastHour[]) {
+  const avg = (i: number) => (hours[i].value + hours[i + 1].value + hours[i + 2].value) / 3
+  const awake = (i: number) => {
+    const h = Number(hh(hours[i].time))
+    return h >= 7 && h <= 19
+  }
+  let best = -1
+  let peak = 0
+  for (let i = 0; i + 2 < hours.length; i++) {
+    if (awake(i) && (best < 0 || avg(i) < avg(best))) best = i
+    if (avg(i) > avg(peak)) peak = i
+  }
+  return { best, peak, peakAqi: hours.length > 2 ? usAqi(avg(peak)) : 0 }
+}
+
+/** 02 · Zdaj */
+export default function Zdaj({ reading, hours, profile, distance, onStation, onDecisionMakers }: Props) {
+  const pm = reading.pm25
+  const aqi = pm != null ? usAqi(pm) : null
+  const level = aqi != null ? levelOfAqi(aqi) : null
+  const w = hours.length >= 3 ? windows(hours) : null
+  const max = Math.max(1, ...hours.map((h) => h.value))
+  const winter = [11, 12, 1, 2, 3].includes(new Date().getMonth() + 1)
+  const name = shortName(reading.name)
+
+  return (
+    <div className="screen">
+      <div className="screen-head">
+        <div>
+          <p className="t-label">Ljubljana</p>
+          <p className="t-title">Zdaj</p>
+        </div>
+        <div style={{ display: 'grid', justifyItems: 'end', gap: 14, paddingBottom: 6 }}>
+          <button className="link" onClick={onDecisionMakers}>
+            Za odločevalce ›
+          </button>
+          <button className="link t-2" style={{ fontWeight: 400, fontSize: 12, color: 'var(--text-2)' }} onClick={onStation}>
+            Zamenjaj postajo
+          </button>
+        </div>
+      </div>
+
+      <section className="hero">
+        <div className="now-top">
+          <span style={{ fontSize: 17, fontWeight: 500 }}>
+            {name} · {reading.from.slice(11)}
+          </span>
+          <span className="chip">● MERITEV</span>
+        </div>
+        {aqi != null && level && pm != null ? (
+          <>
+            <p className="now-level" style={{ color: level.color }}>
+              {level.symbol} {level.label}
+            </p>
+            <div className="now-nums">
+              <span className="now-aqi">{aqi}</span>
+              <span className="now-aqi-unit">AQI</span>
+              <span className="now-pm">
+                <small>PM2,5 · MERITEV</small>
+                <b>{pm} µg/m³</b>
+              </span>
+            </div>
+            <p className="now-advice">{adviceFor(pm, hours, profile)}</p>
+          </>
+        ) : (
+          <p className="now-level">Ta postaja ne meri PM2,5</p>
+        )}
+        <div className="now-foot">
+          <span>
+            Najbližji senzor: {name}
+            {distance != null && `, ${distance.toFixed(1).replace('.', ',')} km`}
+          </span>
+          <span style={{ color: 'var(--hero-text-2)' }}>AQI: lestvica US EPA</span>
+        </div>
+      </section>
+
+      {w && (
+        <>
+          <div className="section-head">
+            <p className="t-sub">Naslednjih 12 ur</p>
+            <span className="chip model">MODEL</span>
+          </div>
+          <section className="card fc">
+            <p className="fc-title">
+              {w.best >= 0
+                ? `✓ Prezračuj med ${Number(hh(hours[w.best].time))}h in ${(Number(hh(hours[w.best + 2].time)) + 1) % 24}h`
+                : 'Zračenje: počakaj do jutra'}
+            </p>
+            <div className="fc-bars">
+              {w.best >= 0 && (
+                <div className="fc-band" style={{ background: 'var(--good-bg)', left: `${(w.best / 12) * 100}%`, width: '25%' }} />
+              )}
+              {w.peakAqi > 50 && w.peak !== w.best && (
+                <div className="fc-band" style={{ background: 'var(--peak-bg)', left: `${(w.peak / 12) * 100}%`, width: '25%' }} />
+              )}
+              {hours.map((h) => (
+                <div
+                  key={h.time}
+                  className="fc-bar"
+                  title={`${hh(h.time)}h: ~${h.value} µg/m³ (${levelOfPm(h.value).label})`}
+                  style={{ height: `${Math.max(12, (h.value / max) * 100)}%`, background: levelOfPm(h.value).color }}
+                />
+              ))}
+            </div>
+            <div className="fc-labels">
+              {[0, 3, 6, 9, 11].map((i) => hours[i] && <span key={i}>{hh(hours[i].time)}h</span>)}
+            </div>
+          </section>
+        </>
+      )}
+
+      <section className="card-soft">
+        <p className="t-h3">Zakaj?</p>
+        <p className="t-body" style={{ marginTop: 8 }}>
+          {winter
+            ? 'Pozimi inverzija zadržuje delce v kotlini. Zvečer jih dodata ogrevanje in promet.'
+            : 'Izven kurilne sezone se zrak bolje meša in delci se hitreje razredčijo.'}
+        </p>
+      </section>
+    </div>
+  )
+}

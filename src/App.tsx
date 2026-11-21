@@ -1,93 +1,96 @@
 import { useEffect, useRef, useState } from 'react'
-import { fetchArso, type Reading } from './arso'
-import Forecast12h from './Forecast12h'
-import Alerts from './components/Alerts'
-import DayRing from './components/DayRing'
-import Places from './components/Places'
-import Ranking from './components/Ranking'
-import WidgetPreview from './components/WidgetPreview'
-import Game from './components/Game'
-import History from './components/History'
-import League from './components/League'
-import Me from './components/Me'
-import NowCard from './components/NowCard'
-import StationSearch from './components/StationSearch'
-import { atHour, fetchForecast, next12, ofDay, type Forecast } from './forecast'
-import { randomNickname, resolveBet, type Bet, type BucketKey } from './game'
-import { onResume, syncWidget, takeWidgetBet } from './native'
-import type { ProfileKey } from './profile'
+import { usAqi } from './aqi'
+import { distanceKm, fetchArso, shortName, type Reading } from './arso'
+import StationPicker from './components/StationPicker'
+import TabBar, { TABS, type TabKey } from './components/TabBar'
+import { fetchForecast, next12, type Forecast, type ForecastHour } from './forecast'
+import type { GameLog, RoundResult } from './game'
+import { onResume, syncWidget } from './native'
+import { thresholdAqi, type ProfileKey } from './profile'
+import Igra from './screens/Igra'
+import Odlocevalci, { publicNoticeWindow } from './screens/Odlocevalci'
+import Onboarding from './screens/Onboarding'
+import Opozorila, { DEFAULT_ALERTS, type AlertSettings } from './screens/Opozorila'
+import Zdaj from './screens/Zdaj'
+import Zemljevid, { MAP_STATIONS } from './screens/Zemljevid'
 import { load, save } from './storage'
-import { dateStr, isoWeek, tomorrow8 } from './time'
-
-const TABS = [
-  { key: 'zdaj', label: 'Zdaj', icon: '💨' },
-  { key: 'igra', label: 'Igra', icon: '🎯' },
-  { key: 'dan', label: 'Moj dan', icon: '🕓' },
-  { key: 'postaje', label: 'Postaje', icon: '📊' },
-  { key: 'jaz', label: 'Jaz', icon: '🙂' },
-] as const
-type TabKey = (typeof TABS)[number]['key']
-
-// Pitch helper: open the app with ?demo=1 to resolve a bet on the spot
-const DEMO = new URLSearchParams(location.search).has('demo')
-
-// ARSO readings seen on this device: { stationCode: { "YYYY-MM-DD HH:00": pm25 } }
-type Observations = Record<string, Record<string, number>>
-
-function addObservations(obs: Observations, readings: Reading[]): Observations {
-  const cutoff = dateStr(new Date(Date.now() - 7 * 86400000))
-  const next: Observations = {}
-  for (const [code, hours] of Object.entries(obs))
-    next[code] = Object.fromEntries(Object.entries(hours).filter(([t]) => t >= cutoff))
-  for (const r of readings) if (r.pm25 != null) next[r.code] = { ...next[r.code], [r.from]: r.pm25 }
-  return next
-}
+import { dateStr, hh } from './time'
 
 /** Small hook: state that is persisted to localStorage */
-function useStored<T>(key: string, init: T | (() => T)) {
-  const [v, setV] = useState<T>(() => load(key, typeof init === 'function' ? (init as () => T)() : init))
+function useStored<T>(key: string, init: T) {
+  const [v, setV] = useState<T>(() => load(key, init))
   useEffect(() => save(key, v), [key, v])
   return [v, setV] as const
+}
+
+/** Show a system notification at most once per key per day (only while the app is open; no push server). */
+function notifyOnce(key: string, body: string) {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+  const id = `${dateStr(new Date())}|${key}`
+  if (load('lastNotified_' + key, '') === id) return
+  new Notification('Zrak', { body, icon: '/icon.svg' })
+  save('lastNotified_' + key, id)
+}
+
+const inRange = (h: number, from: number, to: number) => (from <= to ? h >= from && h < to : h >= from || h < to)
+
+function checkAlerts(s: AlertSettings, hours: ForecastHour[], fc: Forecast | undefined, profile: ProfileKey) {
+  const now = new Date().getHours()
+  if (inRange(now, s.quietFrom, s.quietTo)) return
+  if (s.airing && inRange(now, s.airingFrom, s.airingTo) && hours.length >= 3) {
+    // Best 3-hour window starting in the next hour → time to air out
+    const first3 = hours.slice(0, 3)
+    const avg = first3.reduce((a, h) => a + h.value, 0) / 3
+    const better = hours.slice(3).every((h) => h.value >= avg)
+    if (better && usAqi(avg) <= thresholdAqi(profile))
+      notifyOnce('airing', `Zdaj je dober čas za zračenje, do ${(Number(hh(first3[2].time)) + 1) % 24}h.`)
+  }
+  if (s.eveningBefore && now >= s.eveningAt && now < s.eveningAt + 3) {
+    const w = publicNoticeWindow(fc)
+    if (w) notifyOnce('evening', `Jutri bo zrak slab med ${w}. Načrtuj sprehod izven teh ur.`)
+  }
 }
 
 export default function App() {
   const [readings, setReadings] = useState<Reading[]>([])
   const [error, setError] = useState<string | null>(null)
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
-  const [tab, setTab] = useState<TabKey>('zdaj')
-  const requested = useRef(new Set<string>()) // stations whose forecast is being fetched
+  const requested = useRef(new Set<string>())
+  // Deep links: #zdaj, #zemljevid, #igra, #ugani (straight into a round), #opozorila, #odlocevalci
+  const hash = location.hash.slice(1)
+  const [tab, setTab] = useState<TabKey>(hash === 'ugani' ? 'igra' : TABS.some((t) => t.key === hash) ? (hash as TabKey) : 'zdaj')
+  const [overlay, setOverlay] = useState<'odlocevalci' | 'picker' | null>(hash === 'odlocevalci' ? 'odlocevalci' : null)
+  const [distance, setDistance] = useState<number>()
 
+  const [onboarded, setOnboarded] = useStored('onboarded', false)
+  const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce')
   const [station, setStation] = useStored('station', 'E403') // LJ Bežigrad
-  const [bets, setBets] = useStored<Bet[]>('bets', [])
-  const [obs, setObs] = useStored<Observations>('obs', {})
-  const [profile, setProfile] = useStored<ProfileKey>('profile', 'splosno')
-  const [notify, setNotify] = useStored('notify', false)
-  const [nickname] = useStored('nickname', randomNickname)
-  const [cetrt, setCetrt] = useStored('cetrt', 'Bežigrad')
-  const [home, setHome] = useStored('home', 'E403') // LJ Bežigrad
-  const [work, setWork] = useStored('work', 'E404') // LJ Vič
+  const [log, setLog] = useStored<GameLog>('ugani', {})
+  const [cetrt, setCetrt] = useStored('cetrt', 'Šiška')
+  const [alerts, setAlerts] = useStored<AlertSettings>('alerts', DEFAULT_ALERTS)
 
-  // Load ARSO now and every 15 minutes (feed updates ~45 min past the hour)
+  // ARSO on start, on resume and every 15 minutes (feed updates ~45 min past the hour)
   useEffect(() => {
     const get = () =>
       fetchArso()
         .then((rs) => {
           setReadings(rs)
-          setObs((o) => addObservations(o, rs))
           setForecasts({})
           requested.current.clear()
+          setError(null)
         })
         .catch((e) => setError(`Napaka pri branju ARSO: ${e}`))
-    get()
+    const stop = onResume(get)
     const id = setInterval(get, 15 * 60000)
-    return () => clearInterval(id)
-  }, [setObs])
+    return () => {
+      stop()
+      clearInterval(id)
+    }
+  }, [])
 
-  const current = readings.find((r) => r.code === station)
-
-  // Model forecast per station in use (fetched on demand, calibrated to that station's last reading)
+  // Model forecast for the chosen station and the three map stations
   useEffect(() => {
-    for (const code of new Set([station, home, work])) {
+    for (const code of new Set([station, ...MAP_STATIONS.map((s) => s.code)])) {
       const r = readings.find((x) => x.code === code)
       if (!r || forecasts[code] || requested.current.has(code)) continue
       requested.current.add(code)
@@ -95,126 +98,86 @@ export default function App() {
         .then((fc) => setForecasts((f) => ({ ...f, [code]: fc })))
         .catch((e) => setError(`Napoved ni na voljo: ${e}`))
     }
-  }, [readings, station, home, work, forecasts])
-  const fc = current ? forecasts[current.code] : undefined
+  }, [readings, station, forecasts])
+
+  const current = readings.find((r) => r.code === station)
+  const fc = forecasts[station]
   const hours12 = current && fc ? next12(fc, current.from) : []
 
-  // Resolve bets from any ARSO reading this device has seen for the target hour
   useEffect(() => {
-    setBets((bs) =>
-      bs.map((b) => {
-        const actual = obs[b.station]?.[b.target]
-        return b.points === undefined && actual != null ? resolveBet(b, actual) : b
-      }),
+    syncWidget({ station, stationName: current ? shortName(current.name) : '' })
+  }, [station, current])
+
+  useEffect(() => {
+    if (current && fc) checkAlerts(alerts, hours12, fc, profile)
+  }, [alerts, current, fc, hours12, profile])
+
+  // Distance is shown only if the user chose "use my location" in the picker (one-time, not stored)
+  const pickStation = (code: string, at?: { lat: number; lon: number }) => {
+    setStation(code)
+    setOverlay(null)
+    const r = readings.find((x) => x.code === code)
+    setDistance(at && r ? distanceKm(at.lat, at.lon, r.lat, r.lon) : undefined)
+  }
+
+  const addRound = (r: RoundResult) => {
+    const day = dateStr(new Date())
+    setLog((l) => ({ ...l, [day]: [...(l[day] ?? []), r] }))
+  }
+
+  // ?intro=0 skips the welcome screen (demos and screenshots)
+  if (!onboarded && new URLSearchParams(location.search).get('intro') !== '0')
+    return (
+      <div className="app">
+        <Onboarding
+          onDone={(p) => {
+            setProfile(p)
+            setOnboarded(true)
+          }}
+        />
+      </div>
     )
-  }, [obs, setBets])
-
-  const target = tomorrow8()
-  const openBet = bets.find((b) => b.station === station && b.target === target)
-  const points = bets.reduce((s, b) => s + (b.points ?? 0), 0)
-  const week = isoWeek()
-  const weekPoints = bets
-    .filter((b) => b.points && isoWeek(new Date(b.target.replace(' ', 'T'))) === week)
-    .reduce((s, b) => s + (b.points ?? 0), 0)
-
-  // Android widget: tell it the station and tomorrow's bet, and import bets placed from the widget
-  useEffect(() => {
-    syncWidget({
-      station,
-      stationName: current?.name ?? '',
-      betTarget: openBet?.target ?? '',
-      betBucket: openBet?.bucket ?? '',
-    })
-  }, [station, current?.name, openBet?.target, openBet?.bucket])
-
-  useEffect(
-    () =>
-      onResume(() =>
-        takeWidgetBet().then((wb) => {
-          if (!wb) return
-          setBets((bs) => (bs.some((b) => b.station === wb.station && b.target === wb.target) ? bs : [...bs, wb]))
-        }),
-      ),
-    [setBets],
-  )
-
-  const placeBet = (bucket: BucketKey) => {
-    if (openBet) return
-    // The model's forecast is stored now and revealed after resolution ("Premagaj model")
-    const model = fc ? atHour(fc, target)?.value : undefined
-    setBets([...bets, { station, stationName: current?.name, target, bucket, model }])
-  }
-
-  const demoResolve = () => {
-    if (!openBet || current?.pm25 == null) return
-    setBets(bets.map((b) => (b === openBet ? resolveBet(b, current.pm25!) : b)))
-  }
 
   return (
-    <main>
-      <header>
-        <h1>Zrak, ki ga dihamo</h1>
-        <span className="points">⭐ {points}</span>
-      </header>
+    <div className="app">
+      {error && <p className="error" style={{ padding: '12px 24px 0' }}>{error}</p>}
 
-      {error && <p className="error">{error}</p>}
-
-      {tab === 'zdaj' && (
+      {overlay === 'odlocevalci' ? (
+        <Odlocevalci fc={forecasts.E403} onBack={() => setOverlay(null)} />
+      ) : (
         <>
-          <StationSearch readings={readings} value={station} onChange={setStation} />
-          {current && <NowCard reading={current} profile={profile} openBet={openBet} onBet={placeBet} />}
-          {current && <Alerts reading={current} hours={hours12} profile={profile} notify={notify} />}
-          {current && fc && <Forecast12h fc={fc} hours={hours12} />}
-          {current && fc && <History fc={fc} from={current.from} measured={obs[current.code] ?? {}} />}
+          {tab === 'zdaj' &&
+            (current ? (
+              <Zdaj
+                reading={current}
+                hours={hours12}
+                profile={profile}
+                distance={distance}
+                onStation={() => setOverlay('picker')}
+                onDecisionMakers={() => setOverlay('odlocevalci')}
+              />
+            ) : (
+              <div className="screen"><p className="t-title">Zdaj</p><p className="t-body t-2">Nalagam meritve ARSO…</p></div>
+            ))}
+          {tab === 'zemljevid' && <Zemljevid readings={readings} forecasts={forecasts} />}
+          {tab === 'igra' && <Igra log={log} onRound={addRound} cetrt={cetrt} onCetrt={setCetrt} startRound={hash === 'ugani'} />}
+          {tab === 'opozorila' && (
+            <Opozorila settings={alerts} onChange={setAlerts} stationName={current ? shortName(current.name) : 'tvojo postajo'} />
+          )}
         </>
       )}
 
-      {tab === 'igra' && (
-        <>
-          <Game
-            bets={bets}
-            stationName={current?.name ?? station}
-            openBet={openBet}
-            onBet={placeBet}
-            nickname={nickname}
-            onDemoResolve={DEMO ? demoResolve : undefined}
-          />
-          <League cetrt={cetrt} onCetrt={setCetrt} weekPoints={weekPoints} />
-        </>
+      {overlay === 'picker' && (
+        <StationPicker readings={readings} value={station} onPick={pickStation} onClose={() => setOverlay(null)} />
       )}
 
-      {tab === 'dan' && (
-        <>
-          <DayRing
-            rings={[
-              { label: 'Dom', code: home },
-              { label: 'Služba', code: work },
-            ].map(({ label, code }) => ({
-              label,
-              station: readings.find((r) => r.code === code)?.name ?? code,
-              hours: forecasts[code] ? ofDay(forecasts[code], dateStr(new Date())) : [],
-            }))}
-          />
-          <Places readings={readings} home={home} work={work} onHome={setHome} onWork={setWork} />
-        </>
-      )}
-
-      {tab === 'postaje' && <Ranking readings={readings} station={station} onPick={setStation} />}
-
-      {tab === 'jaz' && (
-        <Me profile={profile} onProfile={setProfile} notify={notify} onNotify={setNotify}>
-          {current && <WidgetPreview reading={current} hours={hours12} openBet={openBet} onBet={placeBet} />}
-        </Me>
-      )}
-
-      <nav className="tabs">
-        {TABS.map((t) => (
-          <button key={t.key} className={t.key === tab ? 'active' : ''} onClick={() => setTab(t.key)}>
-            <span>{t.icon}</span>
-            {t.label}
-          </button>
-        ))}
-      </nav>
-    </main>
+      <TabBar
+        tab={tab}
+        onTab={(t) => {
+          setOverlay(null)
+          setTab(t)
+        }}
+      />
+    </div>
   )
 }
