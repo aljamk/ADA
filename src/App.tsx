@@ -57,9 +57,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
   const requested = useRef(new Set<string>())
-  // Deep links: #zdaj, #zemljevid, #igra, #liga, #ugani (straight into a round), #opozorila, #odlocevalci
+  // Deep links: #zdaj, #zemljevid, #model (map in model mode), #igra, #liga, #ugani (straight into a round), #opozorila, #odlocevalci
   const hash = location.hash.slice(1)
-  const [tab, setTab] = useState<TabKey>(hash === 'ugani' ? 'igra' : TABS.some((t) => t.key === hash) ? (hash as TabKey) : 'zdaj')
+  const [tab, setTab] = useState<TabKey>(hash === 'ugani' ? 'igra' : hash === 'model' ? 'zemljevid' : TABS.some((t) => t.key === hash) ? (hash as TabKey) : 'zdaj')
   const [overlay, setOverlay] = useState<'odlocevalci' | 'picker' | null>(hash === 'odlocevalci' ? 'odlocevalci' : null)
   const [distance, setDistance] = useState<number>()
 
@@ -163,7 +163,7 @@ export default function App() {
               <div className="screen"><p className="t-title">Zdaj</p><p className="t-body t-2">Nalagam meritve ARSO…</p></div>
             ))}
           {tab === 'zemljevid' && (
-            <Zemljevid readings={readings} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} />
+            <Zemljevid readings={readings} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'model' ? 'model' : 'meritev'} />
           )}
           {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} cetrt={cetrt} />}
           {tab === 'liga' && <Liga log={log} cetrt={cetrt} onCetrt={setCetrt} />}

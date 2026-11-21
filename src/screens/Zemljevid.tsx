@@ -106,8 +106,8 @@ interface Props {
  * MERITEV: the latest ARSO measurement, for every station that reports PM2.5 (map bubbles for Ljubljana, a list for all).
  * MODEL: only the stations the user picked (home, work, …), with a slider from 10 h back to 10 h ahead.
  */
-export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation }: Props) {
-  const [mode, setMode] = useState<'meritev' | 'model'>('meritev')
+export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation, initialMode = 'meritev' }: Props & { initialMode?: 'meritev' | 'model' }) {
+  const [mode, setMode] = useState<'meritev' | 'model'>(initialMode)
   const [sel, setSel] = useState(station)
   const [step, setStep] = useState(0) // -SPAN..SPAN hours from the last measured hour (model only)
 
@@ -191,23 +191,23 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
         </div>
       </div>
 
-      {mode === 'model' && (
-        <div className="chips" aria-label="Moje postaje">
-          {mine.map((code) => {
-            const r = readings.find((x) => x.code === code)
-            return (
-              <span key={code} className={`chip${code === selected ? ' on' : ''}`}>
-                <button onClick={() => pick(code)}>{r ? shortName(r.name) : code}</button>
-                {mine.length > 1 && <button className="x" aria-label={`Odstrani ${r ? shortName(r.name) : code}`} onClick={() => remove(code)}>×</button>}
-              </span>
-            )
-          })}
-          <button className="chip add" onClick={onAddStation}>+ Dodaj postajo</button>
-        </div>
-      )}
 
       {selReading && (
         <section className="sheet">
+          {mode === 'model' && (
+            <div className="chips" aria-label="Moje postaje">
+              {mine.map((code) => {
+                const r = readings.find((x) => x.code === code)
+                return (
+                  <span key={code} className={`chip${code === selected ? ' on' : ''}`}>
+                    <button onClick={() => pick(code)}>{r ? shortName(r.name) : code}</button>
+                    {mine.length > 1 && <button className="x" aria-label={`Odstrani ${r ? shortName(r.name) : code}`} onClick={() => remove(code)}>×</button>}
+                  </span>
+                )
+              })}
+              <button className="chip add" onClick={onAddStation}>+ Dodaj postajo</button>
+            </div>
+          )}
           <div className="now-top">
             <p className="t-sub">{shortName(selReading.name)}</p>
             <span className="chip">{mode === 'meritev' ? '● MERITEV' : 'MODEL'}</span>
