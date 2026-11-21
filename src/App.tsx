@@ -5,6 +5,7 @@ import Alerts from './components/Alerts'
 import DayRing from './components/DayRing'
 import Places from './components/Places'
 import Ranking from './components/Ranking'
+import WidgetPreview from './components/WidgetPreview'
 import Game from './components/Game'
 import History from './components/History'
 import League from './components/League'
@@ -178,7 +179,11 @@ export default function App() {
 
       {tab === 'postaje' && <Ranking readings={readings} station={station} onPick={setStation} />}
 
-      {tab === 'jaz' && <Me profile={profile} onProfile={setProfile} notify={notify} onNotify={setNotify} />}
+      {tab === 'jaz' && (
+        <Me profile={profile} onProfile={setProfile} notify={notify} onNotify={setNotify}>
+          {current && <WidgetPreview reading={current} hours={hours12} openBet={openBet} onBet={placeBet} />}
+        </Me>
+      )}
 
       <nav className="tabs">
         {TABS.map((t) => (
