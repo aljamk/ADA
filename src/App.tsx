@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BUCKETS, fetchArso, levelOf, type Reading } from './arso'
+import Forecast12h from './Forecast12h'
 
 interface Bet {
   station: string
@@ -98,6 +99,8 @@ export default function App() {
           {current.pm10 != null && <div className="sub">PM10: {current.pm10} µg/m³</div>}
         </section>
       )}
+
+      {current && <Forecast12h reading={current} />}
 
       <section className="card game">
         <h2>Napovej jutri</h2>
