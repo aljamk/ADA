@@ -1,20 +1,28 @@
 import { useEffect, useState } from 'react'
-import { BUCKETS, fetchArso, levelOf, type Reading } from './arso'
+import { fetchArso, type Reading } from './arso'
 import Forecast12h from './Forecast12h'
 import Alerts from './components/Alerts'
+import Game from './components/Game'
 import History from './components/History'
+import League from './components/League'
 import Me from './components/Me'
-import type { ProfileKey } from './profile'
+import NowCard from './components/NowCard'
 import StationSearch from './components/StationSearch'
-import { fetchForecast, next12, type Forecast } from './forecast'
+import { atHour, fetchForecast, next12, type Forecast } from './forecast'
+import { randomNickname, resolveBet, type Bet, type BucketKey } from './game'
+import type { ProfileKey } from './profile'
 import { load, save } from './storage'
-import { dateStr, tomorrow8 } from './time'
+import { dateStr, isoWeek, tomorrow8 } from './time'
 
 const TABS = [
   { key: 'zdaj', label: 'Zdaj', icon: '💨' },
+  { key: 'igra', label: 'Igra', icon: '🎯' },
   { key: 'jaz', label: 'Jaz', icon: '🙂' },
 ] as const
 type TabKey = (typeof TABS)[number]['key']
+
+// Pitch helper: open the app with ?demo=1 to resolve a bet on the spot
+const DEMO = new URLSearchParams(location.search).has('demo')
 
 // ARSO readings seen on this device: { stationCode: { "YYYY-MM-DD HH:00": pm25 } }
 type Observations = Record<string, Record<string, number>>
@@ -28,27 +36,26 @@ function addObservations(obs: Observations, readings: Reading[]): Observations {
   return next
 }
 
-interface Bet {
-  station: string
-  target: string // "YYYY-MM-DD 08:00" — tomorrow's 8–9h ARSO reading
-  bucket: string
-  points?: number
-  actual?: number
+/** Small hook: state that is persisted to localStorage */
+function useStored<T>(key: string, init: T | (() => T)) {
+  const [v, setV] = useState<T>(() => load(key, typeof init === 'function' ? (init as () => T)() : init))
+  useEffect(() => save(key, v), [key, v])
+  return [v, setV] as const
 }
 
 export default function App() {
   const [readings, setReadings] = useState<Reading[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [station, setStation] = useState(() => load('station', 'E403')) // LJ Bežigrad
-  const [bets, setBets] = useState<Bet[]>(() => load('bets', []))
-  const [obs, setObs] = useState<Observations>(() => load('obs', {}))
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
   const [tab, setTab] = useState<TabKey>('zdaj')
-  const [profile, setProfile] = useState<ProfileKey>(() => load('profile', 'splosno'))
-  const [notify, setNotify] = useState(() => load('notify', false))
 
-  useEffect(() => save('profile', profile), [profile])
-  useEffect(() => save('notify', notify), [notify])
+  const [station, setStation] = useStored('station', 'E403') // LJ Bežigrad
+  const [bets, setBets] = useStored<Bet[]>('bets', [])
+  const [obs, setObs] = useStored<Observations>('obs', {})
+  const [profile, setProfile] = useStored<ProfileKey>('profile', 'splosno')
+  const [notify, setNotify] = useStored('notify', false)
+  const [nickname] = useStored('nickname', randomNickname)
+  const [cetrt, setCetrt] = useStored('cetrt', 'Bežigrad')
 
   // Load ARSO now and every 15 minutes (feed updates ~45 min past the hour)
   useEffect(() => {
@@ -59,15 +66,11 @@ export default function App() {
           setObs((o) => addObservations(o, rs))
           setForecasts({})
         })
-        .catch((e) => setError(String(e)))
+        .catch((e) => setError(`Napaka pri branju ARSO: ${e}`))
     get()
     const id = setInterval(get, 15 * 60000)
     return () => clearInterval(id)
-  }, [])
-
-  useEffect(() => save('station', station), [station])
-  useEffect(() => save('bets', bets), [bets])
-  useEffect(() => save('obs', obs), [obs])
+  }, [setObs])
 
   const current = readings.find((r) => r.code === station)
 
@@ -79,23 +82,37 @@ export default function App() {
       .catch((e) => setError(`Napoved ni na voljo: ${e}`))
   }, [current, forecasts])
   const fc = current ? forecasts[current.code] : undefined
+  const hours12 = current && fc ? next12(fc, current.from) : []
 
   // Resolve bets from any ARSO reading this device has seen for the target hour
   useEffect(() => {
     setBets((bs) =>
       bs.map((b) => {
         const actual = obs[b.station]?.[b.target]
-        if (b.points !== undefined || actual == null) return b
-        const correct = BUCKETS.find((k) => k.key === b.bucket)!.test(actual)
-        return { ...b, actual, points: correct ? 100 : 0 }
+        return b.points === undefined && actual != null ? resolveBet(b, actual) : b
       }),
     )
-  }, [obs])
+  }, [obs, setBets])
+
   const target = tomorrow8()
   const openBet = bets.find((b) => b.station === station && b.target === target)
   const points = bets.reduce((s, b) => s + (b.points ?? 0), 0)
+  const week = isoWeek()
+  const weekPoints = bets
+    .filter((b) => b.points && isoWeek(new Date(b.target.replace(' ', 'T'))) === week)
+    .reduce((s, b) => s + (b.points ?? 0), 0)
 
-  const hours12 = current && fc ? next12(fc, current.from) : []
+  const placeBet = (bucket: BucketKey) => {
+    if (openBet) return
+    // The model's forecast is stored now and revealed after resolution ("Premagaj model")
+    const model = fc ? atHour(fc, target)?.value : undefined
+    setBets([...bets, { station, stationName: current?.name, target, bucket, model }])
+  }
+
+  const demoResolve = () => {
+    if (!openBet || current?.pm25 == null) return
+    setBets(bets.map((b) => (b === openBet ? resolveBet(b, current.pm25!) : b)))
+  }
 
   return (
     <main>
@@ -106,71 +123,31 @@ export default function App() {
 
       {error && <p className="error">{error}</p>}
 
-      {tab === 'jaz' && <Me profile={profile} onProfile={setProfile} notify={notify} onNotify={setNotify} />}
-
       {tab === 'zdaj' && (
         <>
-      <StationSearch readings={readings} value={station} onChange={setStation} />
-
-      {current && <Alerts reading={current} hours={hours12} profile={profile} notify={notify} />}
-
-      {current && (
-        <section className="card now">
-          <div className="tag">MERITEV · ARSO · {current.from}</div>
-          {current.pm25 != null ? (
-            <>
-              <div className="value">
-                <span className="dot" style={{ background: levelOf(current.pm25).color }} />
-                {current.pm25} <small>µg/m³ PM2.5</small>
-              </div>
-              <div className="level">{levelOf(current.pm25).label}</div>
-            </>
-          ) : (
-            <div className="value">Ta postaja ne meri PM2.5</div>
-          )}
-          {current.pm10 != null && <div className="sub">PM10: {current.pm10} µg/m³</div>}
-        </section>
-      )}
-
-      {current && fc && <Forecast12h fc={fc} hours={hours12} />}
-      {current && fc && <History fc={fc} from={current.from} measured={obs[current.code] ?? {}} />}
-
-      <section className="card game">
-        <h2>Napovej jutri</h2>
-        <p>Kakšen bo PM2.5 jutri ob 8h na postaji {current?.name ?? station}?</p>
-        {openBet ? (
-          <p className="placed">
-            Tvoja napoved: <b>{BUCKETS.find((b) => b.key === openBet.bucket)?.label}</b>. Razreši se jutri
-            ob ~9:45.
-          </p>
-        ) : (
-          <div className="buttons">
-            {BUCKETS.map((b) => (
-              <button key={b.key} onClick={() => setBets([...bets, { station, target, bucket: b.key }])}>
-                {b.label}
-                <small>{b.hint}</small>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {bets.some((b) => b.points !== undefined) && (
-        <section className="card">
-          <h2>Rezultati</h2>
-          <ul>
-            {bets
-              .filter((b) => b.points !== undefined)
-              .map((b) => (
-                <li key={b.station + b.target}>
-                  {b.target} · {b.bucket} → izmerjeno {b.actual} µg/m³ · {b.points ? '✅ +100' : '❌'}
-                </li>
-              ))}
-          </ul>
-        </section>
-      )}
+          <StationSearch readings={readings} value={station} onChange={setStation} />
+          {current && <NowCard reading={current} profile={profile} openBet={openBet} onBet={placeBet} />}
+          {current && <Alerts reading={current} hours={hours12} profile={profile} notify={notify} />}
+          {current && fc && <Forecast12h fc={fc} hours={hours12} />}
+          {current && fc && <History fc={fc} from={current.from} measured={obs[current.code] ?? {}} />}
         </>
       )}
+
+      {tab === 'igra' && (
+        <>
+          <Game
+            bets={bets}
+            stationName={current?.name ?? station}
+            openBet={openBet}
+            onBet={placeBet}
+            nickname={nickname}
+            onDemoResolve={DEMO ? demoResolve : undefined}
+          />
+          <League cetrt={cetrt} onCetrt={setCetrt} weekPoints={weekPoints} />
+        </>
+      )}
+
+      {tab === 'jaz' && <Me profile={profile} onProfile={setProfile} notify={notify} onNotify={setNotify} />}
 
       <nav className="tabs">
         {TABS.map((t) => (
