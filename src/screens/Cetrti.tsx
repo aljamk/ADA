@@ -38,6 +38,7 @@ interface Props {
  */
 export default function Cetrti({ readings }: Props) {
   const [cetrti, setCetrti] = useState<Cetrt[]>([])
+  const [info, setInfo] = useState(false)
   useEffect(() => {
     fetch('/data/cetrti.json').then((r) => r.json()).then(setCetrti).catch(() => {})
   }, [])
@@ -58,13 +59,20 @@ export default function Cetrti({ readings }: Props) {
         <p className="t-title">Četrti</p>
       </div>
 
-      <section className="card" style={{ display: 'grid', gap: 4 }}>
-        <p className="t-small" style={{ fontWeight: 700 }}>
-          {updated ? `Posodobljeno ${when(updated)}` : 'Čakam na meritve ARSO…'}
-        </p>
-        <p className="t-small">
-          Ocena PM2,5 za vsako četrt: meritve postaj {stations.map((s) => shortName(s.name)).join(', ') || 'ARSO'}, preračunane na četrt in uteženo z njenim indeksom izpostavljenosti. Osveži se vsako uro z ARSO.
-        </p>
+      <section className="card" style={{ display: 'grid', gap: 8 }}>
+        <div className="now-top">
+          <p className="t-small" style={{ fontWeight: 700 }}>
+            {updated ? `Posodobljeno ${when(updated)}` : 'Čakam na meritve ARSO…'}
+          </p>
+          <button className="info-btn" aria-label="Kako nastane ocena?" aria-expanded={info} onClick={() => setInfo(!info)}>
+            i
+          </button>
+        </div>
+        {info && (
+          <p className="t-small">
+            Ocena PM2,5 za vsako četrt: meritve postaj {stations.map((s) => shortName(s.name)).join(', ') || 'ARSO'}, preračunane na četrt in utežene z njenim indeksom izpostavljenosti. Osveži se vsako uro z ARSO.
+          </p>
+        )}
       </section>
 
       <div className="rows" role="table" aria-label="Četrti po onesnaženosti">
