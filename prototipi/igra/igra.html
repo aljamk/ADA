@@ -160,6 +160,13 @@ p, h1, h2, h3, ol { margin: 0; }
 .answer.right { border-color: var(--primary); background: var(--lung); }
 .answer.wrong { border-style: dashed; border-color: var(--fg-2); }
 .verdict { font-size: 14px; font-weight: 700; white-space: nowrap; }
+.quiz-steps { display: flex; gap: 6px; }
+.quiz-steps span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.quiz-steps span.done { background: var(--primary); }
+.quiz-steps span.cur { background: var(--accent); }
+.quiz-summary { list-style: none; padding: 0; display: grid; gap: 8px; }
+.quiz-summary li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; background: var(--surface); border-radius: 16px; padding: 12px 14px; font-size: 16px; line-height: 1.35; }
+.quiz-summary li > span:first-child { font-weight: 800; color: var(--primary); }
 
 /* Beseda: blues + icons, never green/yellow (those belong to the air scale) */
 .wgrid { display: grid; gap: 6px; justify-content: center; }
@@ -320,7 +327,7 @@ const PROFILES = {
 
 const TASKS = [
   { key: 'napoved', title: 'Napoved', sub: 'Kakšen bo zrak jutri?', time: '1 min', reward: 'Kapljica + točke za četrt', icon: 'forecast' },
-  { key: 'kviz', title: 'Kviz', sub: 'Eno vprašanje', time: '30 s', reward: 'Kapljica + točke', icon: 'quiz' },
+  { key: 'kviz', title: 'Kviz', sub: 'Pet vprašanj', time: '2 min', reward: 'Kapljica + točke', icon: 'quiz' },
   { key: 'beseda', title: 'Beseda dneva', sub: 'Ugani besedo', time: '2 min', reward: 'Kapljica + točke', icon: 'word' },
   { key: 'dih', title: 'Dih', sub: 'Minuta mirnega dihanja', time: '1–2 min', reward: 'Samo kapljica', icon: 'breath' },
 ]
@@ -602,22 +609,55 @@ function Napoved({ onBack, onDone, done, saved }) {
 /* ============================================================================
  * Naloga 2: Kviz
  * ========================================================================== */
+const QUIZ_LEN = 5
+
 function Kviz({ onBack, onDone, done, saved }) {
-  const item = MOCK.quiz[dayIndex() % MOCK.quiz.length]
-  const [picked, setPicked] = useState(saved?.picked ?? null)
+  // Five questions in a row; the daily order rotates by date
+  const order = Array.from({ length: QUIZ_LEN }, (_, i) => MOCK.quiz[(dayIndex() + i) % MOCK.quiz.length])
+  const [answers, setAnswers] = useState(saved?.answers ?? [])
+  const [index, setIndex] = useState(saved ? QUIZ_LEN : 0)
+  const correctCount = answers.filter((a, i) => a === order[i].correct).length
+
+  if (index >= QUIZ_LEN)
+    return (
+      <Screen title={`${correctCount} od ${QUIZ_LEN} pravilnih`} eyebrow="Kviz dneva" onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na Igro</button>}>
+        <div className="card center-col">
+          <Drop filled size={36} />
+          <p className="body">Kapljica gre tvoji rastlini{correctCount ? ` in +${correctCount * 30} točk tvoji četrti` : ''}.</p>
+        </div>
+        <ol className="quiz-summary">
+          {order.map((q, i) => (
+            <li key={q.q}>
+              <span aria-hidden="true">{answers[i] === q.correct ? '✓' : '✕'}</span>
+              <span>{q.q}<br /><small className="muted">{q.a[q.correct]}</small></span>
+            </li>
+          ))}
+        </ol>
+        <p className="muted small">{MOCK.quizSource}</p>
+      </Screen>
+    )
+
+  const item = order[index]
+  const picked = answers[index] ?? null
   const answered = picked != null
   const pick = (i) => {
     if (answered) return
-    setPicked(i)
-    if (!done) onDone({ picked: i, correct: i === item.correct })
+    setAnswers([...answers.slice(0, index), i])
+  }
+  const next = () => {
+    if (index + 1 >= QUIZ_LEN && !done) onDone({ answers, correct: correctCount })
+    setIndex(index + 1)
   }
   return (
     <Screen
       title={item.q}
-      eyebrow="Kviz dneva"
+      eyebrow={`Kviz dneva · ${index + 1} od ${QUIZ_LEN}`}
       onBack={onBack}
-      footer={answered && <button className="btn" onClick={onBack}>Nazaj na Igro</button>}
+      footer={answered && <button className="btn" onClick={next}>{index + 1 < QUIZ_LEN ? 'Naslednje vprašanje' : 'Zaključi kviz'}</button>}
     >
+      <div className="quiz-steps" aria-hidden="true">
+        {order.map((_, i) => <span key={i} className={i < index ? 'done' : i === index ? 'cur' : ''} />)}
+      </div>
       <div className="answers">
         {item.a.map((a, i) => {
           const isRight = answered && i === item.correct
@@ -633,7 +673,7 @@ function Kviz({ onBack, onDone, done, saved }) {
       </div>
       {answered && (
         <div className="card">
-          <b className="body">{picked === item.correct ? 'Bravo, +30 točk.' : 'Nič hudega, jutri novo vprašanje.'}</b>
+          <b className="body">{picked === item.correct ? 'Bravo, +30 točk.' : 'Nič hudega, gremo naprej.'}</b>
           <p className="body">{item.why}</p>
           <p className="muted small">{MOCK.quizSource}</p>
         </div>
@@ -1000,7 +1040,7 @@ function IgraPrototip({ initialProfile = 'nihce' }) {
     scroller.current?.scrollTo(0, 0)
   }, [view])
 
-  const points = { napoved: 150, kviz: done.kviz?.correct ? 30 : 0, beseda: done.beseda?.solved ? (7 - done.beseda.rows.length) * 10 : 0, dih: 0 }
+  const points = { napoved: 150, kviz: (done.kviz?.correct ?? 0) * 30, beseda: done.beseda?.solved ? (7 - done.beseda.rows.length) * 10 : 0, dih: 0 }
   const weekPoints = Object.keys(done).reduce((s, k) => s + (points[k] ?? 0), 0)
   const streak = MOCK.streakDays + (Object.keys(done).length > 0 ? 1 : 0)
   const xp = MOCK.xp + weekPoints + Object.keys(done).length * 10
