@@ -2,7 +2,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useState } from 'react'
 import { levelOfPm, usAqi } from '../aqi'
-import { distanceKm, shortName, type Reading } from '../arso'
+import { inBasin, shortName, type Reading } from '../arso'
 import { atHour, type Forecast } from '../forecast'
 import { hourStr } from '../time'
 
@@ -17,11 +17,8 @@ const PLACES = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/W
 const ATTR = 'Satelit: Esri, Maxar, Earthstar Geographics · Meritve: ARSO · Model: CAMS'
 
 /** Ljubljana basin: default view, station list and estimate surface. The challenge is about Ljubljana. */
-const LJ = { lat: 46.0569, lon: 14.5058 }
-const LJ_RADIUS_KM = 25
 const BOUNDS: [[number, number], [number, number]] = [[45.88, 14.2], [46.24, 14.85]]
 const VIEW: [[number, number], [number, number]] = [[46.01, 14.43], [46.11, 14.58]]
-const inBasin = (r: Reading) => distanceKm(r.lat, r.lon, LJ.lat, LJ.lon) <= LJ_RADIUS_KM
 
 /** Same colours as --dobro … --nevarno (they don't change with the theme), for the canvas. */
 const LEVEL_HEX = { dobro: '#3bb273', zmerno: '#f2c94c', slabo: '#f2994a', zeloslabo: '#e5484d', nevarno: '#8e4ec6' } as const
