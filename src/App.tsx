@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { usAqi } from './aqi'
-import { distanceKm, fetchArso, shortName, type Reading } from './arso'
+import { distanceKm, fetchArso, inBasin, shortName, type Reading } from './arso'
 import StationPicker from './components/StationPicker'
 import TabBar, { TABS, type TabKey } from './components/TabBar'
 import { fetchForecast, next12, type Forecast, type ForecastHour } from './forecast'
@@ -174,7 +174,7 @@ export default function App() {
       )}
 
       {overlay === 'picker' && (
-        <StationPicker readings={readings} value={station} onPick={pickStation} onClose={() => setOverlay(null)} />
+        <StationPicker readings={readings.filter(inBasin)} value={station} onPick={pickStation} onClose={() => setOverlay(null)} />
       )}
 
       <TabBar

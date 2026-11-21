@@ -31,6 +31,7 @@ export default function StationPicker({ readings, value, onPick, onClose }: Prop
     <div className="picker" onClick={onClose}>
       <div className="picker-sheet" onClick={(e) => e.stopPropagation()}>
         <p className="t-sub">Izberi postajo</p>
+        <p className="t-small">Postaje ARSO v Ljubljanski kotlini</p>
         <input autoFocus placeholder="Vpiši kraj ali postajo…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="link" style={{ textAlign: 'left' }} onClick={useLocation}>
           Uporabi mojo lokacijo (enkrat, brez sledenja)

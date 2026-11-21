@@ -43,6 +43,11 @@ const CITY: Record<string, string> = {
 export const searchText = (r: Reading) => `${r.name} ${CITY[r.name.split(' ')[0]] ?? ''}`.toLowerCase()
 
 /** Nearest station (equirectangular distance is plenty for Slovenia) */
+// The challenge is about Ljubljana: the app offers only the stations of the Ljubljana basin
+export const LJ = { lat: 46.0569, lon: 14.5058 }
+export const LJ_RADIUS_KM = 25
+export const inBasin = (r: Reading) => distanceKm(r.lat, r.lon, LJ.lat, LJ.lon) <= LJ_RADIUS_KM
+
 export function nearest(readings: Reading[], lat: number, lon: number) {
   const k = Math.cos((lat * Math.PI) / 180)
   const d = (r: Reading) => (r.lat - lat) ** 2 + ((r.lon - lon) * k) ** 2
