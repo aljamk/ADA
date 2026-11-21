@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { levelOfAqi, levelOfPm, usAqi } from '../aqi'
+import Lestvica from '../components/Lestvica'
 import { shortName, type Reading } from '../arso'
 import type { ForecastHour } from '../forecast'
 import { adviceFor, type ProfileKey } from '../profile'
@@ -38,6 +40,7 @@ export default function Zdaj({ reading, hours, profile, distance, onStation, onD
   const max = Math.max(1, ...hours.map((h) => h.value))
   const winter = [11, 12, 1, 2, 3].includes(new Date().getMonth() + 1)
   const name = shortName(reading.name)
+  const [info, setInfo] = useState(false) // plain-language explanation of the numbers, behind the round i
 
   return (
     <div className="screen">
@@ -61,7 +64,12 @@ export default function Zdaj({ reading, hours, profile, distance, onStation, onD
           <span style={{ fontSize: 17, fontWeight: 500 }}>
             {name} · {reading.from.slice(11)}
           </span>
-          <span className="chip">● MERITEV</span>
+          <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span className="chip">● MERITEV</span>
+            <button className="info-btn on-dark" aria-label="Kaj pomenijo te številke?" aria-expanded={info} onClick={() => setInfo(!info)}>
+              i
+            </button>
+          </span>
         </div>
         {aqi != null && level && pm != null ? (
           <>
@@ -76,6 +84,20 @@ export default function Zdaj({ reading, hours, profile, distance, onStation, onD
                 <b>{pm} µg/m³</b>
               </span>
             </div>
+            <Lestvica aqi={aqi} onDark />
+            {info && (
+              <div className="now-info">
+                <p>
+                  <b>AQI {aqi}</b> je indeks kakovosti zraka od 0 do 500. Do 50 je zrak dober, do 100 zmeren, do 150 slab za občutljive, do 200 slab za vse, nad 200 nevaren. Lestvica US EPA.
+                </p>
+                <p>
+                  <b>PM2,5 = {pm} µg/m³</b> so fini delci, manjši od 2,5 tisočinke milimetra (30-krat tanjši od lasu), ki pridejo globoko v pljuča. Številka pove, koliko milijonink grama delcev je v enem kubičnem metru zraka. Priporočilo WHO za en dan je do 15 µg/m³.
+                </p>
+                <p>
+                  <b>MERITEV</b> pomeni, da je vrednost izmerila uradna postaja ARSO {name} ob {reading.from.slice(11)}. Ni ocena in ni napoved.
+                </p>
+              </div>
+            )}
             <p className="now-advice">{adviceFor(pm, hours, profile)}</p>
           </>
         ) : (
