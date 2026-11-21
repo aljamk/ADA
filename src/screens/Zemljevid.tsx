@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { levelOfPm, usAqi } from '../aqi'
 import { shortName, type Reading } from '../arso'
-import { atHour, next12, type Forecast } from '../forecast'
-import { hh } from '../time'
+import { atHour, type Forecast } from '../forecast'
+import { hourStr } from '../time'
 
 // Schematic map of the Ljubljana basin from Figma (node 29:1781), 390 × 429 design px.
 const W = 390
@@ -33,6 +33,56 @@ export const MAP_STATIONS = [
   { code: 'E404', x: 102, y: 299 }, // LJ Vič
 ]
 
+const SPAN = 10 // hours back and ahead on the slider
+
+/** Same colours as --dobro … --nevarno (they don't change with the theme), for the canvas. */
+const LEVEL_HEX = { dobro: '#3bb273', zmerno: '#f2c94c', slabo: '#f2994a', zeloslabo: '#e5484d', nevarno: '#8e4ec6' } as const
+
+/** "2026-11-21 14:00" + n hours, in local time */
+const addHours = (t: string, n: number) => hourStr(new Date(new Date(t.replace(' ', 'T')).getTime() + n * 3600000))
+
+/** Slovenian relative hour with dual and plural: pred 1 uro / 2 urama / 3 urami, čez 1 uro / 2 uri / 3 ure / 5 ur */
+export function relHour(n: number) {
+  if (n === 0) return 'Zdaj'
+  const a = Math.abs(n)
+  if (n < 0) return `Pred ${a} ${a === 1 ? 'uro' : a === 2 ? 'urama' : 'urami'}`
+  return `Čez ${a} ${a === 1 ? 'uro' : a === 2 ? 'uri' : a <= 4 ? 'ure' : 'ur'}`
+}
+
+/**
+ * Coloured surface like the EEA air-quality maps: every cell gets the level of an
+ * inverse-distance-weighted estimate from the stations, drawn small and blurred.
+ * It is an ESTIMATE between three stations, not a measurement.
+ */
+function Surface({ points }: { points: { x: number; y: number; pm: number }[] }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    const cv = ref.current
+    const ctx = cv?.getContext('2d')
+    if (!cv || !ctx) return
+    const cell = 6
+    cv.width = Math.ceil(W / cell)
+    cv.height = Math.ceil(H / cell)
+    ctx.clearRect(0, 0, cv.width, cv.height)
+    if (!points.length) return
+    for (let gy = 0; gy < cv.height; gy++)
+      for (let gx = 0; gx < cv.width; gx++) {
+        const x = gx * cell + cell / 2
+        const y = gy * cell + cell / 2
+        let num = 0
+        let den = 0
+        for (const p of points) {
+          const w = 1 / Math.max(1, (p.x - x) ** 2 + (p.y - y) ** 2)
+          num += w * p.pm
+          den += w
+        }
+        ctx.fillStyle = LEVEL_HEX[levelOfPm(num / den).key]
+        ctx.fillRect(gx, gy, 1, 1)
+      }
+  }, [points])
+  return <canvas ref={ref} className="map-surface" aria-hidden="true" />
+}
+
 interface Props {
   readings: Reading[]
   forecasts: Record<string, Forecast>
@@ -42,7 +92,7 @@ interface Props {
 export default function Zemljevid({ readings, forecasts }: Props) {
   const [mode, setMode] = useState<'meritev' | 'model'>('meritev')
   const [sel, setSel] = useState('E403')
-  const [step, setStep] = useState(0) // 0 = now, 1..12 = hours ahead (model)
+  const [step, setStep] = useState(0) // -SPAN..SPAN hours from the last measured hour; ≠ 0 is always the model
 
   const valueAt = (code: string): { pm: number; time: string; source: 'MERITEV' | 'MODEL' } | null => {
     const r = readings.find((x) => x.code === code)
@@ -50,13 +100,19 @@ export default function Zemljevid({ readings, forecasts }: Props) {
     const fc = forecasts[code]
     if (step === 0 && mode === 'meritev') return r.pm25 != null ? { pm: r.pm25, time: r.from, source: 'MERITEV' } : null
     if (!fc) return null
-    const h = step === 0 ? atHour(fc, r.from) : next12(fc, r.from)[step - 1]
+    const h = atHour(fc, addHours(r.from, step))
     return h ? { pm: h.value, time: h.time, source: 'MODEL' } : null
   }
 
   const selReading = readings.find((r) => r.code === sel)
   const selValue = valueAt(sel)
-  const source = step > 0 ? 'MODEL' : mode === 'meritev' ? 'MERITEV' : 'MODEL'
+  const source = step !== 0 ? 'MODEL' : mode === 'meritev' ? 'MERITEV' : 'MODEL'
+  const points = MAP_STATIONS.flatMap((s) => {
+    const v = valueAt(s.code)
+    return v ? [{ x: s.x, y: s.y, pm: v.pm }] : []
+  })
+  const pointsKey = points.map((p) => p.pm).join(',')
+  const stablePoints = useStablePoints(points, pointsKey)
 
   return (
     <div className="screen">
@@ -69,6 +125,7 @@ export default function Zemljevid({ readings, forecasts }: Props) {
         {LAYERS.map((l) => (
           <img key={l.src} src={`/figma/${l.src}.svg`} alt="" style={{ left: pctX(l.x), top: pctY(l.y), width: pctX(l.w), height: pctY(l.h) }} />
         ))}
+        <Surface points={stablePoints} />
         {LABELS.map((l) => (
           <span key={l.t} className="map-label" style={{ left: pctX(l.x), top: pctY(l.y) }}>
             {l.t}
@@ -81,7 +138,7 @@ export default function Zemljevid({ readings, forecasts }: Props) {
           <button className={mode === 'meritev' && step === 0 ? 'on' : ''} onClick={() => { setMode('meritev'); setStep(0) }}>
             ● Meritev
           </button>
-          <button className={mode === 'model' || step > 0 ? 'on' : ''} onClick={() => setMode('model')}>
+          <button className={mode === 'model' || step !== 0 ? 'on' : ''} onClick={() => setMode('model')}>
             Model
           </button>
         </div>
@@ -102,8 +159,8 @@ export default function Zemljevid({ readings, forecasts }: Props) {
         })}
 
         <div className="legend">
-          <span>● MERITEV · 3</span>
-          <span>○ OCENA · občanski senzorji v pripravi</span>
+          <span>● {source} · 3 postaje</span>
+          <span>Barvna ploskev: ocena med postajami</span>
         </div>
       </div>
 
@@ -123,23 +180,32 @@ export default function Zemljevid({ readings, forecasts }: Props) {
           <p className="t-small">
             PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · uradna postaja ARSO
           </p>
+          <p className="timeline-now" aria-live="polite">{relHour(step)}</p>
           <div className="timeline">
-            <span>{selValue ? `${hh(selValue.time)}:00` : '--:--'}</span>
+            <span className="t-small">pred {SPAN} h</span>
             <input
               type="range"
-              min={0}
-              max={12}
+              min={-SPAN}
+              max={SPAN}
               value={step}
               onChange={(e) => setStep(Number(e.target.value))}
-              aria-label="Ura (0 = zdaj, naprej napoved modela)"
+              aria-label="Čas: nazaj in naprej po urah"
+              aria-valuetext={relHour(step)}
             />
-            <span className="t-small">+12 h</span>
+            <span className="t-small">čez {SPAN} h</span>
           </div>
           <p className="t-small" style={{ fontSize: 11 }}>
-            Shematski prikaz · naprej v času je napoved modela CAMS, umerjena na meritev
+            Shematski prikaz · {step === 0 && mode === 'meritev' ? 'zdaj je meritev ARSO' : 'za vsako uro nazaj in naprej je izračun modela CAMS, umerjen na meritev'} · barvna ploskev je ocena med tremi postajami
           </p>
         </section>
       )}
     </div>
   )
+}
+
+/** Keep the same array object while the values don't change, so the canvas redraws only when it must. */
+function useStablePoints<T>(points: T, key: string) {
+  const ref = useRef({ key, points })
+  if (ref.current.key !== key) ref.current = { key, points }
+  return ref.current.points
 }
