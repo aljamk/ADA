@@ -162,10 +162,9 @@ interface NapovedProps {
   onGuess: (g: Guess) => void
   onSeen: (g: Guess) => void
   onBack: () => void
-  cetrt: string
 }
 
-function Napoved({ reading, fc, guesses, onGuess, onSeen, onBack, cetrt }: NapovedProps) {
+function Napoved({ reading, fc, guesses, onGuess, onSeen, onBack }: NapovedProps) {
   const today = dateStr(new Date())
   const reveal = guesses.find((g) => g.actual != null && !(g as Guess & { seen?: boolean }).seen)
   const mine = guesses.find((g) => g.made === today)
@@ -216,7 +215,7 @@ function Napoved({ reading, fc, guesses, onGuess, onSeen, onBack, cetrt }: Napov
           {y.model != null && <p className="body">Model CAMS je napovedal <b>{y.model} µg/m³</b>.</p>}
           {y.actualSource === 'MODEL' && <p className="muted small">Meritve ob tej uri nismo ujeli, zato primerjamo z modelom, umerjenim na meritev.</p>}
         </div>
-        <div className="points-card"><b>+{pts}</b><span>točk za {cetrt}</span></div>
+        <div className="points-card"><b>+{pts}</b><span>točk</span></div>
       </Screen>
     )
   }
@@ -319,7 +318,7 @@ function Kviz({ onBack, onDone, saved }: { onBack: () => void; onDone: (r: TaskR
       <Screen title={`${correctCount} od ${QUIZ_LEN} pravilnih`} eyebrow="Kviz dneva" onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na Igro</button>}>
         <div className="card center-col">
           <Drop filled size={36} />
-          <p className="body">Kapljica gre tvoji rastlini{correctCount ? ` in +${correctCount * 30} točk tvoji četrti` : ''}.</p>
+          <p className="body">Kapljica gre tvoji rastlini{correctCount ? ` in +${correctCount * 30} točk` : ''}.</p>
         </div>
         <ol className="quiz-summary">
           {order.map((q, i) => (
@@ -660,10 +659,9 @@ interface Props {
   fc?: Forecast
   profile: ProfileKey
   log: GameLog
-  cetrt: string
 }
 
-export default function Naloge({ reading, fc, profile, log, cetrt }: Props) {
+export default function Naloge({ reading, fc, profile, log }: Props) {
   const [view, setView] = useState<View>('home')
   const [tasks, setTasks] = useState<TaskLog>(loadTasks)
   const [guesses, setGuesses] = useState<(Guess & { seen?: boolean })[]>(loadGuesses)
@@ -715,7 +713,6 @@ export default function Naloge({ reading, fc, profile, log, cetrt }: Props) {
           reading={reading}
           fc={fc}
           guesses={guesses}
-          cetrt={cetrt}
           onBack={back}
           onGuess={(g) => {
             setGuesses((gs) => [...gs, g])

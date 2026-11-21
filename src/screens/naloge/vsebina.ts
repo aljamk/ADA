@@ -20,7 +20,7 @@ export const LEVELS: Level[] = [
 export const levelOf = (pm: number) => LEVELS.find((l) => pm < l.max) ?? LEVELS[LEVELS.length - 1]
 
 export const TASKS: { key: 'napoved' | 'kviz' | 'beseda' | 'dih'; title: string; sub: string; time: string; reward: string; icon: string }[] = [
-  { key: 'napoved', title: 'Napoved', sub: 'Kakšen bo zrak jutri?', time: '1 min', reward: 'Kapljica + točke za četrt', icon: 'forecast' },
+  { key: 'napoved', title: 'Napoved', sub: 'Kakšen bo zrak jutri?', time: '1 min', reward: 'Kapljica + točke', icon: 'forecast' },
   { key: 'kviz', title: 'Kviz', sub: 'Pet vprašanj', time: '2 min', reward: 'Kapljica + točke', icon: 'quiz' },
   { key: 'beseda', title: 'Beseda dneva', sub: 'Ugani besedo', time: '2 min', reward: 'Kapljica + točke', icon: 'word' },
   { key: 'dih', title: 'Dih', sub: 'Minuta mirnega dihanja', time: '1–2 min', reward: 'Samo kapljica', icon: 'breath' },

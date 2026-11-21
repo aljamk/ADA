@@ -7,7 +7,7 @@ import { fetchForecast, next12, type Forecast, type ForecastHour } from './forec
 import type { GameLog } from './game'
 import { onResume, syncWidget } from './native'
 import { thresholdAqi, type ProfileKey } from './profile'
-import Liga from './screens/Liga'
+import Cetrti from './screens/Cetrti'
 import Naloge from './screens/naloge/Naloge'
 import Odlocevalci, { publicNoticeWindow } from './screens/Odlocevalci'
 import Onboarding from './screens/Onboarding'
@@ -57,7 +57,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
   const requested = useRef(new Set<string>())
-  // Deep links: #zdaj, #zemljevid, #model (map in model mode), #igra, #liga, #ugani (straight into a round), #opozorila, #odlocevalci
+  // Deep links: #zdaj, #zemljevid, #model (map in model mode), #igra, #cetrti, #ugani (straight into a round), #opozorila, #odlocevalci
   const hash = location.hash.slice(1)
   const [tab, setTab] = useState<TabKey>(hash === 'ugani' ? 'igra' : hash === 'model' ? 'zemljevid' : TABS.some((t) => t.key === hash) ? (hash as TabKey) : 'zdaj')
   const [overlay, setOverlay] = useState<'odlocevalci' | 'picker' | null>(hash === 'odlocevalci' ? 'odlocevalci' : null)
@@ -67,7 +67,6 @@ export default function App() {
   const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce')
   const [station, setStation] = useStored('station', 'E403') // LJ Bežigrad
   const [log] = useStored<GameLog>('ugani', {})
-  const [cetrt, setCetrt] = useStored('cetrt', 'Šiška')
   const [alerts, setAlerts] = useStored<AlertSettings>('alerts', DEFAULT_ALERTS)
   const [mine, setMine] = useStored<string[]>('mojePostaje', ['E403']) // model view on the map: home, work, …
   const [pickFor, setPickFor] = useState<'zdaj' | 'zemljevid'>('zdaj')
@@ -165,8 +164,8 @@ export default function App() {
           {tab === 'zemljevid' && (
             <Zemljevid readings={readings} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'model' ? 'model' : 'meritev'} />
           )}
-          {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} cetrt={cetrt} />}
-          {tab === 'liga' && <Liga log={log} cetrt={cetrt} onCetrt={setCetrt} />}
+          {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} />}
+          {tab === 'cetrti' && <Cetrti readings={readings} />}
           {tab === 'opozorila' && (
             <Opozorila settings={alerts} onChange={setAlerts} stationName={current ? shortName(current.name) : 'tvojo postajo'} />
           )}
