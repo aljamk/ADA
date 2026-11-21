@@ -2,7 +2,7 @@ export const TABS = [
   { key: 'zdaj', label: 'Zdaj', icon: '/figma/nav-zdaj.svg' },
   { key: 'zemljevid', label: 'Zemljevid', icon: '/figma/nav-zemljevid.svg' },
   { key: 'igra', label: 'Igra', icon: '/figma/nav-igra.svg' },
-  { key: 'liga', label: 'Liga', icon: '/figma/nav-liga.svg' },
+  { key: 'cetrti', label: 'Četrti', icon: '/figma/nav-cetrti.svg' },
   { key: 'opozorila', label: 'Opozorila', icon: '/figma/nav-opozorila.svg' },
 ] as const
 export type TabKey = (typeof TABS)[number]['key']
