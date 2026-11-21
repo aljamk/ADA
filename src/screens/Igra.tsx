@@ -26,7 +26,7 @@ interface Props {
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
 /** 04 · Ugani zrak (hub) → 05 · Tvoja ocena → 06 · Razkritje → 07 · Rezultati */
-export default function Igra({ log, onRound, cetrt, startRound }: Props & { startRound?: boolean }) {
+export default function Igra({ log, onRound, cetrt, startRound, onBack }: Props & { startRound?: boolean; onBack?: () => void }) {
   const today = dateStr(new Date())
   const done = log[today] ?? []
   const [view, setView] = useState<'hub' | 'round' | 'reveal' | 'results'>(startRound && done.length < 5 ? 'round' : 'hub')
@@ -54,9 +54,12 @@ export default function Igra({ log, onRound, cetrt, startRound }: Props & { star
 
   return (
     <div className="screen">
-      <div>
-        <p className="t-label">Vsak dan nov pogled</p>
-        <p className="t-title">Ugani zrak</p>
+      <div className="screen-head">
+        <div>
+          <p className="t-label">Vsak dan nov pogled</p>
+          <p className="t-title">Ugani zrak</p>
+        </div>
+        {onBack && <button className="link" style={{ fontSize: 14, paddingBottom: 8 }} onClick={onBack}>‹ Igra</button>}
       </div>
 
       <section className="hero" style={{ display: 'grid', gap: 12 }}>

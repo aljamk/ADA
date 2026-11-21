@@ -1,4 +1,5 @@
 import { CETRTI, demoLeague, weekPoints, type GameLog } from '../game'
+import { guessWeekPoints, loadGuesses, loadTasks, taskWeekPoints } from '../naloge'
 
 /** 1240 -> "1.240" */
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
@@ -11,7 +12,7 @@ interface Props {
 
 /** Liga četrtnih skupnosti: no accounts, your points simply count towards the četrt you pick. */
 export default function Liga({ log, cetrt, onCetrt }: Props) {
-  const mine = weekPoints(log)
+  const mine = weekPoints(log) + taskWeekPoints(loadTasks()) + guessWeekPoints(loadGuesses())
   const league = demoLeague(cetrt, mine)
   const rank = league.findIndex((l) => l.cetrt === cetrt) + 1
   const tier = (r: number) => (r <= 2 ? 'Zlata' : r <= 8 ? 'Srebrna' : 'Bronasta')
