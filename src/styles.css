@@ -48,3 +48,5 @@ ul { margin: 0; padding-left: 18px; }
 .station-list button { width: 100%; display: flex; justify-content: space-between; padding: 10px 8px; border: none; border-bottom: 1px solid #eef2f4; background: none; font-size: 15px; cursor: pointer; color: var(--ink); }
 .station-list button.active { background: #e3f1f7; font-weight: 600; }
 .dot.small { width: 10px; height: 10px; }
+.bar-col { position: relative; }
+.mdot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); border: 2px solid #fff; transform: translateY(50%); }
