@@ -1,4 +1,4 @@
-# Zrak, ki ga dihamo — ADA Hack 2026
+# Kaj dihaš? — ADA Hack 2026
 
 Prototip aplikacije za izziv Abelium × ARSO. Brez prijave: odpreš in vidiš zrak.
 Ciljna skupina: občutljivi (nosečnice, astmatiki, starejši, otroci) in vsi, ki se želijo naučiti predvideti slab zrak.

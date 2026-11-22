@@ -33,7 +33,7 @@ function notifyOnce(key: string, body: string) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
   const id = `${dateStr(new Date())}|${key}`
   if (load('lastNotified_' + key, '') === id) return
-  new Notification('Zrak', { body, icon: '/icon.svg' })
+  new Notification('Kaj dihaš?', { body, icon: '/icon.svg' })
   save('lastNotified_' + key, id)
 }
 
@@ -185,8 +185,8 @@ const hours24 = current && fc ? next24(fc, current.from) : []
       {splash && (
         <div className={`splash ${splash}`} aria-hidden="true">
           <Golob2D size={150} className="splash-golob" />
-          <p className="splash-name">Zrak</p>
-          <p className="splash-line">Veš, kaj dihaš.</p>
+          <p className="splash-name">Kaj dihaš?</p>
+          <p className="splash-line">Zrak v Ljubljani. Veš, kdaj ven.</p>
         </div>
       )}
       {error && <p className="error" style={{ padding: '12px 24px 0' }}>{error}</p>}
