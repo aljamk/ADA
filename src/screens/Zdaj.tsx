@@ -86,9 +86,9 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
       <div className="screen-head">
         <div>
           <p className="t-label">Ljubljana</p>
-          <p className="t-title">Zdaj</p>
+          <p className="t-title" style={{ fontSize: 28 }}>Zdaj: kakovost zraka</p>
         </div>
-        <div style={{ display: 'grid', justifyItems: 'end', gap: 14, paddingBottom: 6 }}>
+        <div style={{ display: 'grid', justifyItems: 'end', gap: 14, paddingBottom: 6, flexShrink: 0, whiteSpace: 'nowrap' }}>
           <button className="link" onClick={onDecisionMakers}>
             Za odločevalce ›
           </button>
