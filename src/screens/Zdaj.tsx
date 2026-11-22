@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import { calibrationNote } from '../sensors'
 import { levelOfAqi, usAqi, type LevelKey } from '../aqi'
 import Lestvica from '../components/Lestvica'
 import { GolobRazpolozenje } from '../components/Golob'
-import { shortName, type Reading } from '../arso'
+import { ARSO_NAMES, shortName, type Reading } from '../arso'
 import type { ForecastHour } from '../forecast'
 import { adviceFor, airingText, profileOf, type ProfileKey } from '../profile'
 import { whyText } from '../zakaj'
@@ -32,11 +31,15 @@ function useLjubljanaClock() {
   return now
 }
 
+/** The level word agreeing with "zrak" (masculine), for "AQI 77 · zmeren" */
+const LEVEL_M: Record<LevelKey, string> = { dobro: 'dober', zmerno: 'zmeren', slabo: 'slab', zeloslabo: 'zelo slab', nevarno: 'nevaren' }
+
 export default function Zdaj({ reading, hours, profiles, distance, cetrt, sourceKm, onStation, onDecisionMakers }: Props) {
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
   const name = shortName(reading.name)
+  const ura = `${Number(reading.from.slice(11, 13))}.${reading.from.slice(14, 16)}` // "8.00"
   const ocena = reading.kind === 'OCENA'
   const tag = ocena ? '○ OCENA' : '● MERITEV'
   const [info, setInfo] = useState(false) // plain-language explanation of the numbers, behind the round i
@@ -88,15 +91,21 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
             {info && (
               <div className="now-info">
                 <p>
-                  <b>AQI {aqi}</b> je indeks kakovosti zraka od 0 do 500. Do 50 je zrak dober, do 100 zmeren, do 150 slab za občutljive, do 200 slab za vse, nad 200 nevaren. Lestvica US EPA.
+                  <b>AQI {aqi} · {LEVEL_M[level.key]}</b>
+                  <br />
+                  Ocena zraka od 0 do 500. Do 50 je dober, do 100 zmeren, nad 100 slab.
                 </p>
                 <p>
-                  <b>PM2,5 = {pm} µg/m³</b> so fini delci, manjši od 2,5 tisočinke milimetra (30-krat tanjši od lasu), ki pridejo globoko v pljuča. Številka pove, koliko milijonink grama delcev je v enem kubičnem metru zraka. Priporočilo WHO za en dan je do 15 µg/m³.
+                  <b>PM2,5: {pm} µg/m³</b>
+                  <br />
+                  Drobni delci, ki pridejo globoko v pljuča. WHO priporoča največ 15 na dan.
                 </p>
                 <p>
+                  <b>{ocena ? 'OCENA' : 'MERITEV'}</b>
+                  <br />
                   {ocena
-                    ? <><b>OCENA</b> pomeni, da vrednost prihaja z občanskega senzorja (Sensor.Community) ob {reading.from.slice(11)}, ne z uradne postaje. {reading.umerjen ? <>Senzor je pokazal {reading.raw} µg/m³; vrednost je umerjena na postajo ARSO ({calibrationNote(reading)}) s koeficienti iz podatkovnega paketa, izračunanimi iz treh zim meritev.</> : <>Cenovno ugoden senzor ni umerjen in lahko kaže precej drugače kot uradna postaja.</>} Za uradno vrednost izberi četrt s postajo ARSO.</>
-                    : <><b>MERITEV</b> pomeni, da je vrednost izmerila uradna postaja ARSO {name} ob {reading.from.slice(11)}. Ni ocena in ni napoved.</>}
+                    ? `Izmeril občanski senzor ob ${ura}, ne uradna postaja ARSO. ${reading.umerjen && reading.ref ? `Vrednost je popravljena po postaji ${ARSO_NAMES[reading.ref] ?? reading.ref}.` : 'Vrednost ni popravljena.'}`
+                    : `Izmerila uradna postaja ARSO ${name} ob ${ura}.`}
                 </p>
               </div>
             )}
