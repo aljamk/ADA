@@ -154,7 +154,7 @@ p { margin: 0; }
 .map-canvas { position: absolute; inset: 0; background: #1d2a2a; }
 .map-canvas .leaflet-control-attribution { font-size: 9px; line-height: 12px; padding: 0 5px; background: rgb(255 255 255 / 0.75); color: #294b3d; border-radius: 6px 6px 0 0; margin: 0; white-space: nowrap; }
 /* attribution: bottom-right corner, under the zoom buttons (its own Leaflet corner, so it never stacks with them) */
-.map .leaflet-bottom.leaflet-left { bottom: 0; left: auto; right: 24px; }
+.map .leaflet-bottom.leaflet-left { bottom: 0; left: auto; right: 8px; }
 .map .leaflet-bottom.leaflet-right { bottom: 14px; }
 .map .leaflet-control-attribution a { color: inherit; }
 .map .seg, .map .legend { z-index: 1000; }
