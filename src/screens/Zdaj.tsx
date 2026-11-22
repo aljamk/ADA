@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { calibrationNote } from '../sensors'
 import { levelOfAqi, levelOfPm, usAqi } from '../aqi'
 import Lestvica from '../components/Lestvica'
 import { shortName, type Reading } from '../arso'
@@ -112,7 +113,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
                 </p>
                 <p>
                   {ocena
-                    ? <><b>OCENA</b> pomeni, da vrednost prihaja z občanskega senzorja (Sensor.Community) ob {reading.from.slice(11)}. Cenovno ugoden senzor ni umerjen in v vlažnem vremenu pogosto kaže preveč. Za uradno vrednost izberi postajo ARSO.</>
+                    ? <><b>OCENA</b> pomeni, da vrednost prihaja z občanskega senzorja (Sensor.Community) ob {reading.from.slice(11)}, ne z uradne postaje. {reading.umerjen ? <>Senzor je pokazal {reading.raw} µg/m³; vrednost je umerjena na postajo ARSO ({calibrationNote(reading)}) s koeficienti iz podatkovnega paketa, izračunanimi iz treh zim meritev.</> : <>Cenovno ugoden senzor ni umerjen in lahko kaže precej drugače kot uradna postaja.</>} Za uradno vrednost izberi četrt s postajo ARSO.</>
                     : <><b>MERITEV</b> pomeni, da je vrednost izmerila uradna postaja ARSO {name} ob {reading.from.slice(11)}. Ni ocena in ni napoved.</>}
                 </p>
               </div>
@@ -124,7 +125,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
         )}
         <div className="now-foot">
           <span>
-            Vir: {ocena ? 'občanski senzor' : 'postaja ARSO'} {name}, meritev ob {reading.from.slice(11)}{sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''}
+            Vir: {ocena ? `občanski senzor ${name}, ${calibrationNote(reading)}` : `postaja ARSO ${name}`}, meritev ob {reading.from.slice(11)}{sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''}
             {distance != null && `, ${distance.toFixed(1).replace('.', ',')} km`}
           </span>
           <span style={{ color: 'var(--hero-text-2)' }}>AQI: lestvica US EPA</span>

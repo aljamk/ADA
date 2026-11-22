@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { levelOfPm, usAqi } from '../aqi'
 import { inBasin, shortName, type Reading } from '../arso'
 import { atHour, type Forecast } from '../forecast'
-import { isCitizen } from '../sensors'
+import { calibrationNote, isCitizen } from '../sensors'
 import { hourStr } from '../time'
 
 // The three official ARSO stations in Ljubljana: their forecasts are always fetched (home-town default)
@@ -297,7 +297,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             <p className="t-body t-2">{mode === 'model' && !forecasts[selected] ? 'Nalagam model…' : 'Ni podatka za to uro.'}</p>
           )}
           <p className="t-small">
-            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? 'občanski senzor, neumerjen' : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt ? ` ${shortName(selReading.name)}` : ''}
+            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? `občanski senzor, ${calibrationNote(selReading)}` : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt ? ` ${shortName(selReading.name)}` : ''}
           </p>
           {mode === 'model' ? (
             <>
@@ -338,9 +338,17 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             {withPm.map((r) => (
               <button key={r.code} className={`row station${r.code === selected ? ' me' : ''}`} onClick={() => pick(r.code)}>
                 <span className="n" style={{ color: levelOfPm(r.pm25 as number).color }}>{levelOfPm(r.pm25 as number).symbol}</span>
-                <span>{shortName(r.name)}{isCitizen(r) && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>○ OCENA · občanski senzor</span>}</span>
+                <span>{shortName(r.name)}{isCitizen(r) && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>○ OCENA · {calibrationNote(r)}</span>}</span>
                 <span className="p">{r.pm25} µg/m³</span>
               </button>
+            ))}
+            {/* Devices of the package that are not sending right now (or, PurpleAir, have no open live feed) */}
+            {readings.filter((r) => inBasin(r) && r.pm25 == null).map((r) => (
+              <div key={r.code} className="row station" style={{ opacity: 0.6 }} aria-disabled>
+                <span className="n">·</span>
+                <span>{shortName(r.name)}<span className="t-small" style={{ display: 'block', fontSize: 11 }}>{r.vir === 'PA' ? '○ PurpleAir · brez sprotnih podatkov' : '○ OCENA · trenutno ne oddaja'}</span></span>
+                <span className="p t-2">–</span>
+              </div>
             ))}
           </div>
         </>
