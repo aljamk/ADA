@@ -141,6 +141,7 @@ p { margin: 0; }
 .seg button { flex: 1; border: none; background: none; border-radius: 11px; font-size: 16px; font-weight: 500; color: var(--text-2); }
 .seg button.on { background: var(--soft); color: var(--text); font-weight: 700; }
 .bubble { position: relative; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #00303f; display: grid; place-items: center; font-size: 17px; font-weight: 700; color: #294b3d; padding: 0; }
+.bubble.ocena { border-style: dashed; width: 34px; height: 34px; font-size: 14px; }
 .bubble.sel { box-shadow: 0 0 0 3px var(--map), 0 0 0 5px #0a6e99; }
 .legend { position: absolute; left: 24px; right: 24px; top: 374px; height: 36px; background: var(--surface); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 12px; font-weight: 700; }
 .sheet { background: var(--surface); border-radius: 28px; padding: 27px 18px 16px; margin: -40px -8px 0; position: relative; display: grid; gap: 8px; }

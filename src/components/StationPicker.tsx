@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { levelOfPm } from '../aqi'
 import { nearest, shortName, type Reading } from '../arso'
+import { isCitizen } from '../sensors'
 
 interface Props {
   readings: Reading[]
@@ -12,7 +13,7 @@ interface Props {
 /** Bottom sheet: the Ljubljana stations as a short list, or use location once (no background tracking). */
 export default function StationPicker({ readings, value, onPick, onClose }: Props) {
   const [locError, setLocError] = useState<string | null>(null)
-  const list = readings
+  const list = [...readings.filter((r) => !isCitizen(r)), ...readings.filter(isCitizen)]
 
   const useLocation = () => {
     setLocError(null)
@@ -30,7 +31,7 @@ export default function StationPicker({ readings, value, onPick, onClose }: Prop
     <div className="picker" onClick={onClose}>
       <div className="picker-sheet" onClick={(e) => e.stopPropagation()}>
         <p className="t-sub">Izberi postajo</p>
-        <p className="t-small">Postaje ARSO v Ljubljanski kotlini</p>
+        <p className="t-small">Uradne postaje ARSO (● MERITEV) in občanski senzorji (○ OCENA) v Ljubljani</p>
         <button className="link" style={{ textAlign: 'left' }} onClick={useLocation}>
           Uporabi mojo lokacijo (enkrat, brez sledenja)
         </button>
@@ -39,7 +40,7 @@ export default function StationPicker({ readings, value, onPick, onClose }: Prop
           {list.map((r) => (
             <li key={r.code}>
               <button className={r.code === value ? 'on' : ''} onClick={() => onPick(r.code)}>
-                <span className="name">{shortName(r.name)}</span>
+                <span className="name">{isCitizen(r) ? '○ ' : '● '}{shortName(r.name)}</span>
                 {r.pm25 != null && (
                   <span className="t-2">
                     <span className="dot" style={{ background: levelOfPm(r.pm25).color }} />

@@ -9,6 +9,8 @@ export interface Reading {
   lon: number
   pm25: number | null
   pm10: number | null
+  /** MERITEV = official ARSO station (default), OCENA = uncalibrated citizen sensor */
+  kind?: 'MERITEV' | 'OCENA'
 }
 
 function num(el: Element, tag: string): number | null {
