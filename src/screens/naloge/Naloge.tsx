@@ -436,7 +436,11 @@ function Beseda({ onBack, onDone, saved }: { onBack: () => void; onDone: (r: Tas
   return (
     <Screen title="Ugani besedo" eyebrow="Beseda dneva · 5 črk, 6 poskusov" onBack={onBack}>
       <div className="row-between">
-        <span className="muted small">Zelena ✓ pravo mesto · rumena ↔ drugje · siva ✕ ni v besedi</span>
+        <ul className="w-legend muted small" aria-label="Pomen barv">
+          <li><i className="w-key hit" />Zelena ✓ pravo mesto</li>
+          <li><i className="w-key near" />Rumena ↔ drugje</li>
+          <li><i className="w-key miss" />Siva ✕ ni v besedi</li>
+        </ul>
         <button className="help-btn" onClick={() => setHelp(true)} aria-label="Kako igraš?">?</button>
       </div>
       <div className="wgrid" aria-label="Poskusi">
