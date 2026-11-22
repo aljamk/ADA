@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { levelOfAqi, levelOfPm, usAqi } from '../aqi'
 import Lestvica from '../components/Lestvica'
 import { shortName, type Reading } from '../arso'
@@ -34,6 +34,18 @@ function windows(hours: ForecastHour[]) {
 }
 
 /** 02 · Zdaj */
+const CLOCK = new Intl.DateTimeFormat('sl-SI', { timeZone: 'Europe/Ljubljana', hour: '2-digit', minute: '2-digit' })
+
+/** The current time in Ljubljana, "HH:MM", refreshed every half minute */
+function useLjubljanaClock() {
+  const [now, setNow] = useState(() => CLOCK.format(new Date()))
+  useEffect(() => {
+    const id = setInterval(() => setNow(CLOCK.format(new Date())), 30000)
+    return () => clearInterval(id)
+  }, [])
+  return now
+}
+
 export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceKm, onStation, onDecisionMakers }: Props) {
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
@@ -45,6 +57,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
   const ocena = reading.kind === 'OCENA'
   const tag = ocena ? '○ OCENA' : '● MERITEV'
   const [info, setInfo] = useState(false) // plain-language explanation of the numbers, behind the round i
+  const clock = useLjubljanaClock()
 
   return (
     <div className="screen">
@@ -66,7 +79,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
       <section className="hero">
         <div className="now-top">
           <span style={{ fontSize: 17, fontWeight: 500 }}>
-            {name} · {reading.from.slice(11)}
+            {cetrt ?? name} · {clock}
           </span>
           <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span className="chip">{tag}</span>
@@ -111,7 +124,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
         )}
         <div className="now-foot">
           <span>
-            Vir: {ocena ? 'občanski senzor' : 'postaja ARSO'} {name}{sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''}
+            Vir: {ocena ? 'občanski senzor' : 'postaja ARSO'} {name}, meritev ob {reading.from.slice(11)}{sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''}
             {distance != null && `, ${distance.toFixed(1).replace('.', ',')} km`}
           </span>
           <span style={{ color: 'var(--hero-text-2)' }}>AQI: lestvica US EPA</span>
