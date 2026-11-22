@@ -63,7 +63,7 @@ p { margin: 0; }
 
 /* Layout */
 .app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; }
-.screen { padding: 56px 24px 120px; display: flex; flex-direction: column; gap: 16px; }
+.screen { padding: calc(20px + env(safe-area-inset-top)) 24px 120px; display: flex; flex-direction: column; gap: 16px; }
 .screen-head { display: flex; justify-content: space-between; align-items: flex-end; }
 .screen-head .link { font-size: 12px; }
 
@@ -129,14 +129,14 @@ p { margin: 0; }
 .fc-labels { display: flex; justify-content: space-between; font-size: 11px; font-weight: 500; color: var(--text-2); margin-top: 6px; padding: 0 2px; }
 
 /* Zemljevid */
-.map { position: relative; height: 429px; margin: 0 -24px; border-radius: 24px; background: var(--map); overflow: hidden; }
+/* isolation: Leaflet's panes (z-index 400-1000) stay inside the map, so the sheet below can overlap its bottom edge */
+.map { position: relative; isolation: isolate; height: clamp(300px, 42vh, 429px); height: clamp(300px, 42dvh, 429px); margin: 0 -24px; border-radius: 24px; background: var(--map); overflow: hidden; }
 .map-canvas { position: absolute; inset: 0; background: #1d2a2a; }
-.map-canvas .leaflet-control-attribution { font-size: 9px; background: rgb(255 255 255 / 0.75); color: #294b3d; border-radius: 6px; margin: 0 8px; }
-.map .leaflet-top.leaflet-right { top: 66px; }
-.map .leaflet-bottom.leaflet-right { bottom: 64px; }
+.map-canvas .leaflet-control-attribution { font-size: 9px; line-height: 12px; background: rgb(255 255 255 / 0.75); color: #294b3d; border-radius: 6px; margin: 0 8px; white-space: nowrap; }
+.map .leaflet-top.leaflet-right { top: 62px; }
+.map .leaflet-bottom.leaflet-right { bottom: 56px; }
 .map .leaflet-control-attribution a { color: inherit; }
 .map .seg, .map .legend { z-index: 1000; }
-.map .leaflet-bottom.leaflet-right { bottom: 64px; }
 .map .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; font-size: 20px; }
 .map .leaflet-marker-icon { z-index: 600 !important; }
 .map-surface { filter: blur(10px); }
@@ -146,8 +146,8 @@ p { margin: 0; }
 .bubble { position: relative; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #00303f; display: grid; place-items: center; font-size: 17px; font-weight: 700; color: #294b3d; padding: 0; }
 .bubble.ocena { border-style: dashed; width: 34px; height: 34px; font-size: 14px; }
 .bubble.sel { box-shadow: 0 0 0 3px var(--map), 0 0 0 5px #0a6e99; }
-.legend { position: absolute; left: 24px; right: 24px; bottom: 19px; min-height: 36px; background: var(--surface); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; line-height: 1.2; }
-.sheet { background: var(--surface); border-radius: 28px; padding: 27px 18px 16px; margin: -40px -8px 0; position: relative; display: grid; gap: 8px; }
+.legend { position: absolute; left: 24px; right: 24px; bottom: 12px; min-height: 36px; background: var(--surface); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; line-height: 1.2; }
+.sheet { background: var(--surface); border-radius: 28px; padding: 27px 18px 16px; margin: -8px -8px 0; position: relative; z-index: 1; display: grid; gap: 8px; }
 .sheet::before { content: ''; position: absolute; top: 10px; left: 50%; width: 58px; height: 4px; margin-left: -29px; border-radius: 3px; background: #ccdde4; }
 .timeline { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; margin-top: 8px; }
 .timeline input { flex: 1; accent-color: var(--accent); }

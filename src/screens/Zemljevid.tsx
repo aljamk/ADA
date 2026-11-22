@@ -15,7 +15,7 @@ const SPAN = 10 // hours back and ahead on the slider (model)
 // Satellite imagery and place labels (Esri; attribution required and shown on the map)
 const SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 const PLACES = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
-const ATTR = 'Satelit: Esri, Maxar, Earthstar Geographics · Meritve: ARSO · Model: CAMS'
+const ATTR = 'Satelit: Esri, Maxar, Earthstar Geographics · ARSO · CAMS'
 
 /** Ljubljana basin: default view, station list and estimate surface. The challenge is about Ljubljana. */
 const BOUNDS: [[number, number], [number, number]] = [[45.88, 14.2], [46.24, 14.85]]
@@ -143,9 +143,9 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     L.control.attribution({ position: 'topright', prefix: false }).addTo(m)
     L.tileLayer(SAT, { attribution: ATTR, maxZoom: 18 }).addTo(m)
     L.tileLayer(PLACES, { maxZoom: 18, opacity: 0.9 }).addTo(m)
-    // Keep the bubbles out of the strips covered by the segment control (top), the zoom buttons (right)
-    // and the legend + sheet (bottom). Fractional zoom so a narrow phone still gets a tight fit.
-    m.fitBounds(VIEW, { paddingTopLeft: [12, 72], paddingBottomRight: [60, 120] })
+    // Keep the bubbles out of the strips covered by the segment control + attribution (top), the zoom
+    // buttons (right) and the legend (bottom). Fractional zoom so a narrow phone still gets a tight fit.
+    m.fitBounds(VIEW, { paddingTopLeft: [12, 86], paddingBottomRight: [60, 64] })
     markers.current = L.layerGroup().addTo(m)
     map.current = m
     return () => {
@@ -225,7 +225,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     if (!m || !selReading) return
     // The visible part of the map is between the segment control and the legend/sheet
     const size = m.getSize()
-    const inner = L.latLngBounds(m.containerPointToLatLng([30, 80]), m.containerPointToLatLng([size.x - 60, size.y - 130]))
+    const inner = L.latLngBounds(m.containerPointToLatLng([30, 94]), m.containerPointToLatLng([size.x - 60, size.y - 76]))
     if (!inner.contains([selReading.lat, selReading.lon])) m.panTo([selReading.lat, selReading.lon])
   }, [selReading])
 
