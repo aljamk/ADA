@@ -46,9 +46,13 @@ OUTER_L = [(60, 55), (40, 120), (0, 330), (0, 440), (40, 560), (90, 600), (170, 
 # inner edges along the body's left outline: the cut (8 px inside) and the wing's reach (30 px inside)
 EDGE_L = [(250, 622), (216, 560), (204, 500), (199, 450), (201, 400), (213, 300), (242, 245)]
 REACH_L = [(x + 12, y) for x, y in EDGE_L]
+# a deeper reach for wings that turn around the SHOULDER (242,245): nothing at the top, 60 px at the bottom
+DEEP_L = [(310, 622), (264, 560), (242, 500), (229, 450), (223, 400), (221, 300), (242, 245)]
+DEEP_WING_L = [DEEP_L[-1]] + OUTER_L + DEEP_L[:-1]
 CUT_L = [EDGE_L[-1]] + OUTER_L + EDGE_L[:-1]
 WING_L = [REACH_L[-1]] + OUTER_L + REACH_L[:-1]
 CUT_R, WING_R = mirror(CUT_L), mirror(WING_L)
+DEEP_WING_R = mirror(DEEP_WING_L)
 
 def masked(poly):
     m = Image.new('L', (W, H), 0)
@@ -59,6 +63,8 @@ def masked(poly):
 
 wing_l = masked(WING_L)
 wing_r = masked(WING_R)
+deep_l = masked(DEEP_WING_L)
+deep_r = masked(DEEP_WING_R)
 body = im.copy()
 d = ImageDraw.Draw(body)
 d.polygon(CUT_L, fill=(0, 0, 0, 0))
@@ -74,6 +80,8 @@ ImageDraw.Draw(oci).ellipse((340 - 27, 97 - 27, 340 + 27, 97 + 27), fill=(255, 2
 oci.save('public/golob2-telo-oci.png', optimize=True)
 wing_l.save('public/golob2-krilo-l.png', optimize=True)
 wing_r.save('public/golob2-krilo-d.png', optimize=True)
+deep_l.save('public/golob2-krilo-l-rama.png', optimize=True)
+deep_r.save('public/golob2-krilo-d-rama.png', optimize=True)
 # preview: wings turned a little, to check that nothing tears
 prev = Image.new('RGBA', (W, H), (255, 255, 255, 255))
 ANG = float(sys.argv[3]) if len(sys.argv) > 3 else 4
