@@ -87,24 +87,23 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
 }
 
 /**
- * The pigeon acting out the air quality (Zdaj, under the advice). Parts are an SVG overlay in the image's own
- * coordinates (900 x 1127): an arm with a palm, a thumb, a tongue, notes, a nest. CSS does the motion.
- *  dobro      dances and rejoices (notes)
- *  zmerno     holds an arm out and tilts the palm left and right ("so-so")
- *  slabo      shrugs with both wings
- *  zeloslabo  thumbs down, tongue out
- *  nevarno    hides and trembles in a nest
+ * The pigeon acting out the air quality (Zdaj, under the advice) with its own wing: the drawing is split into
+ * two layers on the same canvas (public/golob-telo.png, public/golob-krilo.png, made by scripts/cut_wings.py)
+ * and the raised wing turns around its shoulder. Only the notes, the tongue and the nest are drawn extra.
+ *  dobro      dances and flaps (notes)
+ *  zmerno     holds the wing out and tilts it ("so-so")
+ *  slabo      shrugs: the wing jerks up, the body hops
+ *  zeloslabo  wing pointing down, tongue out
+ *  nevarno    wing folded, hiding and trembling in a nest
  */
 export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size?: number }) {
   const W = 900
   const H = 1127
-  const arm = '#6b7fb3'
-  const hand = '#7f93c4'
   const caption: Record<LevelKey, string> = {
     dobro: 'Golob pleše: zrak je dober.',
-    zmerno: 'Golob maha z dlanjo: tako-tako.',
+    zmerno: 'Golob maha s krilom: tako-tako.',
     slabo: 'Golob skomigne: zrak je slab.',
-    zeloslabo: 'Golob kaže palec dol in jezik: zrak je zelo slab.',
+    zeloslabo: 'Golob kaže s krilom navzdol in moli jezik: zrak je zelo slab.',
     nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',
   }
   return (
@@ -114,45 +113,19 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
           <ellipse cx="450" cy="930" rx="430" ry="150" fill="#6e4a24" />
         </svg>
       )}
-      <img className="golob-mood-body" src={GOLOB} alt="" draggable={false} />
+      <div className="golob-mood-figure">
+        <img className="golob-layer telo" src="/golob-telo.png" alt="" draggable={false} />
+        <img className="golob-layer krilo" src="/golob-krilo.png" alt="" draggable={false} />
+        <svg className="golob-part" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+          {level === 'zeloslabo' && <path className="tongue" d="M408 212 q22 100 44 0 z" fill="#e86f8a" />}
+        </svg>
+      </div>
       <svg className="golob-part" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
         {level === 'dobro' && (
           <g className="notes" fill="#f2c94c" fontSize="150" fontWeight="700">
             <text className="note n1" x="80" y="260">♪</text>
             <text className="note n2" x="700" y="120">♫</text>
             <text className="note n3" x="620" y="420">♪</text>
-          </g>
-        )}
-        {level === 'zmerno' && (
-          <g>
-            <line x1="330" y1="640" x2="150" y2="600" stroke={arm} strokeWidth="72" strokeLinecap="round" />
-            <g className="palm">
-              <ellipse cx="120" cy="596" rx="62" ry="44" fill={hand} />
-              <line x1="80" y1="570" x2="60" y2="540" stroke={hand} strokeWidth="26" strokeLinecap="round" />
-            </g>
-          </g>
-        )}
-        {level === 'slabo' && (
-          <g>
-            <g className="shrug-l">
-              <line x1="330" y1="650" x2="150" y2="560" stroke={arm} strokeWidth="72" strokeLinecap="round" />
-              <ellipse cx="130" cy="550" rx="54" ry="40" fill={hand} />
-            </g>
-            <g className="shrug-r">
-              <line x1="560" y1="700" x2="720" y2="620" stroke={arm} strokeWidth="72" strokeLinecap="round" />
-              <ellipse cx="740" cy="610" rx="54" ry="40" fill={hand} />
-            </g>
-          </g>
-        )}
-        {level === 'zeloslabo' && (
-          <g>
-            <path className="tongue" d="M408 212 q22 100 44 0 z" fill="#e86f8a" />
-            <g className="thumb">
-              <line x1="330" y1="660" x2="190" y2="690" stroke={arm} strokeWidth="72" strokeLinecap="round" />
-              <circle cx="160" cy="700" r="66" fill={hand} stroke="#4e5f8f" strokeWidth="10" />
-              <line x1="150" y1="750" x2="138" y2="870" stroke="#4e5f8f" strokeWidth="58" strokeLinecap="round" />
-              <line x1="150" y1="750" x2="138" y2="870" stroke={hand} strokeWidth="40" strokeLinecap="round" />
-            </g>
           </g>
         )}
         {level === 'nevarno' && (
