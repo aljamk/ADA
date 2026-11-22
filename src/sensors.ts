@@ -46,9 +46,10 @@ function localHour(utc: string) {
 
 export const codeOf = (s: Senzor) => `${s.vir}${s.id}`
 
-/** Every device of the package as a Reading; the Sensor.Community ones carry their latest live value, or null */
+/** The Sensor.Community devices of the package as Readings with their latest live value, or null when silent.
+ *  PurpleAir devices are not shown: their live API needs a key the package does not have. */
 export async function fetchCitizen(): Promise<Reading[]> {
-  const senzorji = await loadSenzorji()
+  const senzorji = (await loadSenzorji()).filter((s) => s.vir === 'SC')
   let live: Entry[] = []
   try {
     const res = await fetch(LIVE)

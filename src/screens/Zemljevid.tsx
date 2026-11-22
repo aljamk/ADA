@@ -344,11 +344,11 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
                 <span className="p">{r.pm25} µg/m³</span>
               </button>
             ))}
-            {/* Devices of the package that are not sending right now (or, PurpleAir, have no open live feed) */}
+            {/* Devices of the package that are not sending right now */}
             {readings.filter((r) => inBasin(r) && r.pm25 == null).map((r) => (
               <div key={r.code} className="row station" style={{ opacity: 0.6 }} aria-disabled>
                 <span className="n">·</span>
-                <span>{shortName(r.name)}<span className="t-small" style={{ display: 'block', fontSize: 11 }}>{r.vir === 'PA' ? '○ PurpleAir · brez sprotnih podatkov' : '○ OCENA · trenutno ne oddaja'}</span></span>
+                <span>{shortName(r.name)}<span className="t-small" style={{ display: 'block', fontSize: 11 }}>○ OCENA · trenutno ne oddaja</span></span>
                 <span className="p t-2">–</span>
               </div>
             ))}
