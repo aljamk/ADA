@@ -102,7 +102,7 @@ interface Props {
  * MERITEV: the latest hourly measurement for every basin station that reports PM2.5.
  * MODEL: only the stations the user picked (home, work, …), with a slider from 10 h back to 10 h ahead.
  */
-export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation, initialMode = 'meritev', cetrt }: Props) {
+export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation, initialMode = 'model', cetrt }: Props) {
   // Under "Moje postaje" the Zdaj station is shown by the name of its četrt, like the card on Zdaj
   const labelOf = (r: Reading) => (mode === 'model' && r.code === station && cetrt ? cetrt : shortName(r.name))
   const [mode, setMode] = useState<'meritev' | 'model'>(initialMode)
@@ -254,7 +254,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             Moje postaje
           </button>
           <button className={mode === 'meritev' ? 'on' : ''} onClick={() => { setMode('meritev'); setStep(0) }}>
-            ● Meritve
+            Meritve
           </button>
         </div>
 

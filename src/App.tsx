@@ -211,7 +211,7 @@ const hours24 = current && fc ? next24(fc, current.from) : []
               <div className="screen"><p className="t-title">Zdaj</p><p className="t-body t-2">Nalagam meritve ARSO…</p></div>
             ))}
           {tab === 'zemljevid' && (
-            <Zemljevid readings={all} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'model' ? 'model' : 'meritev'} cetrt={myCetrt?.ime ?? null} />
+            <Zemljevid readings={all} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'meritve' ? 'meritev' : 'model'} cetrt={myCetrt?.ime ?? null} />
           )}
           {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} />}
           {tab === 'cetrti' && <Cetrti readings={readings} cetrti={cetrti} mine={myCetrt?.ime ?? null} station={station} />}
