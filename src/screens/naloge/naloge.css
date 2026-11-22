@@ -190,7 +190,7 @@
 }
 
 /* Uskladitev z razredi iz theme.css, ki imajo enaka imena */
-.ng .screen { padding: 48px 20px 110px; min-height: 100vh; }
+.ng .screen { padding: calc(20px + env(safe-area-inset-top)) 24px 110px; min-height: 100vh; }
 .ng .hero { background: none; color: inherit; border-radius: 0; padding: 8px 0 0; }
 .ng .btn { height: auto; }
 .ng .btn-soft { height: auto; }
