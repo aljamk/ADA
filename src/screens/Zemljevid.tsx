@@ -277,7 +277,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             </div>
           )}
           <div className="now-top">
-            <p className="t-sub">{labelOf(selReading)}</p>
+            <p className="t-h3" style={{ whiteSpace: 'nowrap' }}>Kakovost zraka:</p>
             <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <span className="chip">{mode === 'meritev' ? (isCitizen(selReading) ? '○ OCENA' : '● MERITEV') : 'MODEL'}</span>
               <button className="info-btn" aria-label="Kaj pomenijo vrednosti?" aria-expanded={info} onClick={() => setInfo(!info)}>
@@ -293,7 +293,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             <p className="t-body t-2">{mode === 'model' && !forecasts[selected] ? 'Nalagam model…' : 'Ni podatka za to uro.'}</p>
           )}
           <p className="t-small">
-            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? `občanski senzor (ocena, ${calibrationNote(selReading)})` : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt ? ` ${shortName(selReading.name)}` : ''}
+            {labelOf(selReading)} · PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? `občanski senzor (ocena, ${calibrationNote(selReading)})` : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt ? ` ${shortName(selReading.name)}` : ''}
           </p>
           {mode === 'model' ? (
             <>
