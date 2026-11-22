@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
 import { calibrationNote } from '../sensors'
-import { levelOfAqi, levelOfPm, usAqi } from '../aqi'
+import { levelOfAqi, usAqi } from '../aqi'
 import Lestvica from '../components/Lestvica'
 import { shortName, type Reading } from '../arso'
 import type { ForecastHour } from '../forecast'
 import { adviceFor, profileOf, type ProfileKey } from '../profile'
-import { hh } from '../time'
 import { whyText } from '../zakaj'
 
 interface Props {
@@ -17,22 +16,6 @@ interface Props {
   sourceKm?: number // distance from the četrt centre to the source
   onStation: () => void
   onDecisionMakers: () => void
-}
-
-/** Lowest 3-hour window while people are awake (7–22h) and highest 3-hour window in the forecast */
-function windows(hours: ForecastHour[]) {
-  const avg = (i: number) => (hours[i].value + hours[i + 1].value + hours[i + 2].value) / 3
-  const awake = (i: number) => {
-    const h = Number(hh(hours[i].time))
-    return h >= 7 && h <= 19
-  }
-  let best = -1
-  let peak = 0
-  for (let i = 0; i + 2 < hours.length; i++) {
-    if (awake(i) && (best < 0 || avg(i) < avg(best))) best = i
-    if (avg(i) > avg(peak)) peak = i
-  }
-  return { best, peak, peakAqi: hours.length > 2 ? usAqi(avg(peak)) : 0 }
 }
 
 /** 02 · Zdaj */
@@ -48,33 +31,11 @@ function useLjubljanaClock() {
   return now
 }
 
-const VIEW = 12 // columns visible at once
-
 export default function Zdaj({ reading, hours, profiles, distance, cetrt, sourceKm, onStation, onDecisionMakers }: Props) {
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
-  const h12 = hours.slice(0, 12) // the airing window and the advice look at the next 12 hours
-  const w = h12.length >= 3 ? windows(h12) : null
-  const max = Math.max(1, ...hours.map((h) => h.value))
-  const [offset, setOffset] = useState(0) // first hour of the 12-hour view (the slider pans it over 24 h)
-  const view = hours.slice(offset, offset + VIEW)
-  const [sel, setSel] = useState(0) // the hour whose value is read out (tap on a column)
-  const at = hours[Math.min(sel, hours.length - 1)]
-  // The peak is the single highest hour of the 24, marked only when it is at least "Zmerno"
-  const peak = hours.reduce((best, h, i) => (h.value > hours[best].value ? i : best), 0)
-  const peakShown = hours.length > 0 && usAqi(hours[peak].value) > 50 ? peak : -1
-  /** A band behind the columns [from, from + len) of the 24 hours, clipped to the visible view */
-  const band = (from: number, len: number, cls: string, label: string) => {
-    const s = Math.max(0, from - offset)
-    const e = Math.min(VIEW, from + len - offset)
-    if (e <= s) return null
-    return (
-      <div className={`fc-band ${cls}`} style={{ gridColumn: `${s + 1} / span ${e - s}` }}>
-        <span>{label}</span>
-      </div>
-    )
-  }
+  const h12 = hours.slice(0, 12) // the advice looks at the next 12 hours
   const name = shortName(reading.name)
   const ocena = reading.kind === 'OCENA'
   const tag = ocena ? '○ OCENA' : '● MERITEV'
@@ -151,71 +112,6 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
           <span style={{ color: 'var(--hero-text-2)' }}>AQI: lestvica US EPA</span>
         </div>
       </section>
-
-      {w && (
-        <>
-          <div className="section-head">
-            <p className="t-sub">Naslednjih 24 ur</p>
-          </div>
-          <section className="card fc">
-            <p className="fc-title">
-              {w.best >= 0
-                ? `✓ Prezračuj med ${Number(hh(h12[w.best].time))}h in ${(Number(hh(h12[w.best + 2].time)) + 1) % 24}h`
-                : 'Zračenje: počakaj do jutra'}
-            </p>
-            {/* A 12-hour view that the slider pans over the next 24 hours. No digits on the columns: the hour
-                ticks sit under every third column, a tap on a column reads its exact hour and value. */}
-            <p className="fc-read" aria-live="polite">
-              <b>{Number(hh(at.time))}h</b> · {at.value} µg/m³ · <span style={{ color: levelOfPm(at.value).color }}>{levelOfPm(at.value).symbol} {levelOfPm(at.value).label}</span>
-              {sel === 0 && <span className="t-2"> · naslednja ura</span>}
-            </p>
-            <div className="fc-grid" style={{ gridTemplateColumns: `repeat(${VIEW}, 1fr)` }} role="img" aria-label={view.map((h) => `${hh(h.time)}h ${h.value} µg/m³ ${levelOfPm(h.value).label}`).join(', ')}>
-              {w.best >= 0 && band(w.best, 3, 'good', 'Prezračuj')}
-              {peakShown >= 0 && band(peakShown, 1, 'peak', 'Vrh')}
-              {view.map((h, i) => (
-                <button
-                  key={h.time}
-                  type="button"
-                  className={`fc-col${offset + i === sel ? ' sel' : ''}`}
-                  style={{ gridColumn: i + 1 }}
-                  aria-label={`${hh(h.time)}h: ${h.value} µg/m³, ${levelOfPm(h.value).label}`}
-                  onClick={() => setSel(offset + i)}
-                >
-                  <span className="fc-bar" style={{ height: `${Math.max(8, (h.value / max) * 100)}%`, background: levelOfPm(h.value).color }} />
-                </button>
-              ))}
-            </div>
-            <div className="fc-ticks">
-              {view.map((h, i) => i % 3 === 0 && <span key={h.time} style={{ left: `${((i + 0.5) / VIEW) * 100}%` }}>{Number(hh(h.time))}h</span>)}
-            </div>
-            {hours.length > VIEW && (
-              <div className="fc-pan">
-                <span className="t-small">0 h</span>
-                <input
-                  type="range"
-                  className="fc-slider"
-                  min={0}
-                  max={hours.length - VIEW}
-                  value={offset}
-                  onChange={(e) => setOffset(Number(e.target.value))}
-                  aria-label="Premik pogleda po urah"
-                  aria-valuetext={`od ${hh(view[0].time)}h do ${hh(view[view.length - 1].time)}h`}
-                />
-                <span className="t-small">24 h</span>
-              </div>
-            )}
-            <div className="fc-legend">
-              <span>PM2,5 v µg/m³</span>
-              <span>
-                {(['Dobro', 'Zmerno', 'Slabo'] as const).map((l) => {
-                  const lv = [levelOfPm(5), levelOfPm(20), levelOfPm(40)].find((x) => x.label === l)!
-                  return <i key={l}><b style={{ background: lv.color }} />{l}</i>
-                })}
-              </span>
-            </div>
-          </section>
-        </>
-      )}
 
       <section className="card-soft">
         <p className="t-h3">Zakaj?</p>
