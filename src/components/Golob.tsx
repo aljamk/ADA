@@ -74,7 +74,7 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
   const fog = Math.max(0, Math.min(1, (total - done) / total))
   const h = Math.round(size * 1.25) + 18
   return (
-    <div className="golob-megla" style={{ width: size + 60, height: h + 24 }} role="img" aria-label={done >= total ? 'Golob v čistem zraku' : `Golob v megli, ${done} od ${total} nalog`}>
+    <div className="golob-megla" style={{ width: size + 60, height: h + 64 }} role="img" aria-label={done >= total ? 'Golob v čistem zraku' : `Golob v megli, ${done} od ${total} nalog`}>
       {line && <span className="golob3d-line golob-megla-line">{line}</span>}
       <div className="golob-megla-body" style={{ filter: `blur(${(fog * 2.2).toFixed(1)}px) saturate(${(1 - fog * 0.55).toFixed(2)}) brightness(${(1 - fog * 0.15).toFixed(2)})` }}>
         <Golob3D size={size} />
