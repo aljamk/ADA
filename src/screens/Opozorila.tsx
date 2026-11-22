@@ -26,7 +26,7 @@ function HourSelect({ value, onChange, label }: { value: number; onChange: (h: n
 }
 
 /** 09 · Opozorila */
-export default function Opozorila({ settings, onChange, stationName }: { settings: AlertSettings; onChange: (s: AlertSettings) => void; stationName: string }) {
+export default function Opozorila({ settings, onChange }: { settings: AlertSettings; onChange: (s: AlertSettings) => void; stationName?: string }) {
   const set = (patch: Partial<AlertSettings>) => onChange({ ...settings, ...patch })
 
   // Turning a switch on asks for notification permission first
@@ -52,8 +52,7 @@ export default function Opozorila({ settings, onChange, stationName }: { setting
         <p className="t-label">Po tvojem ritmu</p>
         <p className="t-title">Opozorila</p>
       </div>
-      <p className="t-sub" style={{ marginTop: 8 }}>Samo, ko ti koristi.</p>
-      <p className="t-body t-2">Nasveti za {stationName}. Brez sledenja lokaciji v ozadju.</p>
+      <p className="t-body t-2">Brez sledenja lokaciji v ozadju.</p>
       <GolobRece
         text={
           settings.airing && settings.eveningBefore
