@@ -22,7 +22,7 @@ import java.util.TimeZone;
 
 /**
  * Home-screen widget: the latest ARSO hourly PM2.5 for the station chosen in the app, the level
- * word with its range, and Golob, the pigeon mascot. Golob gets red eyes while today's tasks in
+ * word and the value, and Golob, the pigeon mascot. Golob gets red eyes while today's tasks in
  * the Igra tab are not all done.
  *
  * Shared state lives in the SharedPreferences file "CapacitorStorage", which the web app writes
@@ -37,8 +37,6 @@ public class AirWidgetProvider extends AppWidgetProvider {
     // US EPA AQI breakpoints for PM2.5 (2024), the same levels and colours as src/aqi.ts
     private static final double[] LEVEL_MAX = {9.0, 35.4, 55.4, 125.4, Double.MAX_VALUE};
     private static final String[] LEVEL_LABEL = {"Dobro", "Zmerno", "Slabo", "Zelo slabo", "Nevarno"};
-    private static final String[] LEVEL_SYMBOL = {"○", "−", "△", "▲", "■"};
-    private static final String[] LEVEL_RANGE = {"0–9", "9–35", "35–55", "55–125", "nad 125"};
     private static final int[] LEVEL_COLOR = {0xFF3BB273, 0xFFF2C94C, 0xFFF2994A, 0xFFE5484D, 0xFF8E4EC6};
 
     static class Reading {
@@ -129,21 +127,20 @@ public class AirWidgetProvider extends AppWidgetProvider {
     private static void render(Context ctx, AppWidgetManager mgr, int[] ids, Reading r) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_air);
+        String info;
 
         if (r == null || r.pm25 == null) {
             v.setTextViewText(R.id.level, r == null ? "Ni povezave" : "Ni meritve");
             v.setTextViewText(R.id.value, "–");
-            v.setTextViewText(R.id.range, r == null ? "ARSO trenutno ni dosegljiv" : "Postaja ne meri PM2,5");
-            v.setTextViewText(R.id.station, "● MERITEV · " + p.getString("stationName", "Zrak").replace("\"", ""));
+            info = (r == null ? "ARSO trenutno ni dosegljiv" : "Postaja ne meri PM2,5") + " · " + p.getString("stationName", "Zrak").replace("\"", "");
             v.setInt(R.id.dot, "setColorFilter", 0xFF5D7168);
         } else {
             int lvl = 0;
             while (lvl < LEVEL_MAX.length - 1 && r.pm25 > LEVEL_MAX[lvl]) lvl++;
-            v.setTextViewText(R.id.level, LEVEL_SYMBOL[lvl] + " " + LEVEL_LABEL[lvl].toUpperCase(Locale.ROOT));
-            v.setTextViewText(R.id.value, String.valueOf(Math.round(r.pm25)));
-            v.setTextViewText(R.id.range, LEVEL_LABEL[lvl] + " = " + LEVEL_RANGE[lvl] + " µg/m³");
+            v.setTextViewText(R.id.level, LEVEL_LABEL[lvl].toUpperCase(Locale.ROOT));
+            v.setTextViewText(R.id.value, Math.round(r.pm25) + " µg/m³");
             String time = r.from.length() >= 5 ? r.from.substring(r.from.length() - 5) : "";
-            v.setTextViewText(R.id.station, "● MERITEV · " + shortName(r.name) + " · " + time);
+            info = "● MERITEV · " + shortName(r.name) + " · " + time;
             v.setInt(R.id.dot, "setColorFilter", LEVEL_COLOR[lvl]);
         }
 
@@ -152,12 +149,14 @@ public class AirWidgetProvider extends AppWidgetProvider {
         int left = TASKS_TOTAL - done;
         if (left <= 0) {
             v.setImageViewResource(R.id.golob, R.drawable.golob);
-            v.setTextViewText(R.id.tasks, "Vse naloge opravljene. Golob je miren.");
+            info += " · Naloge opravljene";
         } else {
             v.setImageViewResource(R.id.golob, R.drawable.golob_rdece);
             String n = left == 1 ? "še 1 naloga" : left == 2 ? "še 2 nalogi" : "še " + left + " naloge";
-            v.setTextViewText(R.id.tasks, "Golob čaka: " + n);
+            info += " · Golob čaka: " + n;
         }
+
+        v.setTextViewText(R.id.info, info);
 
         // Tap opens the app
         Intent open = new Intent(ctx, MainActivity.class);
