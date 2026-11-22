@@ -2,7 +2,7 @@
  {
   "vir": "SC",
   "id": 9821,
-  "ime": "Vič / Rožna dolina",
+  "ime": "Rožna dolina",
   "lat": 46.042,
   "lon": 14.472,
   "vlaga": 9822,
@@ -18,7 +18,7 @@
  {
   "vir": "SC",
   "id": 14576,
-  "ime": "Šiška 1",
+  "ime": "Šiška zahod",
   "lat": 46.072,
   "lon": 14.47,
   "vlaga": 14577,
@@ -34,7 +34,7 @@
  {
   "vir": "SC",
   "id": 21901,
-  "ime": "Moste / Polje",
+  "ime": "Polje",
   "lat": 46.038,
   "lon": 14.612,
   "vlaga": 21902,
@@ -50,7 +50,7 @@
  {
   "vir": "SC",
   "id": 44606,
-  "ime": "Šiška 2",
+  "ime": "Šiška vzhod",
   "lat": 46.072,
   "lon": 14.474,
   "vlaga": 44607,
@@ -66,7 +66,7 @@
  {
   "vir": "SC",
   "id": 56181,
-  "ime": "Center / Tabor",
+  "ime": "Tabor",
   "lat": 46.052,
   "lon": 14.544,
   "vlaga": 56182,
@@ -82,7 +82,7 @@
  {
   "vir": "SC",
   "id": 64688,
-  "ime": "Celovška / Šiška",
+  "ime": "Spodnja Šiška",
   "lat": 46.07,
   "lon": 14.492,
   "vlaga": 64689,
@@ -98,7 +98,7 @@
  {
   "vir": "SC",
   "id": 67867,
-  "ime": "Dravlje / Šentvid",
+  "ime": "Dravlje",
   "lat": 46.096,
   "lon": 14.47,
   "vlaga": 67868,
@@ -130,7 +130,7 @@
  {
   "vir": "SC",
   "id": 75285,
-  "ime": "Bežigrad / Center",
+  "ime": "Žale",
   "lat": 46.064,
   "lon": 14.532,
   "vlaga": null,

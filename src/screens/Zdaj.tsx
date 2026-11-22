@@ -146,7 +146,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
         )}
         <div className="now-foot">
           <span>
-            Vir: {ocena ? `občanski senzor ${name}, ${calibrationNote(reading)}` : `postaja ARSO ${name}`}, meritev ob {reading.from.slice(11)}{sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''}
+            Vir: {ocena ? `občanski senzor ${name} (ocena)` : `postaja ARSO ${name}`}, meritev ob {reading.from.slice(11)}{sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''}
             {distance != null && `, ${distance.toFixed(1).replace('.', ',')} km`}
           </span>
           <span style={{ color: 'var(--hero-text-2)' }}>AQI: lestvica US EPA</span>
