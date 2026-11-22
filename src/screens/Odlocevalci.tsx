@@ -135,6 +135,20 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
           </button>
         </div>
         <span className="chip model" style={{ marginTop: 8 }}>NAPOVED</span>
+        {warnInfo && (
+          <div className="map-info" style={{ marginTop: 12 }}>
+            <p className="t-small">
+              <b>Kako nastane opozorilo?</b>
+              <br />
+              Dva znaka iz podatkovnega paketa: vremensko pravilo (veter pod 6 km/h, mejna plast pod 300 m, brez padavin) in model CAMS, umerjen na meritve ARSO, z dnevno vrednostjo nad 25 µg/m³. En znak pomeni, da je slab zrak možen, oba, da je verjeten.
+            </p>
+            <p className="t-small">
+              <b>Kako zanesljivo?</b>
+              <br />
+              Vremensko pravilo ujame okoli tri četrtine preseganj, a so tri četrtine opozoril lažne, ker je preseganje redek dogodek. Prag modela ujame 94 % preseganj s 70 % lažnih opozoril. Zato je to napoved za pripravo, ne potrditev.
+            </p>
+          </div>
+        )}
         <div className="rows" style={{ marginTop: 10, gap: 8 }}>
           {dnevi.map((d) => (
             <div key={d.date} className="warn-day">
@@ -164,20 +178,6 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
             <p className="t-body" style={{ marginTop: 6 }}>
               Do 18h obvesti vrtce, šole in domove za starejše{notify.length ? ` v četrtih ${notify.map((c) => c.ime).join(', ')}` : ''} (večerni vrh delcev je med 21h in 23h).
               {worst === 2 ? ' Objavi poziv, naj se zvečer ne kuri v starih pečeh, in pripravi omejitev prometa v središču.' : ' Pripravi besedilo obvestila za primer, da se napoved potrdi.'}
-            </p>
-          </div>
-        )}
-        {warnInfo && (
-          <div className="map-info" style={{ marginTop: 12 }}>
-            <p className="t-small">
-              <b>Kako nastane opozorilo?</b>
-              <br />
-              Dva znaka iz podatkovnega paketa: vremensko pravilo (veter pod 6 km/h, mejna plast pod 300 m, brez padavin) in model CAMS, umerjen na meritve ARSO, z dnevno vrednostjo nad 25 µg/m³. En znak pomeni, da je slab zrak možen, oba, da je verjeten.
-            </p>
-            <p className="t-small">
-              <b>Kako zanesljivo?</b>
-              <br />
-              Vremensko pravilo ujame okoli tri četrtine preseganj, a so tri četrtine opozoril lažne, ker je preseganje redek dogodek. Prag modela ujame 94 % preseganj s 70 % lažnih opozoril. Zato je to napoved za pripravo, ne potrditev.
             </p>
           </div>
         )}
