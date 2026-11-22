@@ -11,6 +11,7 @@ interface Props {
   hours: ForecastHour[] // next 12 h, calibrated model
   profile: ProfileKey
   distance?: number // km to nearest station, only if the user shared location once
+  cetrt?: string | null // your četrt (linked with the station)
   onStation: () => void
   onDecisionMakers: () => void
 }
@@ -32,7 +33,7 @@ function windows(hours: ForecastHour[]) {
 }
 
 /** 02 · Zdaj */
-export default function Zdaj({ reading, hours, profile, distance, onStation, onDecisionMakers }: Props) {
+export default function Zdaj({ reading, hours, profile, distance, cetrt, onStation, onDecisionMakers }: Props) {
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
@@ -46,7 +47,7 @@ export default function Zdaj({ reading, hours, profile, distance, onStation, onD
     <div className="screen">
       <div className="screen-head">
         <div>
-          <p className="t-label">Ljubljana</p>
+          <p className="t-label">{cetrt ? `Ljubljana · ${cetrt}` : 'Ljubljana'}</p>
           <p className="t-title">Zdaj</p>
         </div>
         <div style={{ display: 'grid', justifyItems: 'end', gap: 14, paddingBottom: 6 }}>

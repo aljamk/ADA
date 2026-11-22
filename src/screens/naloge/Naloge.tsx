@@ -61,48 +61,6 @@ function TaskIcon({ name }: { name: string }) {
   )
 }
 
-/** Plant in the lungs outline. stage 0 = drooping (never dead), 4 = full grown with a flower. */
-export function Plant({ stage, size = 200 }: { stage: number; size?: number }) {
-  const wilted = stage === 0
-  const leaf = wilted ? '#8FA79C' : '#3E9C6B'
-  const leafDark = wilted ? '#7A9187' : '#2D7F55'
-  const stemTop = [118, 104, 88, 72, 58][Math.min(4, stage)]
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" role="img" aria-label={wilted ? 'Rastlina je žejna' : `Rastlina, stopnja rasti ${stage} od 4`}>
-      <path d="M100 30v46M100 76c-8 0-14 6-20 14M100 76c8 0 14 6 20 14" fill="none" stroke="var(--accent)" strokeWidth="5" strokeLinecap="round" />
-      <path d="M78 66C52 60 30 92 28 128c-2 30 12 46 34 44 20-2 30-14 32-36l2-52c0-10-8-16-18-18Z" fill="var(--lung)" stroke="var(--accent)" strokeWidth="5" strokeLinejoin="round" />
-      <path d="M122 66c26-6 48 26 50 62 2 30-12 46-34 44-20-2-30-14-32-36l-2-52c0-10 8-16 18-18Z" fill="var(--lung)" stroke="var(--accent)" strokeWidth="5" strokeLinejoin="round" />
-      <ellipse cx="100" cy="160" rx="30" ry="7" fill="var(--soil)" />
-      <path
-        d={wilted ? 'M100 158C100 140 102 128 112 122' : `M100 158C100 ${158 - (158 - stemTop) / 2} 100 ${stemTop + 10} 100 ${stemTop}`}
-        fill="none" stroke={leafDark} strokeWidth="4" strokeLinecap="round" className="stem"
-      />
-      {wilted ? (
-        <>
-          <path d="M112 122c8 2 12 10 10 18-8-2-12-9-10-18Z" fill={leaf} />
-          <path d="M101 140c-9-1-15 5-15 13 9 0 15-5 15-13Z" fill={leaf} />
-        </>
-      ) : (
-        <g className="leaves">
-          <path d="M100 146c-12-6-24-2-28 8 12 4 22 2 28-8Z" fill={leaf} />
-          <path d="M100 146c12-6 24-2 28 8-12 4-22 2-28-8Z" fill={leafDark} />
-          {stage >= 2 && (<><path d="M100 122c-12-7-25-3-29 7 12 5 23 3 29-7Z" fill={leaf} /><path d="M100 122c12-7 25-3 29 7-12 5-23 3-29-7Z" fill={leafDark} /></>)}
-          {stage >= 3 && (<><path d="M100 98c-11-7-23-4-27 6 11 5 21 3 27-6Z" fill={leaf} /><path d="M100 98c11-7 23-4 27 6-11 5-21 3-27-6Z" fill={leafDark} /></>)}
-          {stage >= 4 && (
-            <g className="flower">
-              {[0, 72, 144, 216, 288].map((r) => (
-                <ellipse key={r} cx="100" cy={stemTop - 9} rx="5.5" ry="9" fill="var(--accent)" transform={`rotate(${r} 100 ${stemTop})`} />
-              ))}
-              <circle cx="100" cy={stemTop} r="5" fill="#F2C94C" />
-            </g>
-          )}
-          {stage === 1 && <circle cx="100" cy={stemTop} r="4" fill={leaf} />}
-        </g>
-      )}
-    </svg>
-  )
-}
-
 function Confetti() {
   const pieces = useMemo(
     () => Array.from({ length: 28 }, (_, i) => ({
