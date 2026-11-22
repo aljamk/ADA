@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { usAqi } from './aqi'
 import { distanceKm, fetchArso, inBasin, shortName, type Reading } from './arso'
+import { cetrtOfStation, loadCetrti, stationOfCetrt, type Cetrt } from './cetrti'
 import { Golob2D } from './components/Golob'
 import StationPicker from './components/StationPicker'
 import TabBar, { TABS, type TabKey } from './components/TabBar'
@@ -81,6 +82,12 @@ export default function App() {
   const [log] = useStored<GameLog>('ugani', {})
   const [alerts, setAlerts] = useStored<AlertSettings>('alerts', DEFAULT_ALERTS)
   const [mine, setMine] = useStored<string[]>('mojePostaje', ['E403']) // model view on the map: home, work, …
+  // Your četrt: chosen on the Četrti tab, or the one nearest to the station chosen on Zdaj. The two stay linked.
+  const [cetrti, setCetrti] = useState<Cetrt[]>([])
+  const [cetrt, setCetrt] = useStored<string | null>('cetrt', null)
+  useEffect(() => {
+    loadCetrti().then(setCetrti)
+  }, [])
   const [pickFor, setPickFor] = useState<'zdaj' | 'zemljevid'>('zdaj')
 
   // ARSO on start, on resume and every 15 minutes (feed updates ~45 min past the hour)
@@ -115,6 +122,15 @@ export default function App() {
   }, [readings, station, mine, forecasts])
 
   const current = readings.find((r) => r.code === station)
+  const myCetrt = cetrt ?? (current ? cetrtOfStation(cetrti, current) : null)
+
+  // Picking a četrt on the Četrti tab also moves Zdaj to the nearest station that measures PM2.5
+  const pickCetrt = (name: string) => {
+    setCetrt(name)
+    const c = cetrti.find((x) => x.ime === name)
+    const code = c && stationOfCetrt(readings, c)
+    if (code) setStation(code)
+  }
   const fc = forecasts[station]
   const hours12 = current && fc ? next12(fc, current.from) : []
 
@@ -136,6 +152,8 @@ export default function App() {
     setStation(code)
     const r = readings.find((x) => x.code === code)
     setDistance(at && r ? distanceKm(at.lat, at.lon, r.lat, r.lon) : undefined)
+    // Picking a station on Zdaj also moves your četrt to the nearest one
+    if (r) setCetrt(cetrtOfStation(cetrti, r))
   }
 
 
@@ -174,6 +192,7 @@ export default function App() {
                 hours={hours12}
                 profile={profile}
                 distance={distance}
+                cetrt={myCetrt}
                 onStation={() => { setPickFor('zdaj'); setOverlay('picker') }}
                 onDecisionMakers={() => setOverlay('odlocevalci')}
               />
@@ -184,7 +203,7 @@ export default function App() {
             <Zemljevid readings={readings} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'model' ? 'model' : 'meritev'} />
           )}
           {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} />}
-          {tab === 'cetrti' && <Cetrti readings={readings} station={station} />}
+          {tab === 'cetrti' && <Cetrti readings={readings} cetrti={cetrti} mine={myCetrt} station={station} onPick={pickCetrt} />}
           {tab === 'opozorila' && (
             <Opozorila settings={alerts} onChange={setAlerts} stationName={current ? shortName(current.name) : 'tvojo postajo'} />
           )}

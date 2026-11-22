@@ -1,15 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { levelOfPm } from '../aqi'
 import { GolobRece } from '../components/Golob'
-import { distanceKm, shortName, type Reading } from '../arso'
+import { shortName, type Reading } from '../arso'
+import type { Cetrt } from '../cetrti'
 import { MAP_STATIONS } from './Zemljevid'
-
-interface Cetrt {
-  ime: string
-  rel: number // long-term exposure index relative to the city average (1.0), from cs_kazalniki
-  lat: number
-  lon: number
-}
 
 /** Inverse-distance estimate of the current PM2.5 at a point, from the Ljubljana stations (km) */
 function idw(lat: number, lon: number, stations: Reading[]) {
@@ -30,8 +24,12 @@ const when = (t: string) => `${Number(t.slice(8, 10))}. ${Number(t.slice(5, 7))}
 
 interface Props {
   readings: Reading[]
-  /** Station chosen in the Zdaj tab: its četrt is marked as yours */
+  cetrti: Cetrt[]
+  /** Your četrt (linked with the station on Zdaj) */
+  mine: string | null
   station: string
+  /** Tap a četrt to make it yours; Zdaj moves to its nearest station */
+  onPick: (name: string) => void
 }
 
 /**
@@ -39,17 +37,12 @@ interface Props {
  * The value per četrt is an ESTIMATE: the current measurement of the three ARSO stations, interpolated
  * to the četrt and scaled by its long-term exposure index. It refreshes with every ARSO hour.
  */
-export default function Cetrti({ readings, station }: Props) {
-  const [cetrti, setCetrti] = useState<Cetrt[]>([])
+export default function Cetrti({ readings, cetrti, mine, station, onPick }: Props) {
   const [info, setInfo] = useState(false)
-  useEffect(() => {
-    fetch('/data/cetrti.json').then((r) => r.json()).then(setCetrti).catch(() => {})
-  }, [])
 
   const stations = readings.filter((r) => MAP_STATIONS.some((s) => s.code === r.code) && r.pm25 != null)
   const updated = stations.map((s) => s.from).sort().pop()
   const my = readings.find((r) => r.code === station)
-  const mine = my && cetrti.length ? cetrti.reduce((best, c) => (distanceKm(c.lat, c.lon, my.lat, my.lon) < distanceKm(best.lat, best.lon, my.lat, my.lon) ? c : best)).ime : null
   const rows = cetrti
     .map((c) => {
       const base = idw(c.lat, c.lon, stations)
@@ -96,25 +89,25 @@ export default function Cetrti({ readings, station }: Props) {
         {rows.map((c, i) => {
           const lvl = c.pm != null ? levelOfPm(c.pm) : null
           return (
-            <div key={c.ime} role="row" className={c.ime === mine ? 'row me' : 'row'} style={{ height: 52 }} aria-current={c.ime === mine ? 'true' : undefined}>
+            <button key={c.ime} role="row" className={`row station${c.ime === mine ? ' me' : ''}`} style={{ height: 52 }} aria-current={c.ime === mine ? 'true' : undefined} onClick={() => onPick(c.ime)} aria-label={`${c.ime}: izberi kot svojo četrt`}>
               <span className="n">{i + 1}</span>
               <span>
                 {c.ime}
                 {c.ime === mine && my && (
-                  <span className="chip" style={{ height: 20, fontSize: 11, marginLeft: 8, background: 'var(--accent)', color: 'var(--on-accent)' }} title={`Postaja ${shortName(my.name)} z zaslona Zdaj`}>
+                  <span className="chip" style={{ height: 20, fontSize: 11, marginLeft: 8, background: 'var(--accent)', color: 'var(--on-accent)' }} title={`Najbližja postaja: ${shortName(my.name)}, enaka kot na zaslonu Zdaj`}>
                     tvoja četrt
                   </span>
                 )}
                 {lvl && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>{lvl.symbol} {lvl.label} · ocena</span>}
               </span>
               <span className="p" style={{ color: lvl?.color }}>{c.pm != null ? `${c.pm} µg/m³` : '–'}</span>
-            </div>
+            </button>
           )
         })}
       </div>
 
       <p className="t-small" style={{ fontSize: 11 }}>
-        OCENA, ne meritev: v Ljubljani merijo tri uradne postaje ARSO. Vrstni red se spreminja z meritvami, razlike med sosednjimi četrtmi so lahko znotraj napake ocene.
+        Dotakni se četrti, da postane tvoja; zaslon Zdaj se preklopi na njej najbližjo postajo. OCENA, ne meritev: v Ljubljani merijo tri uradne postaje ARSO. Vrstni red se spreminja z meritvami, razlike med sosednjimi četrtmi so lahko znotraj napake ocene.
       </p>
     </div>
   )
