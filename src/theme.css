@@ -165,8 +165,7 @@ p { margin: 0; }
 .bubble.ocena { border-style: dashed; width: 34px; height: 34px; font-size: 14px; }
 .bubble.sel { box-shadow: 0 0 0 3px var(--map), 0 0 0 5px #0a6e99; }
 .legend { position: absolute; left: 24px; right: 24px; bottom: 12px; min-height: 36px; background: var(--surface); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; line-height: 1.2; }
-.sheet { background: var(--surface); border-radius: 28px; padding: 27px 18px 16px; margin: 0 -8px 0; position: relative; z-index: 1; display: grid; gap: 8px; }
-.sheet::before { content: ''; position: absolute; top: 10px; left: 50%; width: 58px; height: 4px; margin-left: -29px; border-radius: 3px; background: #ccdde4; }
+.sheet { background: var(--surface); border-radius: 28px; padding: 18px 18px 16px; margin: 0 -8px 0; position: relative; z-index: 1; display: grid; gap: 8px; }
 .timeline { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; margin-top: 8px; }
 .timeline input { flex: 1; accent-color: var(--accent); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
