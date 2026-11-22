@@ -36,7 +36,8 @@ export async function fetchArso(): Promise<Reading[]> {
 }
 
 /** "LJ Bežigrad" -> "Bežigrad" for compact UI */
-export const shortName = (name: string) => name.replace(/^LJ /, '')
+/** Station name without the city prefix; a citizen sensor is just its place (every use pairs it with the OCENA tag) */
+export const shortName = (name: string) => name.replace(/^LJ /, '').replace(/^Občanski senzor · /, '')
 
 // ARSO uses city abbreviations in station names; expand them so "Maribor" finds "MB Titova".
 const CITY: Record<string, string> = {
