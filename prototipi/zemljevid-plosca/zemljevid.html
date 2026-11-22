@@ -1,0 +1,394 @@
+<title>Zrak · Igralna plošča</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
+<style>
+/* Layout: a 390×844 phone frame; the whole screen is a tactile game-board map of Ljubljana's 17 četrti,
+   a sun-and-moon time dial at the bottom and a white bottom sheet for details. Single warm look. */
+:root {
+  --basin: #a9d58a;      /* soft flat green basin */
+  --hills: #7fb86a;      /* ring of hills */
+  --sky: #dff0f7;
+  --ink: #1f3a2a;        /* dark outlines and text, 11:1 on white */
+  --ink-2: #4f6657;
+  --sheet: #ffffff;
+  --paper: #fff6e6;      /* warm UI chrome */
+  --accent: #e07a3f;     /* warm orange for buttons, not an air colour */
+  --accent-edge: #a9522a;
+  --dobro: #3bb273; --zmerno: #f2c94c; --slabo: #f2994a; --zeloslabo: #e5484d; --nevarno: #8e4ec6;
+  --display: 'Baloo 2', 'Trebuchet MS', sans-serif;
+  --body: 'DM Sans', system-ui, sans-serif;
+  --spring: cubic-bezier(.3, 1.6, .5, 1);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #2a4a3a; color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.35; padding-block: 16px 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+p, h1, h2, h3 { margin: 0; }
+.stage { display: grid; gap: 12px; justify-items: center; }
+.note { color: #cfe3d6; font-size: 13px; text-align: center; max-width: 390px; }
+.phone { position: relative; width: 390px; max-width: 100%; height: 844px; border-radius: 44px; background: var(--sky); overflow: hidden; box-shadow: 0 0 0 10px #15291f; user-select: none; -webkit-user-select: none; }
+@media (max-width: 440px) { body { padding: 0; } .phone { width: 100%; height: calc(100dvh - 40px); min-height: 640px; border-radius: 0; box-shadow: none; } }
+.map { position: absolute; inset: 0 0 76px; touch-action: none; overflow: hidden; }
+.map svg { width: 100%; height: 100%; display: block; }
+.title { position: absolute; left: 16px; top: 18px; font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1; color: var(--ink); pointer-events: none; background: var(--paper); border: 3px solid var(--ink); border-radius: 18px; padding: 8px 14px 10px; box-shadow: 0 4px 0 var(--ink); }
+.title small { display: block; font-family: var(--body); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+.top-right { position: absolute; right: 16px; top: 18px; display: grid; gap: 8px; justify-items: end; }
+.pill { min-height: 48px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 999px; border: 3px solid var(--ink); background: var(--paper); font-weight: 700; font-size: 15px; box-shadow: 0 4px 0 var(--ink); }
+.pill[aria-pressed='true'] { background: var(--ink); color: #fff; }
+.pill:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--ink); }
+.pill.model { min-height: 32px; font-size: 12px; letter-spacing: .06em; border-style: dashed; box-shadow: none; padding: 0 10px; }
+
+/* tiles, markers, bounce */
+.tile { cursor: pointer; }
+.tile .face { transition: transform .2s var(--spring); }
+.bounce { animation: bounce .2s var(--spring); transform-box: fill-box; transform-origin: center; }
+@keyframes bounce { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.marker { cursor: pointer; }
+.fog-layer { pointer-events: none; }
+.fog-layer .wisp { animation: drift 18s linear infinite; }
+.fog-layer .wisp:nth-child(2) { animation-duration: 25s; animation-delay: -8s; }
+.fog-layer .wisp:nth-child(3) { animation-duration: 31s; animation-delay: -15s; }
+@keyframes drift { from { transform: translateX(-60px); } to { transform: translateX(60px); } }
+.glow { animation: glow 2s ease-in-out infinite alternate; }
+@keyframes glow { from { stroke-opacity: .5; } to { stroke-opacity: 1; } }
+
+/* time dial */
+.dial { position: absolute; left: 16px; right: 16px; bottom: 88px; height: 116px; background: var(--paper); border: 3px solid var(--ink); border-radius: 24px; box-shadow: 0 5px 0 var(--ink); touch-action: none; }
+.dial svg { width: 100%; height: 100%; display: block; }
+
+/* bottom sheet */
+.sheet { position: absolute; left: 10px; right: 10px; bottom: 84px; background: var(--sheet); border: 3px solid var(--ink); border-radius: 24px; padding: 18px 18px 16px; display: grid; gap: 8px; box-shadow: 0 6px 0 var(--ink); animation: up .2s var(--spring); }
+@keyframes up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet h2 { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; }
+.sheet .big { font-family: var(--display); font-weight: 800; font-size: 56px; line-height: 1; }
+.sheet .big small { font-family: var(--body); font-size: 17px; font-weight: 500; color: var(--ink-2); margin-left: 6px; }
+.sheet .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sheet .muted { color: var(--ink-2); font-size: 17px; }
+.level { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 20px; }
+.level i { width: 26px; height: 26px; border-radius: 13px; display: inline-grid; place-items: center; color: #1f3a2a; font-style: normal; font-weight: 800; font-size: 14px; }
+.tag { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: 8px; border: 2px solid var(--ink); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.tag i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--ink); background: var(--ink); }
+.tag.ocena i { background: transparent; }
+.close { position: absolute; right: 10px; top: 10px; width: 48px; height: 48px; border-radius: 24px; border: 3px solid var(--ink); background: var(--paper); font-weight: 800; font-size: 20px; box-shadow: 0 3px 0 var(--ink); }
+.btn { min-height: 56px; width: 100%; border: 3px solid var(--ink); border-radius: 16px; background: var(--accent); color: #fff; font-family: var(--display); font-weight: 800; font-size: 20px; box-shadow: 0 5px 0 var(--ink); transition: transform .12s, box-shadow .12s; }
+.btn:active { transform: translateY(5px); box-shadow: 0 0 0 var(--ink); }
+
+/* tab bar */
+.tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 76px; display: flex; justify-content: space-around; align-items: center; background: var(--paper); border-top: 3px solid var(--ink); padding: 6px 8px 10px; }
+.tab { border: none; background: none; display: grid; justify-items: center; gap: 3px; font-size: 12px; font-weight: 700; color: var(--ink-2); min-width: 64px; min-height: 48px; border-radius: 14px; }
+.tab.on { color: var(--ink); background: #ffe3c2; }
+@media (prefers-reduced-motion: reduce) { .bounce, .fog-layer .wisp, .glow, .sheet { animation: none; } .tile .face, .btn { transition: none; } }
+</style>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useMemo } = React
+
+/* ---------------- MOCK DATA (replace with real data) ---------------- */
+// Weekly game points per četrt (league), the user's četrt, modelled PM2.5 for the next 12 hours (from 14h).
+const MOCK = {
+  myCetrt: 'Šiška',
+  league: { Bežigrad: 1480, Center: 1395, Trnovo: 1320, Vič: 1210, Moste: 1180, Rožnik: 1120, Šiška: 1090, Posavje: 1040, Jarše: 990, Dravlje: 960, Golovec: 905, Polje: 870, Črnuče: 820, Rudnik: 770, Šentvid: 700, Sostro: 640, 'Šmarna gora': 590 },
+  startHour: 14,
+  modelPm: [23, 25, 27, 24, 20, 17, 15, 14, 18, 30, 41, 44], // evening peak 21–23h
+  stations: [
+    { id: 'E403', name: 'Bežigrad', kind: 'MERITEV', x: 228, y: 150, pm: 24 },
+    { id: 'E405', name: 'Celovška', kind: 'MERITEV', x: 184, y: 226, pm: 31 },
+    { id: 'E404', name: 'Vič', kind: 'MERITEV', x: 112, y: 300, pm: 36 },
+  ],
+  sensors: [
+    [300, 110, 19], [330, 180, 22], [268, 198, 27], [206, 262, 29], [152, 268, 33], [92, 232, 20], [60, 188, 15], [250, 300, 31], [310, 290, 24], [186, 346, 35], [120, 372, 22], [250, 380, 26],
+  ].map(([x, y, pm], i) => ({ id: `S${i + 1}`, name: `Občanski senzor ${i + 1}`, kind: 'OCENA', x, y, pm })),
+}
+
+/* Air scale: always colour + icon + word */
+const LEVELS = [
+  { word: 'Dobro', color: '#3BB273', icon: '✓', max: 15 },
+  { word: 'Zmerno', color: '#F2C94C', icon: '–', max: 25 },
+  { word: 'Slabo', color: '#F2994A', icon: '▲', max: 50 },
+  { word: 'Zelo slabo', color: '#E5484D', icon: '!', max: 75 },
+  { word: 'Nevarno', color: '#8E4EC6', icon: '!!', max: Infinity },
+]
+const levelOf = (pm) => LEVELS.find((l) => pm < l.max)
+
+/* PLACEHOLDER polygons for the 17 četrti (rough layout, map space 390×470). Replace with GeoJSON. */
+const CENTERS = {
+  'Šmarna gora': [78, 52], Črnuče: [214, 48], Posavje: [300, 70], Šentvid: [60, 126], Dravlje: [128, 150], Bežigrad: [226, 136], Jarše: [318, 148],
+  Šiška: [172, 212], Center: [238, 230], Moste: [312, 226], Polje: [364, 196], Rožnik: [100, 248], Vič: [96, 326], Trnovo: [196, 318], Golovec: [290, 306], Rudnik: [220, 400], Sostro: [344, 356],
+}
+const FILLS = ['#b9e08f', '#a8d57e', '#cfe49b', '#e9d9a0', '#bfdd8a', '#e3cf92', '#c8e394', '#d8d996']
+function polygon(cx, cy, r, seed) {
+  const pts = []
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 + seed
+    const rr = r * (0.82 + 0.25 * Math.abs(Math.sin(seed * 3 + i * 1.7)))
+    pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.82])
+  }
+  return pts.map((p) => p.map((v) => Math.round(v)).join(',')).join(' ')
+}
+const TILES = Object.entries(CENTERS).map(([name, [cx, cy]], i) => ({ name, cx, cy, points: polygon(cx, cy, 44, i * 0.9), fill: FILLS[i % FILLS.length] }))
+
+const hourLabel = (h) => `${h % 24}h`
+
+/* ---------------- Artwork (original, simple) ---------------- */
+function Tree({ stage, x, y }) {
+  // 5 stages: seedling → sapling → young → full → with fruit
+  const h = [7, 11, 16, 21, 24][stage]
+  const r = [3.5, 5.5, 8, 10.5, 12][stage]
+  return (
+    <g transform={`translate(${x} ${y})`} aria-hidden="true">
+      <rect x="-2.5" y={-h} width="5" height={h} rx="2" fill="#7a4a2a" />
+      <circle cx="0" cy={-h - r * 0.6} r={r} fill="#3f9a4e" stroke="#1f3a2a" strokeWidth="2.5" />
+      {stage >= 2 && <circle cx={-r * 0.6} cy={-h - r * 0.3} r={r * 0.7} fill="#54b35f" stroke="#1f3a2a" strokeWidth="2.5" />}
+      {stage >= 2 && <circle cx={r * 0.6} cy={-h - r * 0.3} r={r * 0.7} fill="#54b35f" stroke="#1f3a2a" strokeWidth="2.5" />}
+      {stage >= 4 && [[-6, -h - r], [5, -h - r * 0.5], [-1, -h - r * 1.4]].map(([fx, fy], i) => <circle key={i} cx={fx} cy={fy} r="3.2" fill="#e5484d" stroke="#1f3a2a" strokeWidth="1.5" />)}
+    </g>
+  )
+}
+function Flag({ x, y, n }) {
+  return (
+    <g transform={`translate(${x} ${y})`} aria-label={`${n}. mesto`}>
+      <rect x="-1.5" y="-30" width="3" height="30" fill="#1f3a2a" />
+      <path d="M1 -30h20l-5 7 5 7H1Z" fill={['#f2c94c', '#cfd6dc', '#d9a066'][n - 1]} stroke="#1f3a2a" strokeWidth="2" />
+      <text x="8" y="-18" fontSize="10" fontWeight="800" fontFamily="Baloo 2" fill="#1f3a2a">{n}</text>
+    </g>
+  )
+}
+function Hut({ x, y, level, selected, onClick, name }) {
+  // official ARSO station: small weather hut with a flag in the air-level colour + icon
+  return (
+    <g className="marker" transform={`translate(${x} ${y}) scale(.8)`} onClick={onClick} role="button" tabIndex="0" aria-label={`Uradna postaja ${name}: ${level.word}`} onKeyDown={(e) => e.key === 'Enter' && onClick(e)}>
+      <circle r="24" fill="transparent" />
+      <rect x="-13" y="-8" width="26" height="20" rx="3" fill="#fff6e6" stroke="#1f3a2a" strokeWidth="3" />
+      <path d="M-17 -8 0 -22 17 -8Z" fill="#c65a3a" stroke="#1f3a2a" strokeWidth="3" strokeLinejoin="round" />
+      <rect x="-5" y="0" width="10" height="12" fill="#1f3a2a" opacity=".6" />
+      <rect x="13" y="-34" width="3" height="28" fill="#1f3a2a" />
+      <path d="M16 -34h18l-4 6 4 6H16Z" fill={level.color} stroke="#1f3a2a" strokeWidth="2" />
+      <text x="20" y="-23" fontSize="9" fontWeight="800" fill="#1f3a2a">{level.icon}</text>
+      {selected && <circle r="26" fill="none" stroke="#e07a3f" strokeWidth="4" />}
+    </g>
+  )
+}
+function Birdhouse({ x, y, level, selected, onClick, name }) {
+  // citizen sensor: smaller birdhouse, visibly a different shape from the official hut
+  return (
+    <g className="marker" transform={`translate(${x} ${y}) scale(.8)`} onClick={onClick} role="button" tabIndex="0" aria-label={`${name}: ${level.word}, ocena`} onKeyDown={(e) => e.key === 'Enter' && onClick(e)}>
+      <circle r="24" fill="transparent" />
+      <rect x="-1.5" y="4" width="3" height="12" fill="#7a4a2a" />
+      <path d="M-9 4V-6L0 -14 9 -6V4Z" fill={level.color} stroke="#1f3a2a" strokeWidth="2.5" strokeLinejoin="round" />
+      <circle cy="-3" r="3" fill="#1f3a2a" />
+      <text x="-4" y="-16" fontSize="9" fontWeight="800" fill="#1f3a2a">{level.icon}</text>
+      {selected && <circle r="20" fill="none" stroke="#e07a3f" strokeWidth="4" />}
+    </g>
+  )
+}
+function Sticker({ x, y, label }) {
+  // landmark placeholder (swap for provided image files)
+  const w = label.length * 6 + 20
+  return (
+    <g transform={`translate(${x} ${y})`} aria-label={label}>
+      <rect x={-w / 2} y="-11" width={w} height="22" rx="11" fill="#fff6e6" stroke="#1f3a2a" strokeWidth="2.5" />
+      <circle cx={-w / 2 + 11} cy="0" r="5" fill="#e07a3f" stroke="#1f3a2a" strokeWidth="2" />
+      <text x={-w / 2 + 20} y="4" fontSize="10" fontWeight="700" fill="#1f3a2a">{label}</text>
+    </g>
+  )
+}
+
+/* Sun-and-moon arc: 12 hours from startHour, draggable */
+function Dial({ hour, onHour, startHour, pmNow }) {
+  const ref = useRef(null)
+  const W = 340, H = 104, cx = W / 2, cy = 98, R = 70
+  const idx = hour - startHour
+  const ang = Math.PI - (idx / 11) * Math.PI
+  const kx = cx + Math.cos(ang) * R, ky = cy - Math.sin(ang) * R
+  const pick = (e) => {
+    const r = ref.current.getBoundingClientRect()
+    const px = ((e.clientX - r.left) / r.width) * W, py = ((e.clientY - r.top) / r.height) * H
+    let a = Math.atan2(cy - py, px - cx)
+    a = Math.max(0, Math.min(Math.PI, a))
+    onHour(startHour + Math.round(((Math.PI - a) / Math.PI) * 11))
+  }
+  const down = (e) => { e.currentTarget.setPointerCapture(e.pointerId); pick(e) }
+  const move = (e) => { if (e.buttons) pick(e) }
+  const peakA = (i) => Math.PI - (i / 11) * Math.PI
+  const arc = (a1, a2, r) => `M${cx + Math.cos(a1) * r} ${cy - Math.sin(a1) * r}A${r} ${r} 0 0 1 ${cx + Math.cos(a2) * r} ${cy - Math.sin(a2) * r}`
+  return (
+    <div className="dial" role="slider" aria-label="Ura napovedi" aria-valuemin={startHour} aria-valuemax={startHour + 11} aria-valuenow={hour} aria-valuetext={`${hourLabel(hour)}, model ${pmNow} µg/m³`} tabIndex="0"
+      onKeyDown={(e) => { if (e.key === 'ArrowRight') onHour(Math.min(startHour + 11, hour + 1)); if (e.key === 'ArrowLeft') onHour(Math.max(startHour, hour - 1)) }}>
+      <svg ref={ref} viewBox={`0 0 ${W} ${H}`} onPointerDown={down} onPointerMove={move} style={{ touchAction: 'none' }}>
+        <path d={arc(Math.PI, 0, R)} fill="none" stroke="#1f3a2a" strokeWidth="6" strokeLinecap="round" opacity=".2" />
+        <path d={arc(peakA(7), peakA(9), R)} fill="none" stroke="#E5484D" strokeWidth="6" strokeLinecap="round" />
+        <text x={cx + Math.cos(peakA(8)) * (R + 14)} y={cy - Math.sin(peakA(8)) * (R + 14)} fontSize="9" fontWeight="800" textAnchor="middle" fill="#1f3a2a">VEČERNI VRH 21–23h</text>
+        <g transform={`translate(${cx - R - 30} ${cy - 26})`}><circle r="8" fill="#F2C94C" stroke="#1f3a2a" strokeWidth="2.5" />{[0, 45, 90, 135].map((d) => <line key={d} x1="-12" x2="12" y1="0" y2="0" stroke="#1f3a2a" strokeWidth="2" transform={`rotate(${d})`} />)}</g>
+        <g transform={`translate(${cx + R + 30} ${cy - 26})`}><path d="M-5 -7a8 8 0 1 0 8 11 6 6 0 0 1-8-11Z" fill="#dfe6ef" stroke="#1f3a2a" strokeWidth="2.5" strokeLinejoin="round" /></g>
+        {[0, 3, 6, 9, 11].map((i) => <text key={i} x={cx + Math.cos(peakA(i)) * (R - 16)} y={cy - Math.sin(peakA(i)) * (R - 16) + 4} fontSize="10" textAnchor="middle" fill="#4f6657" fontWeight="700">{hourLabel(startHour + i)}</text>)}
+        <circle cx={kx} cy={ky} r="14" fill="#e07a3f" stroke="#1f3a2a" strokeWidth="3" />
+        <text x={cx} y={cy - 30} textAnchor="middle" fontSize="16" fontWeight="800" fontFamily="Baloo 2" fill="#1f3a2a">{hourLabel(hour)}</text>
+        <text x={cx} y={cy - 14} textAnchor="middle" fontSize="10" fontWeight="500" fill="#4f6657">model {pmNow} µg/m³ · {levelOf(pmNow).word}</text>
+      </svg>
+    </div>
+  )
+}
+
+/* ---------------- Screen ---------------- */
+function Zemljevid() {
+  const [hour, setHour] = useState(MOCK.startHour)
+  const [fogOn, setFogOn] = useState(true)
+  const [sel, setSel] = useState(null) // { type: 'station'|'sensor'|'tile', id }
+  const [bounced, setBounced] = useState(null)
+  const [view, setView] = useState({ x: 0, y: 0, k: 1 })
+  const gesture = useRef({ pointers: new Map(), last: null })
+  const svgRef = useRef(null)
+
+  const idx = hour - MOCK.startHour
+  const pmModel = MOCK.modelPm[idx]
+  const factor = pmModel / MOCK.modelPm[0] // how the hour moves every marker (demo)
+  const valueAt = (base) => Math.max(1, Math.round(base * factor))
+  const ranking = Object.entries(MOCK.league).sort((a, b) => b[1] - a[1]).map(([n]) => n)
+  const stageOf = (pts) => Math.min(4, Math.floor(((pts - 590) / (1480 - 590)) * 4.999))
+
+  const tap = (key, selection) => { setSel(selection); setBounced(key); setTimeout(() => setBounced(null), 220) }
+
+  /* pan & pinch */
+  const onDown = (e) => { gesture.current.pointers.set(e.pointerId, [e.clientX, e.clientY]); e.currentTarget.setPointerCapture(e.pointerId) }
+  const onMove = (e) => {
+    const g = gesture.current
+    if (!g.pointers.has(e.pointerId)) return
+    const prev = [...g.pointers.values()]
+    g.pointers.set(e.pointerId, [e.clientX, e.clientY])
+    const cur = [...g.pointers.values()]
+    if (cur.length === 1 && e.buttons) {
+      setView((v) => ({ ...v, x: v.x + (cur[0][0] - prev[0][0]), y: v.y + (cur[0][1] - prev[0][1]) }))
+    } else if (cur.length >= 2) {
+      const d = (a) => Math.hypot(a[0][0] - a[1][0], a[0][1] - a[1][1])
+      const s = d(cur) / Math.max(1, d(prev))
+      setView((v) => ({ ...v, k: Math.max(0.7, Math.min(3, v.k * s)) }))
+    }
+  }
+  const onUp = (e) => gesture.current.pointers.delete(e.pointerId)
+  const onWheel = (e) => setView((v) => ({ ...v, k: Math.max(0.7, Math.min(3, v.k * (e.deltaY < 0 ? 1.1 : 0.9))) }))
+
+  const selected = sel && (sel.type === 'tile' ? TILES.find((t) => t.name === sel.id) : [...MOCK.stations, ...MOCK.sensors].find((s) => s.id === sel.id))
+
+  return (
+    <div className="phone">
+      <div className="map" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onWheel={onWheel} aria-label="Zemljevid Ljubljane kot igralna plošča">
+        <svg ref={svgRef} viewBox="0 0 390 470" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <filter id="soft"><feGaussianBlur stdDeviation="14" /></filter>
+            <linearGradient id="fogg" x1="0" x2="1"><stop offset="0" stopColor="#e9eef0" stopOpacity="0" /><stop offset=".5" stopColor="#e9eef0" /><stop offset="1" stopColor="#e9eef0" stopOpacity="0" /></linearGradient>
+          </defs>
+          <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
+            {/* basin + ring of hills */}
+            <rect x="-400" y="-400" width="1200" height="1300" fill="var(--basin)" />
+            {[[-40, 20], [120, -30], [300, -20], [430, 60], [450, 260], [400, 440], [160, 470], [-40, 400], [-60, 200]].map(([hx, hy], i) => (
+              <ellipse key={i} cx={hx} cy={hy} rx="110" ry="60" fill="var(--hills)" stroke="#1f3a2a" strokeWidth="3" />
+            ))}
+            {/* Ljubljanica (sticker river) */}
+            <path d="M150 470C170 400 180 360 230 320s70-60 120-110" fill="none" stroke="#6cb6d9" strokeWidth="12" strokeLinecap="round" />
+            <path d="M150 470C170 400 180 360 230 320s70-60 120-110" fill="none" stroke="#1f3a2a" strokeWidth="2" strokeDasharray="6 8" strokeLinecap="round" />
+
+            {/* tiles: extruded (dark offset copy 6px below, flat fill, 3px outline). NEVER coloured by air quality. */}
+            {TILES.map((t) => {
+              const mine = t.name === MOCK.myCetrt
+              const rank = ranking.indexOf(t.name) + 1
+              const on = sel?.type === 'tile' && sel.id === t.name
+              return (
+                <g key={t.name} className="tile" onClick={(e) => { e.stopPropagation(); tap(t.name, { type: 'tile', id: t.name }) }} role="button" tabIndex="0" aria-label={`Četrt ${t.name}, ${rank}. mesto od 17`} onKeyDown={(e) => e.key === 'Enter' && tap(t.name, { type: 'tile', id: t.name })}>
+                  <polygon points={t.points} fill="#2d5a3a" transform="translate(0 6)" />
+                  <g className={`face${bounced === t.name ? ' bounce' : ''}`} style={{ transform: on ? 'translateY(3px)' : undefined }}>
+                    <polygon points={t.points} fill={t.fill} stroke="#1f3a2a" strokeWidth="3" strokeLinejoin="round" />
+                    {mine && <polygon className="glow" points={t.points} fill="none" stroke="#ffd34d" strokeWidth="6" strokeLinejoin="round" />}
+                    <Tree stage={stageOf(MOCK.league[t.name])} x={t.cx - 16} y={t.cy + 18} />
+                    {rank <= 3 && <Flag x={t.cx + 16} y={t.cy + 18} n={rank} />}
+                    <text x={t.cx} y={t.cy - 14} textAnchor="middle" fontSize="10" fontWeight="800" fontFamily="Baloo 2" fill="#1f3a2a">{t.name.toUpperCase()}</text>
+                    {mine && <text x={t.cx} y={t.cy + 30} textAnchor="middle" fontSize="8" fontWeight="800" fill="#7a4a2a">TVOJA ČETRT</text>}
+                  </g>
+                </g>
+              )
+            })}
+
+            {/* landmark stickers (placeholders) */}
+            <Sticker x={250} y={262} label="Grad" />
+            <Sticker x={150} y={192} label="Tivoli" />
+            <Sticker x={300} y={322} label="Ljubljanica" />
+            <Sticker x={82} y={18} label="Šmarna gora" />
+            <Sticker x={140} y={420} label="Barje" />
+
+            {/* fog layer, opacity from the modelled PM2.5 of the selected hour */}
+            {fogOn && (
+              <g className="fog-layer" style={{ opacity: Math.min(0.85, pmModel / 60) }} aria-label={`Megla: model ${pmModel} µg/m³`}>
+                <ellipse className="wisp" cx="160" cy="220" rx="260" ry="120" fill="url(#fogg)" filter="url(#soft)" />
+                <ellipse className="wisp" cx="260" cy="320" rx="230" ry="100" fill="url(#fogg)" filter="url(#soft)" />
+                <ellipse className="wisp" cx="120" cy="340" rx="200" ry="90" fill="url(#fogg)" filter="url(#soft)" />
+              </g>
+            )}
+
+            {/* air markers */}
+            {MOCK.sensors.map((s) => <Birdhouse key={s.id} x={s.x} y={s.y} name={s.name} level={levelOf(valueAt(s.pm))} selected={sel?.id === s.id} onClick={(e) => { e.stopPropagation(); tap(s.id, { type: 'sensor', id: s.id }) }} />)}
+            {MOCK.stations.map((s) => <Hut key={s.id} x={s.x} y={s.y} name={s.name} level={levelOf(valueAt(s.pm))} selected={sel?.id === s.id} onClick={(e) => { e.stopPropagation(); tap(s.id, { type: 'station', id: s.id }) }} />)}
+          </g>
+        </svg>
+      </div>
+
+      <h1 className="title"><small>Ljubljana · igralna plošča</small>Zemljevid</h1>
+      <div className="top-right">
+        <button className="pill" aria-pressed={fogOn} onClick={() => setFogOn(!fogOn)}>Megla: {fogOn ? 'vklop' : 'izklop'}</button>
+        {fogOn && <span className="pill model">MODEL · CAMS</span>}
+      </div>
+
+      {!sel && <Dial hour={hour} onHour={setHour} startHour={MOCK.startHour} pmNow={pmModel} />}
+
+      {sel && selected && (
+        <section className="sheet" aria-live="polite">
+          <button className="close" aria-label="Zapri" onClick={() => setSel(null)}>×</button>
+          {sel.type === 'tile' ? (
+            <>
+              <h2>{selected.name}</h2>
+              <div className="row"><span className="level">{ranking.indexOf(selected.name) + 1}. mesto od 17</span><span className="muted">{MOCK.league[selected.name].toLocaleString('sl-SI')} točk ta teden</span></div>
+              <p className="muted">Drevo: stopnja {stageOf(MOCK.league[selected.name]) + 1} od 5 · lestvica po točkah igre, ne po zraku</p>
+              <button className="btn">Igraj za svojo četrt</button>
+            </>
+          ) : (
+            <>
+              <div className="row"><h2>{selected.name}</h2><span className={`tag ${selected.kind === 'OCENA' ? 'ocena' : ''}`}><i />{selected.kind}</span></div>
+              <p className="big">{valueAt(selected.pm)}<small>µg/m³ PM2,5</small></p>
+              <span className="level"><i style={{ background: levelOf(valueAt(selected.pm)).color }}>{levelOf(valueAt(selected.pm)).icon}</i>{levelOf(valueAt(selected.pm)).word}</span>
+              <p className="muted">{hourLabel(hour)} · {selected.kind === 'MERITEV' ? 'uradna postaja ARSO' : 'umerjen občanski senzor'}{idx > 0 ? ' · napoved modela' : ''}</p>
+              <p className="muted">Najbližji senzor: Bežigrad, 1,8 km</p>
+            </>
+          )}
+        </section>
+      )}
+
+      <nav className="tabbar" aria-label="Glavni zavihki">
+        {['Zdaj', 'Zemljevid', 'Igra', 'Opozorila'].map((t) => (
+          <button key={t} className={`tab${t === 'Zemljevid' ? ' on' : ''}`} aria-current={t === 'Zemljevid' ? 'page' : undefined}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {t === 'Zdaj' && <path d="M3 10 12 3l9 7v10H3V10ZM9 20v-7h6v7" />}
+              {t === 'Zemljevid' && <path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6ZM9 4v14M15 6v14" />}
+              {t === 'Igra' && <path d="M5 19c0-8 5-13 14-13-1 9-5 13-13 13M5 19l8-8" />}
+              {t === 'Opozorila' && <path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4l2-2ZM10 20a2 2 0 0 0 4 0" />}
+            </svg>
+            {t}
+          </button>
+        ))}
+      </nav>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <div className="stage">
+      <Zemljevid />
+      <p className="note">Obrisi četrti so PLACEHOLDER do GeoJSON · nalepke znamenitosti so nadomestne · vsi podatki so primeri</p>
+    </div>
+  )
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+</script>
