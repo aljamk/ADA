@@ -234,12 +234,13 @@ p { margin: 0; }
 .quiet { background: var(--surface); border-radius: 18px; height: 58px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; font-size: 17px; font-weight: 500; }
 
 /* Station picker */
-.picker { position: fixed; inset: 0; z-index: 20; background: rgb(0 0 0 / 0.35); display: flex; align-items: flex-end; justify-content: center; }
-.picker-sheet { background: var(--bg); width: 100%; max-width: 430px; max-height: 80vh; border-radius: 28px 28px 0 0; padding: 20px 24px calc(20px + env(safe-area-inset-bottom)); display: grid; gap: 10px; grid-template-rows: auto auto auto 1fr auto; }
-.picker input { font: inherit; font-size: 17px; padding: 14px; border-radius: 14px; border: 1px solid var(--soft); background: var(--surface); color: var(--text); }
-.picker ul { list-style: none; padding: 0; margin: 0; overflow-y: auto; }
-.picker li button { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 8px; border: none; border-bottom: 1px solid var(--soft); background: none; font-size: 17px; text-align: left; }
-.picker li button.on { font-weight: 700; color: var(--accent); }
+.picker { position: fixed; inset: 0; z-index: 1200; background: rgb(0 0 0 / 0.35); display: flex; align-items: flex-end; justify-content: center; }
+.picker-sheet { background: var(--bg); width: 100%; max-width: 430px; max-height: 85vh; border-radius: 28px 28px 0 0; padding: 20px 24px calc(20px + env(safe-area-inset-bottom)); display: grid; gap: 12px; grid-template-rows: auto auto auto minmax(0, 1fr) auto; overflow: hidden; }
+.picker ul { list-style: none; padding: 2px; margin: 0; overflow-y: auto; min-height: 0; display: grid; gap: 8px; -webkit-overflow-scrolling: touch; }
+.picker li button { width: 100%; min-height: 60px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; border: 2px solid transparent; border-radius: 16px; background: var(--surface); font-size: 17px; font-weight: 500; text-align: left; color: var(--text); }
+.picker li button.on { border-color: var(--accent); font-weight: 700; }
+.picker li button.on .name::after { content: ' ✓'; color: var(--accent); }
+.picker li .t-2 { display: inline-flex; align-items: center; font-size: 15px; white-space: nowrap; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
 .error { color: var(--zeloslabo); font-size: 14px; }
 

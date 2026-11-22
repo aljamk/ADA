@@ -59,10 +59,10 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
   const requested = useRef(new Set<string>())
-  // Deep links: #zdaj, #zemljevid, #model (map in model mode), #igra, #cetrti, #ugani (straight into a round), #opozorila, #odlocevalci
+  // Deep links: #zdaj, #postaja (Zdaj with the station picker open), #zemljevid, #model (map in model mode), #igra, #cetrti, #ugani (straight into a round), #opozorila, #odlocevalci
   const hash = location.hash.slice(1)
-  const [tab, setTab] = useState<TabKey>(hash === 'ugani' ? 'igra' : hash === 'model' ? 'zemljevid' : TABS.some((t) => t.key === hash) ? (hash as TabKey) : 'zdaj')
-  const [overlay, setOverlay] = useState<'odlocevalci' | 'picker' | null>(hash === 'odlocevalci' ? 'odlocevalci' : null)
+  const [tab, setTab] = useState<TabKey>(hash === 'ugani' ? 'igra' : hash === 'model' ? 'zemljevid' : hash === 'postaja' ? 'zdaj' : TABS.some((t) => t.key === hash) ? (hash as TabKey) : 'zdaj')
+  const [overlay, setOverlay] = useState<'odlocevalci' | 'picker' | null>(hash === 'odlocevalci' ? 'odlocevalci' : hash === 'postaja' ? 'picker' : null)
   const [distance, setDistance] = useState<number>()
   // Splash: Golob greets on every open, briefly (shorter with reduced motion)
   const [splash, setSplash] = useState<'in' | 'out' | null>('in')
