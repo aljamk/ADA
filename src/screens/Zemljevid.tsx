@@ -250,11 +250,11 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
         <div ref={mapEl} className="map-canvas" aria-label="Satelitski zemljevid s postajami ARSO" />
 
         <div className="seg">
-          <button className={mode === 'meritev' ? 'on' : ''} onClick={() => { setMode('meritev'); setStep(0) }}>
-            ● Meritve
-          </button>
           <button className={mode === 'model' ? 'on' : ''} onClick={() => setMode('model')}>
             Moje postaje
+          </button>
+          <button className={mode === 'meritev' ? 'on' : ''} onClick={() => { setMode('meritev'); setStep(0) }}>
+            ● Meritve
           </button>
         </div>
 
