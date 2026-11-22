@@ -4,14 +4,14 @@ import { levelOfAqi, levelOfPm, usAqi } from '../aqi'
 import Lestvica from '../components/Lestvica'
 import { shortName, type Reading } from '../arso'
 import type { ForecastHour } from '../forecast'
-import { adviceFor, type ProfileKey } from '../profile'
+import { adviceFor, profileOf, type ProfileKey } from '../profile'
 import { hh } from '../time'
 import { whyText } from '../zakaj'
 
 interface Props {
   reading: Reading
   hours: ForecastHour[] // next 24 h, calibrated model
-  profile: ProfileKey
+  profiles: ProfileKey[] // the groups chosen at onboarding
   distance?: number // km to nearest station, only if the user shared location once
   cetrt?: string | null // your četrt (the only location choice)
   sourceKm?: number // distance from the četrt centre to the source
@@ -50,7 +50,7 @@ function useLjubljanaClock() {
 
 const VIEW = 12 // columns visible at once
 
-export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceKm, onStation, onDecisionMakers }: Props) {
+export default function Zdaj({ reading, hours, profiles, distance, cetrt, sourceKm, onStation, onDecisionMakers }: Props) {
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
@@ -139,7 +139,6 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
                 </p>
               </div>
             )}
-            <p className="now-advice">{adviceFor(pm, h12, profile)}</p>
           </>
         ) : (
           <p className="now-level">Ta postaja ne meri PM2,5</p>
@@ -222,6 +221,20 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
         <p className="t-h3">Zakaj?</p>
         <p className="t-body" style={{ marginTop: 8 }}>{whyText(pm, hours)}</p>
       </section>
+
+      {pm != null && (
+        <section className="card-soft">
+          <p className="t-h3">{profiles.length > 1 ? 'Nasveti' : 'Nasvet'}</p>
+          <ul className="advice">
+            {profiles.map((k) => (
+              <li key={k}>
+                <b>{k === 'nihce' ? 'Za vse' : profileOf(k).label}</b>
+                <span>{adviceFor(pm, h12, k)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   )
 }

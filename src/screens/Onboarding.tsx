@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Golob2D } from '../components/Golob'
-import { PROFILES, type ProfileKey } from '../profile'
+import { cleanProfiles, PROFILES, type ProfileKey } from '../profile'
 
 // Landscape illustration layers, positioned exactly as in Figma node 29:73 (insets in %).
 const LAYERS: [string, string][] = [
@@ -26,12 +26,15 @@ export function Landscape() {
 }
 
 /** 01 · Dobrodošli: optional profile, no account, nothing leaves the device. */
-export default function Onboarding({ onDone }: { onDone: (p: ProfileKey) => void }) {
-  const [pick, setPick] = useState<ProfileKey | null>(null)
+export default function Onboarding({ onDone }: { onDone: (p: ProfileKey[]) => void }) {
+  const [pick, setPick] = useState<ProfileKey[]>([])
+  // Several groups can be chosen (e.g. older and asthma); "Nihče posebej" clears the others
+  const toggle = (k: ProfileKey) =>
+    setPick((cur) => (k === 'nihce' ? ['nihce'] : cur.includes(k) ? cur.filter((x) => x !== k) : [...cur.filter((x) => x !== 'nihce'), k]))
   return (
     <div className="screen" style={{ paddingTop: 50 }}>
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button className="link" onClick={() => onDone('nihce')}>
+        <button className="link" onClick={() => onDone(['nihce'])}>
           Preskoči
         </button>
       </div>
@@ -56,22 +59,22 @@ export default function Onboarding({ onDone }: { onDone: (p: ProfileKey) => void
         {PROFILES.map((p) => (
           <button
             key={p.key}
-            className={`choice${p.key === 'nihce' ? ' wide' : ''}${pick === p.key ? ' on' : ''}`}
-            onClick={() => setPick(p.key)}
+            className={`choice${p.key === 'nihce' ? ' wide' : ''}${pick.includes(p.key) ? ' on' : ''}`}
+            onClick={() => toggle(p.key)}
           >
             {p.label}
-            {pick === p.key && <b>✓</b>}
+            {pick.includes(p.key) && <b>✓</b>}
           </button>
         ))}
       </div>
-      <p className="t-body t-2">Izbira je neobvezna in ostane na napravi.</p>
+      <p className="t-body t-2">Lahko izbereš več skupin. Izbira je neobvezna in ostane na napravi.</p>
       <p className="t-body" style={{ fontWeight: 500 }}>
         Brez računa. Brez vnosa
         <br />
         osebnih podatkov.
       </p>
       <div className="bottom-bar">
-        <button className="btn" onClick={() => onDone(pick ?? 'nihce')}>
+        <button className="btn" onClick={() => onDone(cleanProfiles(pick))}>
           Pokaži moj zrak
         </button>
       </div>
