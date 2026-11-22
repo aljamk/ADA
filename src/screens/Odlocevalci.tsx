@@ -106,8 +106,8 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
   const prepare = async () => {
     const jutri = dnevi[1]
     const text = jutri.level > 0
-      ? `Opozorilo: jutri (${fmtDate(jutri.date)}) je ${jutri.level === 2 ? 'verjetna' : 'možna'} epizoda onesnaženega zraka v Ljubljani${window ? `, najslabše med ${window}` : ''}. Napoved, ne meritev: vremenska napoved in model CAMS, umerjen na meritve ARSO. Občutljive skupine naj omejijo daljši napor na prostem; zvečer ne kurite v starih pečeh.`
-      : `Jutri (${fmtDate(jutri.date)}) ne pričakujemo epizode onesnaženega zraka (napoved vremena in modela CAMS).`
+      ? `Opozorilo: jutri (${fmtDate(jutri.date)}) je v Ljubljani ${jutri.level === 2 ? 'verjetno' : 'mogoče'} slab zrak${window ? `, najslabše med ${window}` : ''}. Napoved, ne meritev: vremenska napoved in model CAMS, umerjen na meritve ARSO. Občutljive skupine naj omejijo daljši napor na prostem; zvečer ne kurite v starih pečeh.`
+      : `Jutri (${fmtDate(jutri.date)}) ne pričakujemo slabega zraka (napoved vremena in modela CAMS).`
     try {
       if (navigator.share) await navigator.share({ text })
       else await navigator.clipboard.writeText(text)
@@ -158,7 +158,7 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
           <p className="t-small">
             <b>Kako nastane opozorilo?</b>
             <br />
-            Dva znaka iz podatkovnega paketa: vremensko pravilo (veter pod 6 km/h, mejna plast pod 300 m, brez padavin) in model CAMS, umerjen na meritve ARSO, z dnevno vrednostjo nad 25 µg/m³. En znak pomeni možno, oba verjetno epizodo.
+            Dva znaka iz podatkovnega paketa: vremensko pravilo (veter pod 6 km/h, mejna plast pod 300 m, brez padavin) in model CAMS, umerjen na meritve ARSO, z dnevno vrednostjo nad 25 µg/m³. En znak pomeni, da je slab zrak možen, oba, da je verjeten.
           </p>
           <p className="t-small">
             <b>Kako zanesljivo?</b>

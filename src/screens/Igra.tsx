@@ -12,7 +12,7 @@ const FACTS = [
   'Zvečer ob 21–23h delci pogosto dosežejo vrh.',
   'Pozimi ima Ljubljana inverzijo v 21 % ur.',
   'V desetih zimah je bilo 195 dni nad mejo za PM10.',
-  'Najdaljša epizoda onesnaženja je trajala sedem dni.',
+  'Najdaljše obdobje slabega zraka je trajalo sedem dni.',
   'Povprečje PM2,5 je 14 µg/m³, meja EU za 2030 je 10.',
 ]
 

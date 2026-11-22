@@ -63,5 +63,5 @@ export function oceniDneve(vreme: Vreme | null, fc: Forecast | undefined, now = 
   })
 }
 
-export const LEVEL_TEXT = ['Epizoda ni pričakovana', 'Epizoda možna', 'Epizoda verjetna']
+export const LEVEL_TEXT = ['Slab zrak ni pričakovan', 'Slab zrak je možen', 'Slab zrak je verjeten']
 export const LEVEL_COLOR = ['#3bb273', '#f2c94c', '#e5484d']
