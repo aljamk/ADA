@@ -50,15 +50,14 @@ export default function Cetrti({ readings, cetrti, mine, station, onPick }: Prop
     })
     .sort((a, b) => (a.pm ?? Infinity) - (b.pm ?? Infinity))
 
-  // Golob comments on your četrt: praise among the five cleanest, a light tease otherwise
+  // Golob comments on your četrt: praise among the five cleanest, a light tease otherwise (the lines from the approved preview)
   const myIdx = rows.findIndex((c) => c.ime === mine)
   const myRow = myIdx >= 0 ? rows[myIdx] : null
-  const day = Math.floor(Date.now() / 86400000)
   const golob = !myRow || myRow.pm == null
     ? 'Še računam. Golobi nismo hitri z matematiko.'
     : myIdx < 5
-      ? [`${myRow.ime} je med petimi najčistejšimi. Tukaj bi gnezdil tudi jaz.`, `${myRow.ime}: ${myRow.pm} µg/m³. Dihaj, splača se.`, `Lepo. ${myRow.ime} je danes ${myIdx + 1}. najčistejša. Ne hvali se preveč.`][day % 3]
-      : [`${myRow.ime} je šele ${myIdx + 1}. po čistoči? Jaz bi se preselil. Hecam se. Malo.`, `Si res v ${myRow.ime}? Prosim, ne diši pregloboko.`, `${myRow.ime}: ${myRow.pm} µg/m³. Danes letim drugam, brez zamere.`, `${myRow.ime} ni med petimi najčistejšimi. Naloge v Igri ne čistijo zraka, ampak vsaj mene razvedrijo.`][day % 4]
+      ? `${myRow.ime} je med petimi najčistejšimi. Tukaj bi gnezdil tudi jaz.`
+      : `${myRow.ime} je ${myIdx + 1}. od vrha? Jaz bi se preselil. Hecam se. Malo.`
 
   return (
     <div className="screen">
