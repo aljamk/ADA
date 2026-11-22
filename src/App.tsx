@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { usAqi } from './aqi'
-import { distanceKm, fetchArso, inBasin, shortName, type Reading } from './arso'
+import { distanceKm, fetchArso, inBasin, nearest, shortName, type Reading } from './arso'
 import { cetrtOfStation, loadCetrti, type Cetrt } from './cetrti'
+import { fetchCitizen, isCitizen } from './sensors'
 import { Golob2D } from './components/Golob'
 import StationPicker from './components/StationPicker'
 import TabBar, { TABS, type TabKey } from './components/TabBar'
@@ -56,6 +57,7 @@ function checkAlerts(s: AlertSettings, hours: ForecastHour[], fc: Forecast | und
 
 export default function App() {
   const [readings, setReadings] = useState<Reading[]>([])
+  const [citizen, setCitizen] = useState<Reading[]>([])
   const [error, setError] = useState<string | null>(null)
   const [forecasts, setForecasts] = useState<Record<string, Forecast>>({})
   const requested = useRef(new Set<string>())
@@ -91,7 +93,7 @@ export default function App() {
 
   // ARSO on start, on resume and every 15 minutes (feed updates ~45 min past the hour)
   useEffect(() => {
-    const get = () =>
+    const get = () => {
       fetchArso()
         .then((rs) => {
           setReadings(rs)
@@ -100,6 +102,9 @@ export default function App() {
           setError(null)
         })
         .catch((e) => setError(`Napaka pri branju ARSO: ${e}`))
+      // Citizen sensors are a bonus: if they fail, the app works with ARSO alone
+      fetchCitizen().then(setCitizen).catch(() => {})
+    }
     const stop = onResume(get)
     const id = setInterval(get, 15 * 60000)
     return () => {
@@ -111,23 +116,26 @@ export default function App() {
   // Model forecast for the chosen station, my map stations and the three map stations
   useEffect(() => {
     for (const code of new Set([station, ...mine, ...MAP_STATIONS.map((s) => s.code)])) {
-      const r = readings.find((x) => x.code === code)
+      const r = [...readings, ...citizen].find((x) => x.code === code)
       if (!r || forecasts[code] || requested.current.has(code)) continue
       requested.current.add(code)
       fetchForecast(r)
         .then((fc) => setForecasts((f) => ({ ...f, [code]: fc })))
         .catch((e) => setError(`Napoved ni na voljo: ${e}`))
     }
-  }, [readings, station, mine, forecasts])
+  }, [readings, citizen, station, mine, forecasts])
 
-  const current = readings.find((r) => r.code === station)
+  const all = [...readings, ...citizen]
+  const current = all.find((r) => r.code === station)
   const myCetrt = current ? cetrtOfStation(cetrti, current) : null
   const fc = forecasts[station]
   const hours12 = current && fc ? next12(fc, current.from) : []
 
+  // The widget reads ARSO itself, so when a citizen sensor is chosen it gets the nearest ARSO station
   useEffect(() => {
-    syncWidget({ station, stationName: current ? shortName(current.name) : '' })
-  }, [station, current])
+    const w = current && isCitizen(current) ? nearest(readings.filter(inBasin), current.lat, current.lon) : current
+    syncWidget({ station: w?.code ?? station, stationName: w ? shortName(w.name) : '' })
+  }, [station, current, readings])
 
   useEffect(() => {
     if (current && fc) checkAlerts(alerts, hours12, fc, profile)
@@ -141,7 +149,7 @@ export default function App() {
       return
     }
     setStation(code)
-    const r = readings.find((x) => x.code === code)
+    const r = all.find((x) => x.code === code)
     setDistance(at && r ? distanceKm(at.lat, at.lon, r.lat, r.lon) : undefined)
   }
 
@@ -189,7 +197,7 @@ export default function App() {
               <div className="screen"><p className="t-title">Zdaj</p><p className="t-body t-2">Nalagam meritve ARSO…</p></div>
             ))}
           {tab === 'zemljevid' && (
-            <Zemljevid readings={readings} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'model' ? 'model' : 'meritev'} />
+            <Zemljevid readings={all} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'model' ? 'model' : 'meritev'} />
           )}
           {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} />}
           {tab === 'cetrti' && <Cetrti readings={readings} cetrti={cetrti} mine={myCetrt} station={station} />}
@@ -200,7 +208,7 @@ export default function App() {
       )}
 
       {overlay === 'picker' && (
-        <StationPicker readings={readings.filter(inBasin)} value={station} onPick={pickStation} onClose={() => setOverlay(null)} />
+        <StationPicker readings={all.filter(inBasin)} value={station} onPick={pickStation} onClose={() => setOverlay(null)} />
       )}
 
       <TabBar

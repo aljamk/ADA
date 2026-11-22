@@ -41,6 +41,8 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, onStati
   const max = Math.max(1, ...hours.map((h) => h.value))
   const winter = [11, 12, 1, 2, 3].includes(new Date().getMonth() + 1)
   const name = shortName(reading.name)
+  const ocena = reading.kind === 'OCENA'
+  const tag = ocena ? '○ OCENA' : '● MERITEV'
   const [info, setInfo] = useState(false) // plain-language explanation of the numbers, behind the round i
 
   return (
@@ -66,7 +68,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, onStati
             {name} · {reading.from.slice(11)}
           </span>
           <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span className="chip">● MERITEV</span>
+            <span className="chip">{tag}</span>
             <button className="info-btn on-dark" aria-label="Kaj pomenijo te številke?" aria-expanded={info} onClick={() => setInfo(!info)}>
               i
             </button>
@@ -81,7 +83,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, onStati
               <span className="now-aqi">{aqi}</span>
               <span className="now-aqi-unit">AQI</span>
               <span className="now-pm">
-                <small>PM2,5 · MERITEV</small>
+                <small>PM2,5 · {ocena ? 'OCENA' : 'MERITEV'}</small>
                 <b>{pm} µg/m³</b>
               </span>
             </div>
@@ -95,7 +97,9 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, onStati
                   <b>PM2,5 = {pm} µg/m³</b> so fini delci, manjši od 2,5 tisočinke milimetra (30-krat tanjši od lasu), ki pridejo globoko v pljuča. Številka pove, koliko milijonink grama delcev je v enem kubičnem metru zraka. Priporočilo WHO za en dan je do 15 µg/m³.
                 </p>
                 <p>
-                  <b>MERITEV</b> pomeni, da je vrednost izmerila uradna postaja ARSO {name} ob {reading.from.slice(11)}. Ni ocena in ni napoved.
+                  {ocena
+                    ? <><b>OCENA</b> pomeni, da vrednost prihaja z občanskega senzorja (Sensor.Community) ob {reading.from.slice(11)}. Cenovno ugoden senzor ni umerjen in v vlažnem vremenu pogosto kaže preveč. Za uradno vrednost izberi postajo ARSO.</>
+                    : <><b>MERITEV</b> pomeni, da je vrednost izmerila uradna postaja ARSO {name} ob {reading.from.slice(11)}. Ni ocena in ni napoved.</>}
                 </p>
               </div>
             )}
@@ -106,7 +110,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, onStati
         )}
         <div className="now-foot">
           <span>
-            Najbližji senzor: {name}
+            {ocena ? 'Občanski senzor' : 'Uradna postaja'}: {name}
             {distance != null && `, ${distance.toFixed(1).replace('.', ',')} km`}
           </span>
           <span style={{ color: 'var(--hero-text-2)' }}>AQI: lestvica US EPA</span>

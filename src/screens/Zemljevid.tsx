@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { levelOfPm, usAqi } from '../aqi'
 import { inBasin, shortName, type Reading } from '../arso'
 import { atHour, type Forecast } from '../forecast'
+import { isCitizen } from '../sensors'
 import { hourStr } from '../time'
 
 // The three official ARSO stations in Ljubljana: their forecasts are always fetched (home-town default)
@@ -126,8 +127,9 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   const selReading = readings.find((r) => r.code === selected)
   const selValue = valueAt(selected)
   const withPm = readings.filter((r) => r.pm25 != null && inBasin(r))
+  const official = withPm.filter((r) => !isCitizen(r))
   const shown = mode === 'meritev' ? withPm : readings.filter((r) => mine.includes(r.code))
-  const points: Point[] = shown.flatMap((r) => {
+  const points: Point[] = shown.filter((r) => !isCitizen(r)).flatMap((r) => {
     const v = valueAt(r.code)
     return v ? [{ lat: r.lat, lon: r.lon, pm: v.pm }] : []
   })
@@ -172,7 +174,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
       const lvl = v ? levelOfPm(v.pm) : null
       const icon = L.divIcon({
         className: '',
-        html: `<button class="bubble${r.code === selected ? ' sel' : ''}" style="background:${lvl ? lvl.color : 'var(--soft)'}" aria-label="${shortName(r.name)}">${v ? usAqi(v.pm) : '–'}</button>`,
+        html: `<button class="bubble${r.code === selected ? ' sel' : ''}${isCitizen(r) ? ' ocena' : ''}" style="background:${lvl ? lvl.color : 'var(--soft)'}" aria-label="${shortName(r.name)}${isCitizen(r) ? ', občanski senzor, ocena' : ''}">${v ? usAqi(v.pm) : '–'}</button>`,
         iconSize: [40, 40],
         iconAnchor: [20, 20],
       })
@@ -215,8 +217,8 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
         </div>
 
         <div className="legend">
-          <span>{mode === 'meritev' ? `● MERITEV · ${withPm.length} postaj` : `MODEL · ${mine.length} ${mine.length === 1 ? 'postaja' : mine.length === 2 ? 'postaji' : 'postaje'}`}</span>
-          <span>{points.length >= 3 ? 'Barvna ploskev: ocena med postajami' : 'Dodaj vsaj 3 postaje za barvno ploskev'}</span>
+          <span>{mode === 'meritev' ? `● ${official.length} postaje · ○ ${withPm.length - official.length} senzorjev` : `MODEL · ${mine.length} ${mine.length === 1 ? 'postaja' : mine.length === 2 ? 'postaji' : 'postaje'}`}</span>
+          <span>{points.length >= 3 ? 'Ploskev: ocena med postajami' : 'Za ploskev dodaj 3 postaje'}</span>
         </div>
       </div>
 
@@ -239,7 +241,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
           <div className="now-top">
             <p className="t-sub">{shortName(selReading.name)}</p>
             <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span className="chip">{mode === 'meritev' ? '● MERITEV' : 'MODEL'}</span>
+              <span className="chip">{mode === 'meritev' ? (isCitizen(selReading) ? '○ OCENA' : '● MERITEV') : 'MODEL'}</span>
               <button className="info-btn" aria-label="Kaj pomenijo vrednosti?" aria-expanded={info} onClick={() => setInfo(!info)}>
                 i
               </button>
@@ -253,7 +255,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             <p className="t-body t-2">{mode === 'model' && !forecasts[selected] ? 'Nalagam model…' : 'Ni podatka za to uro.'}</p>
           )}
           <p className="t-small">
-            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · uradna postaja ARSO
+            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? 'občanski senzor, neumerjen' : 'uradna postaja ARSO'}
           </p>
           {mode === 'model' ? (
             <>
@@ -294,7 +296,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             {withPm.map((r) => (
               <button key={r.code} className={`row station${r.code === selected ? ' me' : ''}`} onClick={() => pick(r.code)}>
                 <span className="n" style={{ color: levelOfPm(r.pm25 as number).color }}>{levelOfPm(r.pm25 as number).symbol}</span>
-                <span>{shortName(r.name)}</span>
+                <span>{shortName(r.name)}{isCitizen(r) && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>○ OCENA · občanski senzor</span>}</span>
                 <span className="p">{r.pm25} µg/m³</span>
               </button>
             ))}
