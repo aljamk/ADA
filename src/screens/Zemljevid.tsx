@@ -231,7 +231,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
 
   const pick = (code: string) => setSel(code)
   const remove = (code: string) => {
-    if (mine.length <= 1) return
+    if (code === station) return // the Zdaj station is always the first of my stations
     onMine(mine.filter((c) => c !== code))
     if (selected === code) setSel(mine.find((c) => c !== code) ?? mine[0])
   }
@@ -269,8 +269,8 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
                 const r = readings.find((x) => x.code === code)
                 return (
                   <span key={code} className={`chip${code === selected ? ' on' : ''}`}>
-                    <button onClick={() => pick(code)}>{r ? shortName(r.name) : code}</button>
-                    {mine.length > 1 && <button className="x" aria-label={`Odstrani ${r ? shortName(r.name) : code}`} onClick={() => remove(code)}>×</button>}
+                    <button onClick={() => pick(code)} title={code === station ? 'Postaja z zaslona Zdaj' : undefined}>{code === station ? 'Zdaj · ' : ''}{r ? shortName(r.name) : code}</button>
+                    {code !== station && <button className="x" aria-label={`Odstrani ${r ? shortName(r.name) : code}`} onClick={() => remove(code)}>×</button>}
                   </span>
                 )
               })}
@@ -317,7 +317,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
           {info && (
             <p className="t-small">
               {mode === 'model'
-                ? 'Vrednosti so izračun modela CAMS (Copernicus), umerjen na zadnjo meritev ARSO na tej postaji. Za vsako uro nazaj in naprej. Postaje izbereš sam(a), npr. doma in v službi.'
+                ? 'Vrednosti so izračun modela CAMS (Copernicus), umerjen na zadnjo meritev ARSO na tej postaji. Za vsako uro nazaj in naprej. Prva postaja je tista za četrt z zaslona Zdaj, druge dodaš sam(a), npr. službo.'
                 : `Vrednost je zadnja urna meritev ARSO (${selValue ? `${Number(selValue.time.slice(11, 13))}h` : '–'}) na tej postaji, PM2,5 v µg/m³, AQI po lestvici US EPA.`}
               {' '}Barvna ploskev je ocena med postajami, ne meritev: polna barva do 3 km od postaje, do 8 km izginja, dlje je ne rišemo.
             </p>
