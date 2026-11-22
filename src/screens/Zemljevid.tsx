@@ -138,13 +138,14 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   // Map once
   useEffect(() => {
     if (!mapEl.current || map.current) return
-    const m = L.map(mapEl.current, { zoomControl: false, attributionControl: false, minZoom: 7, maxZoom: 15 })
+    const m = L.map(mapEl.current, { zoomControl: false, attributionControl: false, minZoom: 7, maxZoom: 15, zoomSnap: 0.25 })
     L.control.zoom({ position: 'bottomright' }).addTo(m)
     L.control.attribution({ position: 'topright', prefix: false }).addTo(m)
     L.tileLayer(SAT, { attribution: ATTR, maxZoom: 18 }).addTo(m)
     L.tileLayer(PLACES, { maxZoom: 18, opacity: 0.9 }).addTo(m)
-    // Keep the bubbles out of the strips covered by the segment control (top) and the legend + sheet (bottom)
-    m.fitBounds(VIEW, { paddingTopLeft: [12, 72], paddingBottomRight: [12, 120] })
+    // Keep the bubbles out of the strips covered by the segment control (top), the zoom buttons (right)
+    // and the legend + sheet (bottom). Fractional zoom so a narrow phone still gets a tight fit.
+    m.fitBounds(VIEW, { paddingTopLeft: [12, 72], paddingBottomRight: [60, 120] })
     markers.current = L.layerGroup().addTo(m)
     map.current = m
     return () => {
@@ -175,7 +176,8 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     const place = () => {
       g.clearLayers()
       const items = shown.map((r) => ({ r, p: m.latLngToLayerPoint([r.lat, r.lon]) }))
-      const R = 42
+      // Bubbles are 40 px, a selected one 50 px with its ring: 54 px between centres keeps a gap
+      const R = 54
       for (let it = 0; it < 40; it++) {
         let moved = false
         for (let i = 0; i < items.length; i++)
@@ -223,7 +225,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     if (!m || !selReading) return
     // The visible part of the map is between the segment control and the legend/sheet
     const size = m.getSize()
-    const inner = L.latLngBounds(m.containerPointToLatLng([30, 80]), m.containerPointToLatLng([size.x - 30, size.y - 130]))
+    const inner = L.latLngBounds(m.containerPointToLatLng([30, 80]), m.containerPointToLatLng([size.x - 60, size.y - 130]))
     if (!inner.contains([selReading.lat, selReading.lon])) m.panTo([selReading.lat, selReading.lon])
   }, [selReading])
 
@@ -255,7 +257,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
 
         <div className="legend">
           <span>{mode === 'meritev' ? `● ${official.length} postaje · ○ ${withPm.length - official.length} senzorjev` : `MODEL · ${mine.length} ${mine.length === 1 ? 'postaja' : mine.length === 2 ? 'postaji' : 'postaje'}`}</span>
-          <span>{points.length >= 3 ? 'Ploskev: ocena med postajami' : 'Za ploskev dodaj 3 postaje'}</span>
+          <span>{points.length >= 3 ? 'Ploskev: ocena' : 'Za ploskev dodaj 3 postaje'}</span>
         </div>
       </div>
 

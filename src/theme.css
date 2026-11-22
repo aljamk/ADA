@@ -146,7 +146,7 @@ p { margin: 0; }
 .bubble { position: relative; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #00303f; display: grid; place-items: center; font-size: 17px; font-weight: 700; color: #294b3d; padding: 0; }
 .bubble.ocena { border-style: dashed; width: 34px; height: 34px; font-size: 14px; }
 .bubble.sel { box-shadow: 0 0 0 3px var(--map), 0 0 0 5px #0a6e99; }
-.legend { position: absolute; left: 24px; right: 24px; top: 374px; height: 36px; background: var(--surface); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 12px; font-weight: 700; }
+.legend { position: absolute; left: 24px; right: 24px; bottom: 19px; min-height: 36px; background: var(--surface); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 12px; font-size: 12px; font-weight: 700; line-height: 1.2; }
 .sheet { background: var(--surface); border-radius: 28px; padding: 27px 18px 16px; margin: -40px -8px 0; position: relative; display: grid; gap: 8px; }
 .sheet::before { content: ''; position: absolute; top: 10px; left: 50%; width: 58px; height: 4px; margin-left: -29px; border-radius: 3px; background: #ccdde4; }
 .timeline { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; margin-top: 8px; }
@@ -167,7 +167,7 @@ p { margin: 0; }
 .progress { grid-column: 2 / 4; height: 7px; border-radius: 4px; background: var(--soft); overflow: hidden; }
 .progress > div { height: 100%; background: var(--accent); border-radius: 4px; }
 .rows { display: grid; }
-.row { height: 44px; border-radius: 12px; display: grid; grid-template-columns: 36px 1fr auto; align-items: center; padding: 0 12px; font-size: 17px; }
+.row { min-height: 44px; border-radius: 12px; display: grid; grid-template-columns: 36px 1fr auto; align-items: center; padding: 4px 12px; font-size: 17px; }
 .row.me { background: var(--soft); font-weight: 700; }
 .row .n { color: var(--text-2); font-weight: 700; }
 .row .p { font-weight: 700; padding-right: 40px; }
