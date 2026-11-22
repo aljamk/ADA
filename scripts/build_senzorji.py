@@ -18,17 +18,18 @@ import csv
 import json
 from pathlib import Path
 
-# Approximate place of each Sensor.Community device (README of the package, table "Naprave")
+# Neighbourhood of each Sensor.Community device (from the package README table "Naprave" and the coordinates).
+# Deliberately without the names of the ARSO stations, so a sensor is never mistaken for the station it is calibrated to.
 PLACE = {
-    9821: "Vič / Rožna dolina",
-    14576: "Šiška 1",
-    21901: "Moste / Polje",
-    44606: "Šiška 2",
-    56181: "Center / Tabor",
-    64688: "Celovška / Šiška",
-    67867: "Dravlje / Šentvid",
+    9821: "Rožna dolina",
+    14576: "Šiška zahod",
+    21901: "Polje",
+    44606: "Šiška vzhod",
+    56181: "Tabor",
+    64688: "Spodnja Šiška",
+    67867: "Dravlje",
     74650: "Fužine",
-    75285: "Bežigrad / Center",
+    75285: "Žale",
 }
 
 

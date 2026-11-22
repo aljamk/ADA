@@ -299,7 +299,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             <p className="t-body t-2">{mode === 'model' && !forecasts[selected] ? 'Nalagam model…' : 'Ni podatka za to uro.'}</p>
           )}
           <p className="t-small">
-            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? `občanski senzor, ${calibrationNote(selReading)}` : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt ? ` ${shortName(selReading.name)}` : ''}
+            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? `občanski senzor (ocena, ${calibrationNote(selReading)})` : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt ? ` ${shortName(selReading.name)}` : ''}
           </p>
           {mode === 'model' ? (
             <>
@@ -340,7 +340,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             {withPm.map((r) => (
               <button key={r.code} className={`row station${r.code === selected ? ' me' : ''}`} onClick={() => pick(r.code)}>
                 <span className="n" style={{ color: levelOfPm(r.pm25 as number).color }}>{levelOfPm(r.pm25 as number).symbol}</span>
-                <span>{shortName(r.name)}{isCitizen(r) && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>○ OCENA · {calibrationNote(r)}</span>}</span>
+                <span>{shortName(r.name)}{isCitizen(r) && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>○ OCENA · občanski senzor</span>}</span>
                 <span className="p">{r.pm25} µg/m³</span>
               </button>
             ))}
