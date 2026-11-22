@@ -37,9 +37,24 @@ function notifyOnce(key: string, body: string) {
   save('lastNotified_' + key, id)
 }
 
+/** A notification once per season per year: the first time the app opens inside the season's first week */
+function notifySeason(key: string, from: { m: number; d: number }, body: string) {
+  const now = new Date()
+  const y = now.getFullYear()
+  const start = new Date(y, from.m - 1, from.d)
+  const days = (now.getTime() - start.getTime()) / 86400000
+  if (days < 0 || days > 7) return
+  if (load('season_' + key, '') === String(y)) return
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+  new Notification('Kaj dihaš?', { body, icon: '/icon.svg' })
+  save('season_' + key, String(y))
+}
+
 const inRange = (h: number, from: number, to: number) => (from <= to ? h >= from && h < to : h >= from || h < to)
 
 function checkAlerts(s: AlertSettings, hours: ForecastHour[], fc: Forecast | undefined, profile: ProfileKey) {
+  if (s.heating) notifySeason('heating', { m: 10, d: 15 }, 'Začela se je kurilna sezona. Zvečer, ko sosedje zakurijo, je delcev tudi dvakrat več: zrači čez dan, sprehod načrtuj pred 20h.')
+  if (s.tourist) notifySeason('tourist', { m: 6, d: 1 }, 'Začela se je turistična sezona. V središču je več prometa; za sprehod raje izberi park ali obrobje.')
   const now = new Date().getHours()
   if (inRange(now, s.quietFrom, s.quietTo)) return
   if (s.airing && inRange(now, s.airingFrom, s.airingTo) && hours.length >= 3) {

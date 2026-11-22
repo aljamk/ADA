@@ -8,10 +8,13 @@ export interface AlertSettings {
   eveningAt: number
   quietFrom: number
   quietTo: number
+  heating: boolean // "Obvesti me, ko se začne kurilna sezona" (mid-October)
+  tourist: boolean // "Obvesti me, ko se začne turistična sezona" (start of June)
 }
 
 export const DEFAULT_ALERTS: AlertSettings = {
   airing: false, airingFrom: 7, airingTo: 21, eveningBefore: false, eveningAt: 19, quietFrom: 22, quietTo: 7,
+  heating: false, tourist: false,
 }
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h)
@@ -25,12 +28,27 @@ function HourSelect({ value, onChange, label }: { value: number; onChange: (h: n
   )
 }
 
+/** What Golob says: lists the alerts that are on, or admits to silence */
+function golobText(s: AlertSettings) {
+  const on = [
+    s.airing && 'ko je vredno odpreti okno',
+    s.eveningBefore && 'večer pred slabim dnem',
+    s.heating && 'ob začetku kurilne sezone',
+    s.tourist && 'ob začetku turistične sezone',
+  ].filter((x): x is string => !!x)
+  if (!on.length) return 'Vse izklopljeno? Prav. Golobi znamo biti tiho. Skoraj.'
+  if (on.length === 1) return `Oglasim se samo ${on[0]}. Drugače molčim.`
+  const list = `${on.slice(0, -1).join(', ')} in ${on[on.length - 1]}`
+  return `Oglasim se ${['dvakrat', 'trikrat', 'štirikrat'][on.length - 2]}: ${list}. Drugače molčim.`
+}
+
 /** 09 · Opozorila */
 export default function Opozorila({ settings, onChange }: { settings: AlertSettings; onChange: (s: AlertSettings) => void; stationName?: string }) {
   const set = (patch: Partial<AlertSettings>) => onChange({ ...settings, ...patch })
 
   // Turning a switch on asks for notification permission first
-  const toggle = async (key: 'airing' | 'eveningBefore') => {
+  type Key = 'airing' | 'eveningBefore' | 'heating' | 'tourist'
+  const toggle = async (key: Key) => {
     if (settings[key]) return set({ [key]: false })
     if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
       const p = await Notification.requestPermission()
@@ -39,7 +57,7 @@ export default function Opozorila({ settings, onChange }: { settings: AlertSetti
     set({ [key]: true })
   }
 
-  const Switch = ({ k }: { k: 'airing' | 'eveningBefore' }) => (
+  const Switch = ({ k }: { k: Key }) => (
     <div style={{ display: 'grid', justifyItems: 'end', gap: 21 }}>
       <button className={settings[k] ? 'toggle on' : 'toggle'} onClick={() => toggle(k)} aria-pressed={settings[k]} aria-label="Stikalo obvestila" />
       <span className="t-small" style={{ fontWeight: 500 }}>{settings[k] ? 'Vklopljeno' : 'Izklopljeno'}</span>
@@ -53,17 +71,7 @@ export default function Opozorila({ settings, onChange }: { settings: AlertSetti
         <p className="t-title">Opozorila</p>
       </div>
       <p className="t-body t-2">Brez sledenja lokaciji v ozadju.</p>
-      <GolobRece
-        text={
-          settings.airing && settings.eveningBefore
-            ? 'Oglasim se samo dvakrat: ko je vredno odpreti okno in večer pred slabim dnem. Drugače molčim.'
-            : settings.airing
-              ? 'Povem ti, kdaj odpreti okno. Ne prej, ne pozneje. Golobi imamo nos za to.'
-              : settings.eveningBefore
-                ? 'Večer pred slabim dnem ti pošljem opozorilo. Brez panike, samo načrtuj sprehod.'
-                : 'Vse izklopljeno? Prav. Golobi znamo biti tiho. Skoraj.'
-        }
-      />
+      <GolobRece text={golobText(settings)} />
 
       <section className="setting">
         <b className="t-body" style={{ fontWeight: 700 }}>Obvesti me, ko je<br />priporočljivo prezračiti</b>
@@ -82,6 +90,20 @@ export default function Opozorila({ settings, onChange }: { settings: AlertSetti
         <div className="div" />
         <span className="t-2" style={{ fontSize: 16 }}>Večer prej</span>
         <HourSelect value={settings.eveningAt} onChange={(h) => set({ eveningAt: h })} label="Ura" />
+      </section>
+
+      <section className="setting">
+        <b className="t-body" style={{ fontWeight: 700 }}>Obvesti me, ko se<br />začne kurilna sezona</b>
+        <Switch k="heating" />
+        <div className="div" />
+        <span className="t-2" style={{ fontSize: 15, gridColumn: '1 / -1' }}>Sredi oktobra. Kurišča pozimi dodajo največ delcev, zvečer tudi dvakrat več.</span>
+      </section>
+
+      <section className="setting">
+        <b className="t-body" style={{ fontWeight: 700 }}>Obvesti me, ko se<br />začne turistična sezona</b>
+        <Switch k="tourist" />
+        <div className="div" />
+        <span className="t-2" style={{ fontSize: 15, gridColumn: '1 / -1' }}>Začetek junija. Več prometa in dogodkov v središču mesta.</span>
       </section>
 
       <p className="t-h3" style={{ marginTop: 12 }}>Mirne ure</p>
