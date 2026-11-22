@@ -11,7 +11,8 @@ interface Props {
   hours: ForecastHour[] // next 12 h, calibrated model
   profile: ProfileKey
   distance?: number // km to nearest station, only if the user shared location once
-  cetrt?: string | null // your četrt (linked with the station)
+  cetrt?: string | null // your četrt (the only location choice)
+  sourceKm?: number // distance from the četrt centre to the source
   onStation: () => void
   onDecisionMakers: () => void
 }
@@ -33,7 +34,7 @@ function windows(hours: ForecastHour[]) {
 }
 
 /** 02 · Zdaj */
-export default function Zdaj({ reading, hours, profile, distance, cetrt, onStation, onDecisionMakers }: Props) {
+export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceKm, onStation, onDecisionMakers }: Props) {
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
@@ -57,7 +58,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, onStati
             Za odločevalce ›
           </button>
           <button className="link t-2" style={{ fontWeight: 400, fontSize: 12, color: 'var(--text-2)' }} onClick={onStation}>
-            Zamenjaj postajo
+            Zamenjaj četrt
           </button>
         </div>
       </div>
@@ -110,7 +111,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, onStati
         )}
         <div className="now-foot">
           <span>
-            {ocena ? 'Občanski senzor' : 'Uradna postaja'}: {name}
+            Vir: {name}{sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''}
             {distance != null && `, ${distance.toFixed(1).replace('.', ',')} km`}
           </span>
           <span style={{ color: 'var(--hero-text-2)' }}>AQI: lestvica US EPA</span>
