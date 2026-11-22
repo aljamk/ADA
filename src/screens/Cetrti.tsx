@@ -80,7 +80,7 @@ export default function Cetrti({ readings, cetrti, mine, station }: Props) {
                     tvoja četrt
                   </span>
                 )}
-                {lvl && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>{lvl.symbol} {lvl.label} · ocena</span>}
+                {lvl && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>{lvl.labelF} · ocena</span>}
               </span>
               <span className="p" style={{ color: lvl?.color }}>{c.pm != null ? `${c.pm} µg/m³` : '–'}</span>
             </div>
