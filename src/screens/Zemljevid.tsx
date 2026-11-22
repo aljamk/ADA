@@ -287,7 +287,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
           </div>
           {selValue ? (
             <p className="t-sub">
-              {levelOfPm(selValue.pm).symbol} {levelOfPm(selValue.pm).label} · AQI {usAqi(selValue.pm)}
+              {levelOfPm(selValue.pm).labelF} · AQI {usAqi(selValue.pm)}
             </p>
           ) : (
             <p className="t-body t-2">{mode === 'model' && !forecasts[selected] ? 'Nalagam model…' : 'Ni podatka za to uro.'}</p>
