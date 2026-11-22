@@ -149,9 +149,9 @@ export default function Odlocevalci({ fc, cetrt, onBack }: { fc?: Forecast; cetr
 
       <section className="card">
         <div className="section-head" style={{ marginTop: 0 }}>
-          <label className="t-h3" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <label className="t-h3" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             Od kod delci:
-            <select value={sel} onChange={(e) => setSel(e.target.value)} aria-label="Četrt">
+            <select className="select" value={sel} onChange={(e) => setSel(e.target.value)} aria-label="Četrt">
               {[...cetrti].sort((a, b) => a.ime.localeCompare(b.ime, 'sl')).map((c) => <option key={c.ime} value={c.ime}>{c.ime}</option>)}
             </select>
           </label>
