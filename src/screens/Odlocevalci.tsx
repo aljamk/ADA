@@ -62,6 +62,7 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
   const [ustanove, setUstanove] = useState<Ustanova[]>([])
   const [vreme, setVreme] = useState<Vreme | null>(null)
   const [vremeErr, setVremeErr] = useState(false)
+  const [warnInfo, setWarnInfo] = useState(false) // the explanation behind the round i
 
   // Built from the data package by scripts/build_data.py
   useEffect(() => {
@@ -127,7 +128,12 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
       </div>
 
       <section className="card" style={{ background: 'var(--info)' }}>
-        <p className="t-label">Zgodnje opozorilo · naslednjih 48 ur</p>
+        <div className="section-head" style={{ marginTop: 0 }}>
+          <p className="t-label">Zgodnje opozorilo · naslednjih 48 ur</p>
+          <button className="info-btn" aria-label="Kako nastane opozorilo?" aria-expanded={warnInfo} onClick={() => setWarnInfo(!warnInfo)}>
+            i
+          </button>
+        </div>
         <span className="chip model" style={{ marginTop: 8 }}>NAPOVED</span>
         <div className="rows" style={{ marginTop: 10, gap: 8 }}>
           {dnevi.map((d) => (
@@ -161,18 +167,20 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
             </p>
           </div>
         )}
-        <div className="map-info" style={{ marginTop: 12 }}>
-          <p className="t-small">
-            <b>Kako nastane opozorilo?</b>
-            <br />
-            Dva znaka iz podatkovnega paketa: vremensko pravilo (veter pod 6 km/h, mejna plast pod 300 m, brez padavin) in model CAMS, umerjen na meritve ARSO, z dnevno vrednostjo nad 25 µg/m³. En znak pomeni, da je slab zrak možen, oba, da je verjeten.
-          </p>
-          <p className="t-small">
-            <b>Kako zanesljivo?</b>
-            <br />
-            Vremensko pravilo ujame okoli tri četrtine preseganj, a so tri četrtine opozoril lažne, ker je preseganje redek dogodek. Prag modela ujame 94 % preseganj s 70 % lažnih opozoril. Zato je to napoved za pripravo, ne potrditev.
-          </p>
-        </div>
+        {warnInfo && (
+          <div className="map-info" style={{ marginTop: 12 }}>
+            <p className="t-small">
+              <b>Kako nastane opozorilo?</b>
+              <br />
+              Dva znaka iz podatkovnega paketa: vremensko pravilo (veter pod 6 km/h, mejna plast pod 300 m, brez padavin) in model CAMS, umerjen na meritve ARSO, z dnevno vrednostjo nad 25 µg/m³. En znak pomeni, da je slab zrak možen, oba, da je verjeten.
+            </p>
+            <p className="t-small">
+              <b>Kako zanesljivo?</b>
+              <br />
+              Vremensko pravilo ujame okoli tri četrtine preseganj, a so tri četrtine opozoril lažne, ker je preseganje redek dogodek. Prag modela ujame 94 % preseganj s 70 % lažnih opozoril. Zato je to napoved za pripravo, ne potrditev.
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="card">
