@@ -91,7 +91,7 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
  * four layers on the same canvas (public/golob-telo.png, golob-glava.png = head and neck, golob-krilce.png = the
  * folded wing on the chest, golob-krilo.png = the raised wing; scripts/cut_wings.py). Only the notes and the nest are drawn extra.
  *  dobro      dances and flaps (notes)
- *  zmerno     struts in place: the head bobs, the body sways
+ *  zmerno     stands still and bobs its head
  *  slabo      ruffles: puffs up and shakes its feathers
  *  zeloslabo  hunched: head pulled in, wing drooping, heavy breathing, a head shake now and then
  *  nevarno    wing folded, hiding and trembling in a nest
@@ -101,7 +101,7 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
   const H = 1127
   const caption: Record<LevelKey, string> = {
     dobro: 'Golob pleše: zrak je dober.',
-    zmerno: 'Golob se sprehaja in ziba z glavo: tako-tako.',
+    zmerno: 'Golob ziba z glavo: tako-tako.',
     slabo: 'Golob se ščeperi in otresa perje: zrak je slab.',
     zeloslabo: 'Golob je sključen in težko diha: zrak je zelo slab.',
     nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',

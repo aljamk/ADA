@@ -296,8 +296,7 @@ p { margin: 0; }
 .golob-mood .note { opacity: 0; animation: golob-note 2.2s ease-out infinite; }
 .golob-mood .n2 { animation-delay: 0.7s; }
 .golob-mood .n3 { animation-delay: 1.4s; }
-/* zmerna: struts in place, the pigeon head-bob */
-.golob-mood.zmerno .golob-mood-figure { animation: golob-strut 1.2s ease-in-out infinite; }
+/* zmerna: stands still, only the head bobs */
 .golob-mood.zmerno .glava { animation: golob-bob 0.6s ease-in-out infinite; }
 /* slaba: puffs up and shakes its feathers every couple of seconds */
 .golob-mood.slabo .golob-mood-figure { animation: golob-ruffle 2.6s ease-in-out infinite; }
@@ -316,7 +315,6 @@ p { margin: 0; }
 @keyframes golob-dance { 0%, 100% { transform: translateY(0) rotate(-6deg); } 25% { transform: translateY(-9%) rotate(0deg); } 50% { transform: translateY(0) rotate(6deg); } 75% { transform: translateY(-9%) rotate(0deg); } }
 @keyframes golob-flap { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.12, 1.04); } }
 @keyframes golob-note { 0% { opacity: 0; transform: translateY(40px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-140px); } }
-@keyframes golob-strut { 0%, 100% { transform: translateX(-3%) rotate(-2deg); } 50% { transform: translateX(3%) rotate(2deg); } }
 @keyframes golob-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(2.5%) rotate(3deg); } }
 @keyframes golob-ruffle { 0%, 45%, 100% { transform: scale(1, 1) rotate(0deg); } 55% { transform: scale(1.06, 1.04) rotate(-3deg); } 61% { transform: scale(1.06, 1.04) rotate(3deg); } 67% { transform: scale(1.06, 1.04) rotate(-3deg); } 73% { transform: scale(1.06, 1.04) rotate(3deg); } 85% { transform: scale(1.03, 1.02) rotate(0deg); } }
 @keyframes golob-ruffle-wing { 0%, 45%, 100% { transform: scale(1, 1); } 55% { transform: scale(1.08, 1.06) rotate(-5deg); } 61% { transform: scale(1.08, 1.06) rotate(4deg); } 67% { transform: scale(1.08, 1.06) rotate(-5deg); } 73% { transform: scale(1.08, 1.06) rotate(4deg); } 85% { transform: scale(1.02, 1.02); } }
