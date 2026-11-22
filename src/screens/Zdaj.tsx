@@ -122,11 +122,6 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
         </div>
       </section>
 
-      <section className="card-soft">
-        <p className="t-h3">Zakaj?</p>
-        <p className="t-body" style={{ marginTop: 8 }}>{whyText(pm, hours)}</p>
-      </section>
-
       {pm != null && (
         <section className="card-soft">
           <p className="t-h3">{profiles.length > 1 ? 'Nasveti' : 'Nasvet'}</p>
@@ -142,6 +137,11 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
           {airingText(hours) && <p className="t-body" style={{ marginTop: 12 }}>{airingText(hours)}</p>}
         </section>
       )}
+
+      <section className="card-soft">
+        <p className="t-h3">Razlaga</p>
+        <p className="t-body" style={{ marginTop: 8 }}>{whyText(pm, hours)}</p>
+      </section>
 
       {level && <GolobRazpolozenje level={(new URLSearchParams(location.search).get('golob') as LevelKey | null) ?? level.key} />}
     </div>
