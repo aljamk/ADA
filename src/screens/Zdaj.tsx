@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { calibrationNote } from '../sensors'
-import { levelOfAqi, usAqi } from '../aqi'
+import { levelOfAqi, usAqi, type LevelKey } from '../aqi'
 import Lestvica from '../components/Lestvica'
+import { GolobRazpolozenje } from '../components/Golob'
 import { shortName, type Reading } from '../arso'
 import type { ForecastHour } from '../forecast'
 import { adviceFor, airingText, profileOf, type ProfileKey } from '../profile'
@@ -132,6 +133,8 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
           {airingText(hours) && <p className="t-body" style={{ marginTop: 12 }}>{airingText(hours)}</p>}
         </section>
       )}
+
+      {level && <GolobRazpolozenje level={(new URLSearchParams(location.search).get('golob') as LevelKey | null) ?? level.key} />}
     </div>
   )
 }

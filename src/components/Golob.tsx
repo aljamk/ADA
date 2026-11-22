@@ -1,3 +1,4 @@
+import type { LevelKey } from '../aqi'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 // Golob: the Ljubljana pigeon mascot drawn in Figma (node 95:97). Two faces: calm and, when the
@@ -81,6 +82,87 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
       <div className="megla" style={{ opacity: fog * 0.96 }} aria-hidden="true">
         <span /><span /><span />
       </div>
+    </div>
+  )
+}
+
+/**
+ * The pigeon acting out the air quality (Zdaj, under the advice). Parts are an SVG overlay in the image's own
+ * coordinates (900 x 1127): an arm with a palm, a thumb, a tongue, notes, a nest. CSS does the motion.
+ *  dobro      dances and rejoices (notes)
+ *  zmerno     holds an arm out and tilts the palm left and right ("so-so")
+ *  slabo      shrugs with both wings
+ *  zeloslabo  thumbs down, tongue out
+ *  nevarno    hides and trembles in a nest
+ */
+export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size?: number }) {
+  const W = 900
+  const H = 1127
+  const arm = '#6b7fb3'
+  const hand = '#7f93c4'
+  const caption: Record<LevelKey, string> = {
+    dobro: 'Golob pleše: zrak je dober.',
+    zmerno: 'Golob maha z dlanjo: tako-tako.',
+    slabo: 'Golob skomigne: zrak je slab.',
+    zeloslabo: 'Golob kaže palec dol in jezik: zrak je zelo slab.',
+    nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',
+  }
+  return (
+    <div className={`golob-mood ${level}`} style={{ width: size, height: (size * H) / W }} role="img" aria-label={caption[level]}>
+      {level === 'nevarno' && (
+        <svg className="golob-part nest-back" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+          <ellipse cx="450" cy="930" rx="430" ry="150" fill="#6e4a24" />
+        </svg>
+      )}
+      <img className="golob-mood-body" src={GOLOB} alt="" draggable={false} />
+      <svg className="golob-part" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+        {level === 'dobro' && (
+          <g className="notes" fill="#f2c94c" fontSize="150" fontWeight="700">
+            <text className="note n1" x="80" y="260">♪</text>
+            <text className="note n2" x="700" y="120">♫</text>
+            <text className="note n3" x="620" y="420">♪</text>
+          </g>
+        )}
+        {level === 'zmerno' && (
+          <g>
+            <line x1="330" y1="640" x2="150" y2="600" stroke={arm} strokeWidth="72" strokeLinecap="round" />
+            <g className="palm">
+              <ellipse cx="120" cy="596" rx="62" ry="44" fill={hand} />
+              <line x1="80" y1="570" x2="60" y2="540" stroke={hand} strokeWidth="26" strokeLinecap="round" />
+            </g>
+          </g>
+        )}
+        {level === 'slabo' && (
+          <g>
+            <g className="shrug-l">
+              <line x1="330" y1="650" x2="150" y2="560" stroke={arm} strokeWidth="72" strokeLinecap="round" />
+              <ellipse cx="130" cy="550" rx="54" ry="40" fill={hand} />
+            </g>
+            <g className="shrug-r">
+              <line x1="560" y1="700" x2="720" y2="620" stroke={arm} strokeWidth="72" strokeLinecap="round" />
+              <ellipse cx="740" cy="610" rx="54" ry="40" fill={hand} />
+            </g>
+          </g>
+        )}
+        {level === 'zeloslabo' && (
+          <g>
+            <path className="tongue" d="M408 212 q22 100 44 0 z" fill="#e86f8a" />
+            <g className="thumb">
+              <line x1="330" y1="660" x2="190" y2="690" stroke={arm} strokeWidth="72" strokeLinecap="round" />
+              <circle cx="160" cy="700" r="66" fill={hand} stroke="#4e5f8f" strokeWidth="10" />
+              <line x1="150" y1="750" x2="138" y2="870" stroke="#4e5f8f" strokeWidth="58" strokeLinecap="round" />
+              <line x1="150" y1="750" x2="138" y2="870" stroke={hand} strokeWidth="40" strokeLinecap="round" />
+            </g>
+          </g>
+        )}
+        {level === 'nevarno' && (
+          <g className="nest-front">
+            <ellipse cx="450" cy="1010" rx="450" ry="210" fill="#8a5a2b" />
+            <path d="M60 960 q120 -60 260 -20 t300 10 t260 -30" stroke="#b9823f" strokeWidth="16" fill="none" strokeLinecap="round" />
+            <path d="M120 1030 q150 -40 300 0 t340 -10" stroke="#5c3b16" strokeWidth="14" fill="none" strokeLinecap="round" />
+          </g>
+        )}
+      </svg>
     </div>
   )
 }
