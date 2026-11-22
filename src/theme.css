@@ -250,8 +250,6 @@ p { margin: 0; }
 .splash-name { font-size: 44px; font-weight: 700; line-height: 1.1; }
 .splash-line { font-size: 17px; color: var(--text-2); }
 @keyframes splash-in { from { transform: translateY(24px) scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
-.hero-duo { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: end; gap: 0 8px; }
-.hero-duo .hero-line { grid-column: span 2; }
 .golob3d { position: relative; display: grid; justify-items: center; perspective: 520px; touch-action: none; }
 .golob3d-body { position: relative; transform-style: preserve-3d; transition: transform .25s ease-out; animation: golob-idle 5s ease-in-out infinite; }
 .golob3d-body img { position: absolute; inset: 0; }
@@ -259,3 +257,17 @@ p { margin: 0; }
 .golob3d-line { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); white-space: nowrap; font-size: 12px; font-weight: 700; background: var(--surface); color: var(--text); padding: 5px 10px; border-radius: 12px 12px 12px 3px; box-shadow: 0 2px 6px rgb(0 0 0 / .15); }
 @keyframes golob-idle { 0%, 100% { transform: rotateY(-9deg) translateY(0); } 50% { transform: rotateY(9deg) translateY(-5px); } }
 @media (prefers-reduced-motion: reduce) { .golob3d-body, .splash-golob { animation: none; } }
+.golob-rece { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; }
+.golob-bubble { background: var(--surface); color: var(--text); border-radius: 16px 16px 16px 4px; padding: 10px 14px; font-size: 15px; line-height: 1.3; box-shadow: 0 2px 6px rgb(0 0 0 / .12); }
+.golob-megla { position: relative; display: grid; place-items: center; margin: 0 auto; }
+.golob-megla-body { transition: filter .6s; }
+.megla { position: absolute; inset: -10px -10px; pointer-events: none; transition: opacity .6s; filter: blur(12px); }
+.megla span { position: absolute; border-radius: 50%; background: var(--megla); }
+.megla span:nth-child(1) { left: 0; top: 8%; width: 70%; height: 46%; animation: megla-drift 9s ease-in-out infinite alternate; }
+.megla span:nth-child(2) { right: 0; top: 36%; width: 72%; height: 44%; animation: megla-drift 12s ease-in-out infinite alternate-reverse; }
+.megla span:nth-child(3) { left: 10%; bottom: 0; width: 80%; height: 40%; animation: megla-drift 15s ease-in-out infinite alternate; }
+@keyframes megla-drift { from { transform: translateX(-12px); } to { transform: translateX(12px); } }
+.golob-megla-line { top: 0; z-index: 2; }
+:root { --megla: #cfd8d6; }
+@media (prefers-color-scheme: dark) { :root { --megla: #9fb3b0; } }
+@media (prefers-reduced-motion: reduce) { .megla span { animation: none; } }

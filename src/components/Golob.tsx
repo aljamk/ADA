@@ -54,3 +54,33 @@ export function Golob3D({ size = 150, red = false, line }: { size?: number; red?
     </div>
   )
 }
+
+/** Golob with a speech bubble, for Opozorila, Četrti and other places where he comments */
+export function GolobRece({ text, size = 72, red = false }: { text: string; size?: number; red?: boolean }) {
+  return (
+    <div className="golob-rece">
+      <Golob2D size={size} red={red} />
+      <p className="golob-bubble" aria-live="polite">{text}</p>
+    </div>
+  )
+}
+
+/**
+ * Golob in the fog (Igra): with no task done he is barely visible through thick haze; every finished
+ * task clears a quarter of the fog. Fog = polluted air; a clear pigeon = a clear day.
+ */
+export function GolobMegla({ done, total = 4, size = 170, line }: { done: number; total?: number; size?: number; line?: string }) {
+  const fog = Math.max(0, Math.min(1, (total - done) / total))
+  const h = Math.round(size * 1.25) + 18
+  return (
+    <div className="golob-megla" style={{ width: size + 60, height: h + 24 }} role="img" aria-label={done >= total ? 'Golob v čistem zraku' : `Golob v megli, ${done} od ${total} nalog`}>
+      {line && <span className="golob3d-line golob-megla-line">{line}</span>}
+      <div className="golob-megla-body" style={{ filter: `blur(${(fog * 2.2).toFixed(1)}px) saturate(${(1 - fog * 0.55).toFixed(2)}) brightness(${(1 - fog * 0.15).toFixed(2)})` }}>
+        <Golob3D size={size} />
+      </div>
+      <div className="megla" style={{ opacity: fog * 0.96 }} aria-hidden="true">
+        <span /><span /><span />
+      </div>
+    </div>
+  )
+}
