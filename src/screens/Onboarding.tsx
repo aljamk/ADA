@@ -39,12 +39,12 @@ export default function Onboarding({ onDone }: { onDone: (p: ProfileKey[]) => vo
         </button>
       </div>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
-        <p style={{ fontSize: 52, fontWeight: 700, lineHeight: 1.2 }}>Zrak</p>
+        <p style={{ fontSize: 44, fontWeight: 700, lineHeight: 1.15 }}>Kaj dihaš?</p>
         <Golob2D size={88} />
       </div>
       <div>
         <p className="t-title">
-          Veš, kaj dihaš.
+          Zrak v Ljubljani.
           <br />
           Veš, kdaj ven.
         </p>

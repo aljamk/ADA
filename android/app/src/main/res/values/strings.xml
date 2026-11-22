@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Zrak, ki ga dihamo</string>
-    <string name="title_activity_main">Zrak, ki ga dihamo</string>
+    <string name="app_name">Kaj dihaš?</string>
+    <string name="title_activity_main">Kaj dihaš?</string>
     <string name="package_name">si.adahack.zrak</string>
     <string name="custom_url_scheme">si.adahack.zrak</string>
 </resources>
