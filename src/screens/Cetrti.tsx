@@ -6,7 +6,7 @@ import { estimateFor, type Cetrt } from '../cetrti'
 import { MAP_STATIONS } from './Zemljevid'
 
 /** "2026-11-22 09:00" → "22. 11. ob 9h" */
-const when = (t: string) => `${Number(t.slice(8, 10))}. ${Number(t.slice(5, 7))}. ob ${Number(t.slice(11, 13))}h`
+const when = (t: string) => `${Number(t.slice(8, 10))}. ${Number(t.slice(5, 7))}. ob ${Number(t.slice(11, 13))}.${t.slice(14, 16)}` // "22. 11. ob 7.00"
 
 interface Props {
   readings: Reading[]
@@ -60,7 +60,9 @@ export default function Cetrti({ readings, cetrti, mine, station }: Props) {
         </div>
         {info && (
           <p className="t-small">
-            Ocena PM2,5 za vsako četrt: meritve postaj {stations.map((s) => shortName(s.name)).join(', ') || 'ARSO'}, preračunane na četrt in utežene z njenim indeksom izpostavljenosti. Osveži se vsako uro z ARSO.
+            <b>Kako dobimo oceno?</b>
+            <br />
+            Vzamemo meritve PM2,5 s postaj {stations.map((s) => shortName(s.name)).join(', ').replace(/, ([^,]*)$/, ' in $1') || 'ARSO'} ter jih preračunamo za vsako četrt glede na to, kako izpostavljena je. Ocena se osveži vsako uro.
           </p>
         )}
       </section>
