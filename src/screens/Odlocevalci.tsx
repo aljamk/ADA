@@ -114,32 +114,6 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
   }
 
   const selected = data(sel)
-  // One institution of each kind, each in a different četrt, most exposed first
-  const used = new Set<string>()
-  const top = ['Vrtec', 'Šola', 'Dom starejših'].flatMap((kind) => {
-    const u = ustanove
-      .filter((x) => x.vrsta === kind && !used.has(x.cetrt))
-      .map((x) => ({ ...x, rel: data(x.cetrt)?.rel ?? 0 }))
-      .sort((a, b) => b.rel - a.rel)[0]
-    if (!u) return []
-    used.add(u.cetrt)
-    return [u]
-  })
-
-  const window = publicNoticeWindow(fc)
-  const prepare = async () => {
-    const jutri = dnevi[1]
-    const text = jutri.level > 0
-      ? `Opozorilo: jutri (${fmtDate(jutri.date)}) je v Ljubljani ${jutri.level === 2 ? 'verjetno' : 'mogoče'} slab zrak${window ? `, najslabše med ${window}` : ''}. Napoved, ne meritev: vremenska napoved in model CAMS, umerjen na meritve ARSO. Občutljive skupine naj omejijo daljši napor na prostem; zvečer ne kurite v starih pečeh.`
-      : `Jutri (${fmtDate(jutri.date)}) ne pričakujemo slabega zraka (napoved vremena in modela CAMS).`
-    try {
-      if (navigator.share) await navigator.share({ text })
-      else await navigator.clipboard.writeText(text)
-    } catch {
-      /* cancelled */
-    }
-  }
-
   return (
     <div className="screen">
       <div className="screen-head">
@@ -297,19 +271,6 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
         )}
       </section>
 
-      <p className="t-sub">Občutljive ustanove</p>
-      <div className="inst">
-        {top.map((u) => (
-          <div key={u.ime} className="card" title={u.ime}>
-            <span className="t-body" style={{ fontWeight: 500 }}>{u.vrsta} · {u.cetrt}</span>
-            <span>
-              <b>{fmt(u.rel)}</b>
-              <small>OCENA</small>
-            </span>
-          </div>
-        ))}
-      </div>
-      <button className="btn" style={{ height: 52 }} onClick={prepare}>Pripravi obvestilo</button>
     </div>
   )
 }
