@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Small, elongated widget (4 x 1): level and value on one line, source and tasks below, Golob on the right. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
     android:layout_width="match_parent"
@@ -6,7 +7,10 @@
     android:background="@drawable/widget_bg"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="14dp">
+    android:paddingStart="14dp"
+    android:paddingEnd="10dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -22,8 +26,8 @@
 
             <ImageView
                 android:id="@+id/dot"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
                 android:layout_marginEnd="6dp"
                 android:src="@drawable/widget_dot" />
 
@@ -33,67 +37,37 @@
                 android:layout_height="wrap_content"
                 android:text="Nalagam…"
                 android:textColor="#F5F5ED"
-                android:textSize="20sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/value"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:text="–"
                 android:textColor="#F5F5ED"
-                android:textSize="30sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="µg/m³ · fini delci PM2,5"
-                android:textColor="#B9CDC4"
-                android:textSize="12sp" />
         </LinearLayout>
 
         <TextView
-            android:id="@+id/range"
+            android:id="@+id/info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Zmerno = 9–35 µg/m³"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="● MERITEV · Bežigrad · 14:00 · Golob čaka: še 4 naloge"
             android:textColor="#B9CDC4"
-            android:textSize="12sp" />
-
-        <TextView
-            android:id="@+id/station"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="● MERITEV · Bežigrad · 14:00"
-            android:textColor="#F5F5ED"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tasks"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Golob čaka: še 4 naloge"
-            android:textColor="#B9CDC4"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
     </LinearLayout>
 
     <ImageView
         android:id="@+id/golob"
-        android:layout_width="72dp"
-        android:layout_height="90dp"
-        android:layout_marginStart="8dp"
+        android:layout_width="44dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="6dp"
         android:contentDescription="Golob, maskota"
         android:scaleType="fitCenter"
         android:src="@drawable/golob" />
