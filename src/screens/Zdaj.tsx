@@ -85,7 +85,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
     <div className="screen">
       <div className="screen-head">
         <div>
-          <p className="t-label">{cetrt ? `Ljubljana · ${cetrt}` : 'Ljubljana'}</p>
+          <p className="t-label">Ljubljana</p>
           <p className="t-title">Zdaj</p>
         </div>
         <div style={{ display: 'grid', justifyItems: 'end', gap: 14, paddingBottom: 6 }}>
