@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { levelOfPm } from '../aqi'
-import { nearest, searchText, type Reading } from '../arso'
+import { nearest, type Reading } from '../arso'
 
 interface Props {
   readings: Reading[]
@@ -9,11 +9,10 @@ interface Props {
   onClose: () => void
 }
 
-/** Bottom sheet: search stations by city/name, or use location once (no background tracking). */
+/** Bottom sheet: the Ljubljana stations as a short list, or use location once (no background tracking). */
 export default function StationPicker({ readings, value, onPick, onClose }: Props) {
-  const [q, setQ] = useState('')
   const [locError, setLocError] = useState<string | null>(null)
-  const list = readings.filter((r) => searchText(r).includes(q.trim().toLowerCase()))
+  const list = readings
 
   const useLocation = () => {
     setLocError(null)
@@ -32,7 +31,6 @@ export default function StationPicker({ readings, value, onPick, onClose }: Prop
       <div className="picker-sheet" onClick={(e) => e.stopPropagation()}>
         <p className="t-sub">Izberi postajo</p>
         <p className="t-small">Postaje ARSO v Ljubljanski kotlini</p>
-        <input autoFocus placeholder="Vpiši kraj ali postajo…" value={q} onChange={(e) => setQ(e.target.value)} />
         <button className="link" style={{ textAlign: 'left' }} onClick={useLocation}>
           Uporabi mojo lokacijo (enkrat, brez sledenja)
         </button>
@@ -51,7 +49,7 @@ export default function StationPicker({ readings, value, onPick, onClose }: Prop
               </button>
             </li>
           ))}
-          {!list.length && <li className="t-2">Ni zadetkov.</li>}
+          {!list.length && <li className="t-2">Nalagam postaje…</li>}
         </ul>
         <button className="btn-soft" onClick={onClose}>
           Zapri
