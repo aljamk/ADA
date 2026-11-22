@@ -94,6 +94,7 @@ interface Props {
   onMine: (codes: string[]) => void
   onAddStation: () => void
   initialMode?: 'meritev' | 'model'
+  cetrt?: string | null // the četrt chosen on Zdaj; names its station under "Moje postaje"
 }
 
 /**
@@ -101,7 +102,9 @@ interface Props {
  * MERITEV: the latest hourly measurement for every basin station that reports PM2.5.
  * MODEL: only the stations the user picked (home, work, …), with a slider from 10 h back to 10 h ahead.
  */
-export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation, initialMode = 'meritev' }: Props) {
+export default function Zemljevid({ readings, forecasts, station, mine, onMine, onAddStation, initialMode = 'meritev', cetrt }: Props) {
+  // Under "Moje postaje" the Zdaj station is shown by the name of its četrt, like the card on Zdaj
+  const labelOf = (r: Reading) => (mode === 'model' && r.code === station && cetrt ? cetrt : shortName(r.name))
   const [mode, setMode] = useState<'meritev' | 'model'>(initialMode)
   const [sel, setSel] = useState(station)
   const [step, setStep] = useState(0) // -SPAN..SPAN hours from the last measured hour (model only)
@@ -269,7 +272,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
                 const r = readings.find((x) => x.code === code)
                 return (
                   <span key={code} className={`chip${code === selected ? ' on' : ''}`}>
-                    <button onClick={() => pick(code)} title={code === station ? 'Postaja z zaslona Zdaj' : undefined}>{code === station ? 'Zdaj · ' : ''}{r ? shortName(r.name) : code}</button>
+                    <button onClick={() => pick(code)} title={code === station ? 'Postaja z zaslona Zdaj' : undefined}>{code === station ? 'Zdaj · ' : ''}{r ? labelOf(r) : code}</button>
                     {code !== station && <button className="x" aria-label={`Odstrani ${r ? shortName(r.name) : code}`} onClick={() => remove(code)}>×</button>}
                   </span>
                 )
@@ -278,7 +281,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             </div>
           )}
           <div className="now-top">
-            <p className="t-sub">{shortName(selReading.name)}</p>
+            <p className="t-sub">{labelOf(selReading)}</p>
             <span style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <span className="chip">{mode === 'meritev' ? (isCitizen(selReading) ? '○ OCENA' : '● MERITEV') : 'MODEL'}</span>
               <button className="info-btn" aria-label="Kaj pomenijo vrednosti?" aria-expanded={info} onClick={() => setInfo(!info)}>
@@ -294,7 +297,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             <p className="t-body t-2">{mode === 'model' && !forecasts[selected] ? 'Nalagam model…' : 'Ni podatka za to uro.'}</p>
           )}
           <p className="t-small">
-            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? 'občanski senzor, neumerjen' : 'uradna postaja ARSO'}
+            PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? 'občanski senzor, neumerjen' : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt ? ` ${shortName(selReading.name)}` : ''}
           </p>
           {mode === 'model' ? (
             <>
