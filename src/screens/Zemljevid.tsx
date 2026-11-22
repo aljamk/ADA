@@ -138,8 +138,9 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   // Map once
   useEffect(() => {
     if (!mapEl.current || map.current) return
-    const m = L.map(mapEl.current, { zoomControl: false, attributionControl: true, minZoom: 7, maxZoom: 15 })
+    const m = L.map(mapEl.current, { zoomControl: false, attributionControl: false, minZoom: 7, maxZoom: 15 })
     L.control.zoom({ position: 'bottomright' }).addTo(m)
+    L.control.attribution({ position: 'topright', prefix: false }).addTo(m)
     L.tileLayer(SAT, { attribution: ATTR, maxZoom: 18 }).addTo(m)
     L.tileLayer(PLACES, { maxZoom: 18, opacity: 0.9 }).addTo(m)
     m.fitBounds(VIEW, { padding: [8, 8] })
@@ -164,21 +165,53 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointsKey])
 
-  // Station bubbles
+  // Station bubbles. Bubbles that would overlap at the current zoom are nudged apart a little
+  // (a sensor 300 m from a station still gets its own bubble); re-placed after every zoom.
   useEffect(() => {
     const g = markers.current
-    if (!g) return
-    g.clearLayers()
-    for (const r of shown) {
-      const v = valueAt(r.code)
-      const lvl = v ? levelOfPm(v.pm) : null
-      const icon = L.divIcon({
-        className: '',
-        html: `<button class="bubble${r.code === selected ? ' sel' : ''}${isCitizen(r) ? ' ocena' : ''}" style="background:${lvl ? lvl.color : 'var(--soft)'}" aria-label="${shortName(r.name)}${isCitizen(r) ? ', občanski senzor, ocena' : ''}">${v ? usAqi(v.pm) : '–'}</button>`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-      })
-      L.marker([r.lat, r.lon], { icon, keyboard: false }).on('click', () => setSel(r.code)).addTo(g)
+    const m = map.current
+    if (!g || !m) return
+    const place = () => {
+      g.clearLayers()
+      const items = shown.map((r) => ({ r, p: m.latLngToLayerPoint([r.lat, r.lon]) }))
+      const R = 42
+      for (let it = 0; it < 40; it++) {
+        let moved = false
+        for (let i = 0; i < items.length; i++)
+          for (let j = i + 1; j < items.length; j++) {
+            const a = items[i].p
+            const b = items[j].p
+            const dx = b.x - a.x
+            const dy = b.y - a.y
+            const d = Math.hypot(dx, dy)
+            if (d >= R) continue
+            const push = (R - d) / 2 + 0.5
+            const ux = d ? dx / d : 1
+            const uy = d ? dy / d : 0
+            a.x -= ux * push
+            a.y -= uy * push
+            b.x += ux * push
+            b.y += uy * push
+            moved = true
+          }
+        if (!moved) break
+      }
+      for (const { r, p } of items) {
+        const v = valueAt(r.code)
+        const lvl = v ? levelOfPm(v.pm) : null
+        const icon = L.divIcon({
+          className: '',
+          html: `<button class="bubble${r.code === selected ? ' sel' : ''}${isCitizen(r) ? ' ocena' : ''}" style="background:${lvl ? lvl.color : 'var(--soft)'}" aria-label="${shortName(r.name)}${isCitizen(r) ? ', občanski senzor, ocena' : ''}">${v ? usAqi(v.pm) : '–'}</button>`,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+        })
+        L.marker(m.layerPointToLatLng(p), { icon, keyboard: false }).on('click', () => setSel(r.code)).addTo(g)
+      }
+    }
+    place()
+    m.on('zoomend', place)
+    return () => {
+      m.off('zoomend', place)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointsKey, selected, mode, readings])
