@@ -282,6 +282,7 @@ p { margin: 0; }
    Nothing swings around a joint far enough to tear off: the head turns a few degrees at the neck (410,420),
    the wings a few degrees where they join the body. Notes, pupils and exclamation marks are SVG overlays in the same coordinates. */
 .golob-mood { position: relative; margin: 4px auto 0; overflow: visible; }
+.golob-mood.nevarno { overflow: hidden; margin-top: -36px; border-radius: 0 0 40% 40%; }
 .golob-mood-figure { position: absolute; inset: 0; transform-origin: 50% 90%; }
 .golob-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .golob-layer.telo { z-index: 1; }
@@ -304,33 +305,35 @@ p { margin: 0; }
 .golob-mood.slabo .oci { z-index: 5; }
 .golob-mood.slabo .zenici { animation: golob-roll 3.2s ease-in-out infinite; }
 .golob-mood.slabo .golob-mood-figure { animation: golob-breathe 2.6s ease-in-out infinite; }
-/* zelo slaba: the frontal pigeon beats both open wings. Each wing turns 4 degrees around the middle of its join
-   (225,430 and 395,430 of 620x746) behind the body, so nothing tears; the body bobs with the beat. */
-.golob-mood.zeloslabo .golob-mood-figure { animation: golob-beat-body2 0.6s ease-in-out infinite; }
+/* frontal layers: body in front, wings behind */
 .golob-layer.telo2 { z-index: 3; }
-.golob-layer.krilo-l { transform-origin: 36.3% 57.6%; z-index: 1; animation: golob-beat-l 0.6s ease-in-out infinite; }
-.golob-layer.krilo-d { transform-origin: 63.7% 57.6%; z-index: 1; animation: golob-beat-d 0.6s ease-in-out infinite; }
-/* nevarna: the frontal pigeon waves both wings fast around the shoulders (242,245 / 378,245 of 620x746);
+.golob-layer.krilo-l { transform-origin: 39% 33.4%; z-index: 1; }
+.golob-layer.krilo-d { transform-origin: 61% 33.4%; z-index: 1; }
+/* zelo slaba: the frontal pigeon waves both wings fast around the shoulders (242,245 / 378,245 of 620x746);
    the wing layers reach behind the body so the swing shows no gap. The body shakes, two "!" bounce above. */
-.golob-mood.nevarno .krilo-l { transform-origin: 39% 33.4%; animation: golob-panic-l 0.32s ease-in-out infinite; }
-.golob-mood.nevarno .krilo-d { transform-origin: 61% 33.4%; animation: golob-panic-d 0.32s ease-in-out infinite; }
-.golob-mood.nevarno .golob-mood-figure { animation: golob-panic-body 0.32s ease-in-out infinite; }
-.golob-mood.nevarno .klici { z-index: 5; }
-.golob-mood.nevarno .klic { animation: golob-klic 0.64s ease-in-out infinite; }
-.golob-mood.nevarno .k2 { animation-delay: 0.32s; }
+.golob-mood.zeloslabo .krilo-l { animation: golob-panic-l 0.32s ease-in-out infinite; }
+.golob-mood.zeloslabo .krilo-d { animation: golob-panic-d 0.32s ease-in-out infinite; }
+.golob-mood.zeloslabo .golob-mood-figure { animation: golob-panic-body 0.32s ease-in-out infinite; }
+.golob-mood.zeloslabo .klici { z-index: 5; }
+.golob-mood.zeloslabo .klic { animation: golob-klic 0.64s ease-in-out infinite; }
+.golob-mood.zeloslabo .k2 { animation-delay: 0.32s; }
+/* nevarna: the side pigeon in the nest, trembling */
+.golob-mood.nevarno .golob-mood-figure { transform: translateY(26%) scale(0.92); animation: golob-tremble 0.14s linear infinite; }
+.golob-mood.nevarno .krilo { transform: scale(0.72, 0.8) rotate(10deg); }
+.golob-mood.nevarno .nest-back { z-index: 0; }
+.golob-mood.nevarno .golob-mood-figure { z-index: 1; }
+.golob-mood.nevarno .golob-part:not(.nest-back) { z-index: 2; }
 @keyframes golob-dance { 0%, 100% { transform: translateY(0) rotate(-6deg); } 25% { transform: translateY(-9%) rotate(0deg); } 50% { transform: translateY(0) rotate(6deg); } 75% { transform: translateY(-9%) rotate(0deg); } }
 @keyframes golob-flap { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.12, 1.04); } }
 @keyframes golob-note { 0% { opacity: 0; transform: translateY(40px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-140px); } }
 @keyframes golob-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(2.5%) rotate(3deg); } }
 @keyframes golob-roll { 0%, 55%, 100% { transform: translate(0, 0); } 65% { transform: translate(0, -11px); } 75% { transform: translate(11px, -6px); } 85% { transform: translate(6px, 4px); } 92% { transform: translate(-4px, 2px); } }
-@keyframes golob-beat-l { 0%, 100% { transform: rotate(4deg) scale(1.03); } 50% { transform: rotate(-4deg) scale(1); } }
-@keyframes golob-beat-d { 0%, 100% { transform: rotate(-4deg) scale(1.03); } 50% { transform: rotate(4deg) scale(1); } }
-@keyframes golob-beat-body2 { 0%, 100% { transform: translateY(-1.5%); } 50% { transform: translateY(0.5%); } }
 @keyframes golob-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.025, 1.035); } }
 @keyframes golob-hunch { 0%, 100% { transform: translateY(5%) rotate(0deg); } 78% { transform: translateY(5%) rotate(0deg); } 81% { transform: translateY(5%) rotate(-7deg); } 84% { transform: translateY(5%) rotate(7deg); } 87% { transform: translateY(5%) rotate(-5deg); } 90% { transform: translateY(5%) rotate(0deg); } }
 @keyframes golob-panic-l { 0%, 100% { transform: rotate(-9deg); } 50% { transform: rotate(9deg); } }
 @keyframes golob-panic-d { 0%, 100% { transform: rotate(9deg); } 50% { transform: rotate(-9deg); } }
 @keyframes golob-panic-body { 0%, 100% { transform: translateX(-2%); } 50% { transform: translateX(2%); } }
+@keyframes golob-tremble { 0%, 100% { transform: translate(-1.5%, 26%) scale(0.92); } 50% { transform: translate(1.5%, 26%) scale(0.92); } }
 @keyframes golob-klic { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(-28px); opacity: 0.6; } }
 @media (prefers-reduced-motion: reduce) {
   .golob-mood .golob-mood-figure, .golob-mood .krilo, .golob-mood .krilce, .golob-mood .glava, .golob-mood .krilo-l, .golob-mood .krilo-d, .golob-mood .zenici, .golob-mood .klic { animation: none; }
