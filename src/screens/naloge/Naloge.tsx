@@ -578,7 +578,7 @@ function Home({ done, onOpen, streak, xp }: {
       </div>
       <header className="hero">
         <GolobMegla done={drops} size={170} line={drops === 4 ? 'Končno dihamo.' : drops === 0 ? 'Kje si? Nič ne vidim.' : `Še ${4 - drops} ${4 - drops === 1 ? 'naloga' : 4 - drops === 2 ? 'nalogi' : 'naloge'} in bo jasno.`} />
-        <p className="hero-line">{drops === 0 ? 'Golob je v megli. Vsaka naloga razkadi del megle.' : drops === 4 ? 'Megla se je razkadila. Golob diha čist zrak.' : 'Megla se redči z vsako opravljeno nalogo.'}</p>
+        <p className="hero-line">{drops === 0 ? 'Robert je v megli. Vsaka naloga razkadi del megle.' : drops === 4 ? 'Megla se je razkadila. Robert diha čist zrak.' : 'Megla se redči z vsako opravljeno nalogo.'}</p>
       </header>
 
       <section className="status">

@@ -44,7 +44,7 @@ export function Golob3D({ size = 150, red = false, line }: { size?: number; red?
   const h = Math.round(size * 1.25)
   const style = tilt ? { transform: `rotateY(${tilt.x}deg) rotateX(${tilt.y}deg)`, animation: 'none' } : undefined
   return (
-    <div className="golob3d" ref={box} onPointerMove={onMove} onPointerLeave={() => setTilt(null)} style={{ width: size, height: h + 18 }} aria-label={red ? 'Golob z rdečimi očmi: naloge čakajo' : 'Golob, maskota'}>
+    <div className="golob3d" ref={box} onPointerMove={onMove} onPointerLeave={() => setTilt(null)} style={{ width: size, height: h + 18 }} aria-label={red ? 'Robert z rdečimi očmi: naloge čakajo' : 'Robert, golob'}>
       <div className="golob3d-body" style={{ width: size, height: h, ...style }}>
         {Array.from({ length: layers }, (_, i) => (
           <img key={i} src={src} alt="" width={size} height={h} draggable={false} style={{ transform: `translateZ(${(i - layers + 1) * 3}px)`, filter: i === layers - 1 ? 'none' : `brightness(${0.55 + (i / layers) * 0.35})` }} />
@@ -74,7 +74,7 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
   const fog = Math.max(0, Math.min(1, (total - done) / total))
   const h = Math.round(size * 1.25) + 18
   return (
-    <div className="golob-megla" style={{ width: size + 60, height: h + 64 }} role="img" aria-label={done >= total ? 'Golob v čistem zraku' : `Golob v megli, ${done} od ${total} nalog`}>
+    <div className="golob-megla" style={{ width: size + 60, height: h + 64 }} role="img" aria-label={done >= total ? 'Robert v čistem zraku' : `Robert v megli, ${done} od ${total} nalog`}>
       {line && <span className="golob3d-line golob-megla-line">{line}</span>}
       <div className="golob-megla-body" style={{ filter: `blur(${(fog * 2.2).toFixed(1)}px) saturate(${(1 - fog * 0.55).toFixed(2)}) brightness(${(1 - fog * 0.15).toFixed(2)})` }}>
         <Golob3D size={size} />
@@ -100,11 +100,11 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
   const W = 900
   const H = 1127
   const caption: Record<LevelKey, string> = {
-    dobro: 'Golob pleše: zrak je dober.',
-    zmerno: 'Golob ziba z glavo: tako-tako.',
-    slabo: 'Golob s prekrižanimi krili zavija z očmi: zrak je slab.',
-    zeloslabo: 'Golob v paniki maha z obema kriloma: zrak je zelo slab.',
-    nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',
+    dobro: 'Robert pleše: zrak je dober.',
+    zmerno: 'Robert ziba z glavo: tako-tako.',
+    slabo: 'Robert s prekrižanimi krili zavija z očmi: zrak je slab.',
+    zeloslabo: 'Robert v paniki maha z obema kriloma: zrak je zelo slab.',
+    nevarno: 'Robert se skriva in trese v gnezdu: zrak je nevaren.',
   }
   return (
     <div className={`golob-mood ${level}`} style={{ width: size, height: (size * H) / W }} role="img" aria-label={caption[level]}>

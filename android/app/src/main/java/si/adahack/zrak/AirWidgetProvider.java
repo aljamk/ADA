@@ -163,11 +163,11 @@ public class AirWidgetProvider extends AppWidgetProvider {
         int left = TASKS_TOTAL - done;
         if (left <= 0) {
             v.setImageViewResource(R.id.golob, R.drawable.golob);
-            v.setTextViewText(R.id.tasks, square ? "Naloge opravljene" : "Vse naloge opravljene. Golob je miren.");
+            v.setTextViewText(R.id.tasks, square ? "Naloge opravljene" : "Vse naloge opravljene. Robert je miren.");
         } else {
             v.setImageViewResource(R.id.golob, R.drawable.golob_rdece);
             String n = left == 1 ? "še 1 naloga" : left == 2 ? "še 2 nalogi" : "še " + left + " naloge";
-            v.setTextViewText(R.id.tasks, square ? n.substring(0, 1).toUpperCase(Locale.ROOT) + n.substring(1) : "Golob čaka: " + n);
+            v.setTextViewText(R.id.tasks, square ? n.substring(0, 1).toUpperCase(Locale.ROOT) + n.substring(1) : "Robert čaka: " + n);
         }
 
         // Tap opens the app
