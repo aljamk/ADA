@@ -88,9 +88,18 @@ export default function Cetrti({ readings, cetrti, mine, station }: Props) {
         })}
       </div>
 
-      <p className="t-small" style={{ fontSize: 11 }}>
-Četrt izbereš na zaslonu Zdaj. OCENA, ne meritev: v Ljubljani merijo tri uradne postaje ARSO. Vrstni red se spreminja z meritvami, razlike med sosednjimi četrtmi so lahko znotraj napake ocene.
-      </p>
+      <div className="map-info">
+        <p className="t-small">
+          <b>Tvoja četrt</b>
+          <br />
+          Izbereš jo na zaslonu Zdaj.
+        </p>
+        <p className="t-small">
+          <b>OCENA, ne meritev</b>
+          <br />
+          V Ljubljani merijo le tri uradne postaje ARSO, zato so vrednosti po četrtih ocenjene. Vrstni red se sproti spreminja, majhne razlike med sosednjimi četrtmi pa ne pomenijo nujno, da je zrak res drugačen.
+        </p>
+      </div>
     </div>
   )
 }
