@@ -35,12 +35,13 @@ function useLjubljanaClock() {
 /** The level word agreeing with "zrak" (masculine), for "AQI 77 · zmeren" */
 const LEVEL_M: Record<LevelKey, string> = { dobro: 'dober', zmerno: 'zmeren', slabo: 'slab', zeloslabo: 'zelo slab', nevarno: 'nevaren' }
 
-export default function Zdaj({ reading, hours, profiles, distance, cetrt, sourceKm, onStation, onProfiles, onDecisionMakers }: Props) {
+export default function Zdaj({ reading, hours, profiles, cetrt, sourceKm, onStation, onProfiles, onDecisionMakers }: Props) {
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
   const name = shortName(reading.name)
   const ura = `${Number(reading.from.slice(11, 13))}.${reading.from.slice(14, 16)}` // "8.00"
+  const km = sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''
   const ocena = reading.kind === 'OCENA'
   const tag = ocena ? '○ OCENA' : '● MERITEV'
   const [info, setInfo] = useState(false) // plain-language explanation of the numbers, behind the round i
@@ -94,7 +95,7 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
                 <p>
                   <b>AQI {aqi} · {LEVEL_M[level.key]}</b>
                   <br />
-                  Ocena zraka od 0 do 500. Do 50 je dober, do 100 zmeren, nad 100 slab.
+                  Ocena zraka od 0 do 500. Do 50 je dober, do 100 zmeren, nad 100 slab. Lestvica US EPA.
                 </p>
                 <p>
                   <b>PM2,5: {pm} µg/m³</b>
@@ -105,8 +106,8 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
                   <b>{ocena ? 'OCENA' : 'MERITEV'}</b>
                   <br />
                   {ocena
-                    ? `Izmeril občanski senzor ob ${ura}, ne uradna postaja ARSO. ${reading.umerjen && reading.ref ? `Vrednost je popravljena po postaji ${ARSO_NAMES[reading.ref] ?? reading.ref}.` : 'Vrednost ni popravljena.'}`
-                    : `Izmerila uradna postaja ARSO ${name} ob ${ura}.`}
+                    ? `Izmeril občanski senzor ${name} ob ${ura}${km}, ne uradna postaja ARSO. ${reading.umerjen && reading.ref ? `Vrednost je popravljena po postaji ${ARSO_NAMES[reading.ref] ?? reading.ref}.` : 'Vrednost ni popravljena.'}`
+                    : `Izmerila uradna postaja ARSO ${name} ob ${ura}${km}.`}
                 </p>
               </div>
             )}
@@ -114,13 +115,6 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
         ) : (
           <p className="now-level">Ta postaja ne meri PM2,5</p>
         )}
-        <div className="now-foot">
-          <span>
-            Vir: {ocena ? `občanski senzor ${name} (ocena)` : `postaja ARSO ${name}`}, meritev ob {reading.from.slice(11)}{sourceKm != null ? `, ${sourceKm.toFixed(1).replace('.', ',')} km od središča četrti` : ''}
-            {distance != null && `, ${distance.toFixed(1).replace('.', ',')} km`}
-          </span>
-          <span style={{ color: 'var(--hero-text-2)' }}>AQI: lestvica US EPA</span>
-        </div>
       </section>
 
       {pm != null && (
