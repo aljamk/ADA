@@ -293,7 +293,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             <p className="t-body t-2">{mode === 'model' && !forecasts[selected] ? 'Nalagam model…' : 'Ni podatka za to uro.'}</p>
           )}
           <p className="t-small">
-            {labelOf(selReading)} · PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? `občanski senzor (ocena, ${calibrationNote(selReading)})` : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt ? ` ${shortName(selReading.name)}` : ''}
+            {labelOf(selReading)} · PM2,5 {selValue ? `${selValue.pm} µg/m³` : '–'} · {isCitizen(selReading) ? `občanski senzor (ocena, ${calibrationNote(selReading)})` : 'uradna postaja ARSO'}{mode === 'model' && selected === station && cetrt && shortName(selReading.name) !== cetrt ? ` ${shortName(selReading.name)}` : ''}
           </p>
           {mode === 'model' ? (
             <>
