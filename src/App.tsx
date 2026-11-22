@@ -10,7 +10,7 @@ import TabBar, { TABS, type TabKey } from './components/TabBar'
 import { fetchForecast, next12, next24, type Forecast, type ForecastHour } from './forecast'
 import type { GameLog } from './game'
 import { onResume, syncWidget } from './native'
-import { thresholdAqi, type ProfileKey } from './profile'
+import { primaryProfile, thresholdAqi, type ProfileKey } from './profile'
 import Cetrti from './screens/Cetrti'
 import Naloge from './screens/naloge/Naloge'
 import Odlocevalci, { publicNoticeWindow } from './screens/Odlocevalci'
@@ -80,7 +80,9 @@ export default function App() {
   }, [])
 
   const [onboarded, setOnboarded] = useStored('onboarded', false)
-  const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce')
+  const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce') // the most sensitive chosen group
+  const [profiles, setProfiles] = useStored<ProfileKey[]>('profiles', []) // every chosen group, for the advice card
+  const groups = profiles.length ? profiles : [profile]
   const [log] = useStored<GameLog>('ugani', {})
   const [alerts, setAlerts] = useStored<AlertSettings>('alerts', DEFAULT_ALERTS)
   // Extra stations for the map's "Moje postaje" (work, …). The first one is always the station behind the četrt chosen on Zdaj.
@@ -169,8 +171,9 @@ const hours24 = current && fc ? next24(fc, current.from) : []
     return (
       <div className="app">
         <Onboarding
-          onDone={(p) => {
-            setProfile(p)
+          onDone={(keys) => {
+            setProfiles(keys)
+            setProfile(primaryProfile(keys))
             setOnboarded(true)
           }}
         />
@@ -197,7 +200,7 @@ const hours24 = current && fc ? next24(fc, current.from) : []
               <Zdaj
                 reading={current}
                 hours={hours24}
-                profile={profile}
+                profiles={groups}
                 distance={distance}
                 cetrt={myCetrt?.ime ?? null}
                 sourceKm={current && myCetrt ? distanceKm(current.lat, current.lon, myCetrt.lat, myCetrt.lon) : undefined}

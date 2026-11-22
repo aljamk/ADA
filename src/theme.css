@@ -116,7 +116,9 @@ p { margin: 0; }
 .now-pm { margin-left: auto; margin-bottom: 10px; }
 .now-pm small { display: block; font-size: 11px; font-weight: 700; color: var(--hero-text-2); }
 .now-pm b { font-size: 24px; }
-.now-advice { font-size: 17px; font-weight: 500; line-height: 1.2; margin-top: 12px; white-space: pre-line; }
+.advice { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.advice li { display: grid; gap: 2px; font-size: 17px; line-height: 1.25; }
+.advice li b { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--accent); }
 .now-foot { font-size: 12px; margin-top: 14px; display: flex; justify-content: space-between; }
 .now-foot .link { color: var(--hero-text-2); font-size: 12px; }
 .section-head { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
