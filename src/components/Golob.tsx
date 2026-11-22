@@ -93,8 +93,8 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
  *  dobro      dances and flaps (notes)
  *  zmerno     stands still and bobs its head
  *  slabo      the frontal pigeon with its wings crossed on the chest, like crossed arms, rolling its eyes
- *  zeloslabo  the frontal pigeon (Figma 102:97) with both wings open, beating them; black eyes
- *  nevarno    the frontal pigeon waving both wings over its head in panic
+ *  zeloslabo  the frontal pigeon (Figma 102:97) waving both wings over its head in panic
+ *  nevarno    wing folded, hiding and trembling in a nest
  */
 export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size?: number }) {
   const W = 900
@@ -103,23 +103,17 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
     dobro: 'Golob pleše: zrak je dober.',
     zmerno: 'Golob ziba z glavo: tako-tako.',
     slabo: 'Golob s prekrižanimi krili zavija z očmi: zrak je slab.',
-    zeloslabo: 'Golob z razprtima kriloma prhuta: zrak je zelo slab.',
-    nevarno: 'Golob v paniki maha z obema kriloma: zrak je nevaren.',
+    zeloslabo: 'Golob v paniki maha z obema kriloma: zrak je zelo slab.',
+    nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',
   }
   return (
     <div className={`golob-mood ${level}`} style={{ width: size, height: (size * H) / W }} role="img" aria-label={caption[level]}>
-      {level === 'nevarno' ? (
-        /* the frontal pigeon waving both wings around the shoulders; these wing layers reach behind the body */
-        <div className="golob-mood-figure spredaj">
-          <img className="golob-layer krilo-l" src="/golob2-krilo-l-rama.png" alt="" draggable={false} />
-          <img className="golob-layer krilo-d" src="/golob2-krilo-d-rama.png" alt="" draggable={false} />
-          <img className="golob-layer telo2" src="/golob2-telo.png" alt="" draggable={false} />
-          <svg className="golob-part klici" viewBox="0 0 620 746" aria-hidden="true">
-            <text className="klic k1" x="150" y="60" fontSize="120" fontWeight="700" fill="#e5484d">!</text>
-            <text className="klic k2" x="430" y="60" fontSize="120" fontWeight="700" fill="#e5484d">!</text>
-          </svg>
-        </div>
-      ) : level === 'slabo' ? (
+      {level === 'nevarno' && (
+        <svg className="golob-part nest-back" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+          <ellipse cx="450" cy="930" rx="430" ry="150" fill="#6e4a24" />
+        </svg>
+      )}
+      {level === 'slabo' ? (
         /* the frontal pigeon with the wings turned across the chest (in front of the body) and moving pupils */
         <div className="golob-mood-figure spredaj">
           <img className="golob-layer telo2" src="/golob2-telo-oci.png" alt="" draggable={false} />
@@ -133,11 +127,15 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
           </svg>
         </div>
       ) : level === 'zeloslabo' ? (
-        /* the frontal pigeon: two wings behind the body, cut along the body's outline (scripts/cut_front.py) */
+        /* the frontal pigeon waving both wings around the shoulders in panic; these wing layers reach behind the body */
         <div className="golob-mood-figure spredaj">
-          <img className="golob-layer krilo-l" src="/golob2-krilo-l.png" alt="" draggable={false} />
-          <img className="golob-layer krilo-d" src="/golob2-krilo-d.png" alt="" draggable={false} />
+          <img className="golob-layer krilo-l" src="/golob2-krilo-l-rama.png" alt="" draggable={false} />
+          <img className="golob-layer krilo-d" src="/golob2-krilo-d-rama.png" alt="" draggable={false} />
           <img className="golob-layer telo2" src="/golob2-telo.png" alt="" draggable={false} />
+          <svg className="golob-part klici" viewBox="0 0 620 746" aria-hidden="true">
+            <text className="klic k1" x="150" y="60" fontSize="120" fontWeight="700" fill="#e5484d">!</text>
+            <text className="klic k2" x="430" y="60" fontSize="120" fontWeight="700" fill="#e5484d">!</text>
+          </svg>
         </div>
       ) : (
         <div className="golob-mood-figure">
@@ -148,6 +146,13 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
         </div>
       )}
       <svg className="golob-part" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+        {level === 'nevarno' && (
+          <g className="nest-front">
+            <ellipse cx="450" cy="1010" rx="450" ry="210" fill="#8a5a2b" />
+            <path d="M60 960 q120 -60 260 -20 t300 10 t260 -30" stroke="#b9823f" strokeWidth="16" fill="none" strokeLinecap="round" />
+            <path d="M120 1030 q150 -40 300 0 t340 -10" stroke="#5c3b16" strokeWidth="14" fill="none" strokeLinecap="round" />
+          </g>
+        )}
         {level === 'dobro' && (
           <g className="notes" fill="#f2c94c" fontSize="150" fontWeight="700">
             <text className="note n1" x="80" y="260">♪</text>
