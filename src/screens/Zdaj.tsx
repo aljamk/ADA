@@ -6,6 +6,7 @@ import { shortName, type Reading } from '../arso'
 import type { ForecastHour } from '../forecast'
 import { adviceFor, type ProfileKey } from '../profile'
 import { hh } from '../time'
+import { whyText } from '../zakaj'
 
 interface Props {
   reading: Reading
@@ -74,7 +75,6 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
       </div>
     )
   }
-  const winter = [11, 12, 1, 2, 3].includes(new Date().getMonth() + 1)
   const name = shortName(reading.name)
   const ocena = reading.kind === 'OCENA'
   const tag = ocena ? '○ OCENA' : '● MERITEV'
@@ -221,11 +221,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
 
       <section className="card-soft">
         <p className="t-h3">Zakaj?</p>
-        <p className="t-body" style={{ marginTop: 8 }}>
-          {winter
-            ? 'Pozimi inverzija zadržuje delce v kotlini. Zvečer jih dodata ogrevanje in promet.'
-            : 'Izven kurilne sezone se zrak bolje meša in delci se hitreje razredčijo.'}
-        </p>
+        <p className="t-body" style={{ marginTop: 8 }}>{whyText(pm, hours)}</p>
       </section>
     </div>
   )
