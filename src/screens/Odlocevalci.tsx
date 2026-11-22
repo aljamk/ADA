@@ -127,7 +127,8 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
       </div>
 
       <section className="card" style={{ background: 'var(--info)' }}>
-        <p className="t-label">Zgodnje opozorilo · naslednjih 48 ur · NAPOVED</p>
+        <p className="t-label">Zgodnje opozorilo · naslednjih 48 ur</p>
+        <span className="chip model" style={{ marginTop: 8 }}>NAPOVED</span>
         <div className="rows" style={{ marginTop: 10, gap: 8 }}>
           {dnevi.map((d) => (
             <div key={d.date} className="warn-day">
@@ -135,11 +136,17 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
               <span>
                 <b>{d.label} · {fmtDate(d.date)}</b>
                 <span className="t-body" style={{ display: 'block' }}>{d.stagnant == null && d.modelWarn == null ? (vremeErr ? 'Vremenska napoved ni dosegljiva.' : 'Nalagam…') : LEVEL_TEXT[d.level]}</span>
-                <span className="t-small" style={{ display: 'block', fontSize: 11 }}>
-                  {d.wind != null && d.blh != null && d.rain != null
-                    ? `Veter ${Math.round(d.wind)} km/h · mejna plast ${Math.round(d.blh)} m · ${d.rain < 0.5 ? 'brez padavin' : `padavine ${d.rain.toFixed(1).replace('.', ',')} mm`}`
-                    : 'Vreme: ni podatka'}
-                  {d.model != null ? ` · model ${d.model} µg/m³` : ' · model: ni napovedi za ta dan'}
+                <span className="t-small warn-facts">
+                  {d.wind != null && d.blh != null && d.rain != null ? (
+                    <>
+                      <span>Veter {Math.round(d.wind)} km/h</span>
+                      <span>Mejna plast {Math.round(d.blh)} m</span>
+                      <span>{d.rain < 0.5 ? 'Brez padavin' : `Padavine ${d.rain.toFixed(1).replace('.', ',')} mm`}</span>
+                    </>
+                  ) : (
+                    <span>Vreme: ni podatka</span>
+                  )}
+                  <span>{d.model != null ? `Model ${d.model} µg/m³` : 'Model: ni napovedi za ta dan'}</span>
                 </span>
               </span>
             </div>
