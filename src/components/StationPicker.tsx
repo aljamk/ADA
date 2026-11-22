@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { levelOfPm } from '../aqi'
-import { nearest, type Reading } from '../arso'
+import { nearest, shortName, type Reading } from '../arso'
 
 interface Props {
   readings: Reading[]
@@ -39,7 +39,7 @@ export default function StationPicker({ readings, value, onPick, onClose }: Prop
           {list.map((r) => (
             <li key={r.code}>
               <button className={r.code === value ? 'on' : ''} onClick={() => onPick(r.code)}>
-                <span>{r.name}</span>
+                <span className="name">{shortName(r.name)}</span>
                 {r.pm25 != null && (
                   <span className="t-2">
                     <span className="dot" style={{ background: levelOfPm(r.pm25).color }} />
@@ -49,7 +49,7 @@ export default function StationPicker({ readings, value, onPick, onClose }: Prop
               </button>
             </li>
           ))}
-          {!list.length && <li className="t-2">Nalagam postaje…</li>}
+          {!list.length && <li className="t-2" style={{ padding: 12 }}>Nalagam postaje…</li>}
         </ul>
         <button className="btn-soft" onClick={onClose}>
           Zapri
