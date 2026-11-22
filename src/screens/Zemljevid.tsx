@@ -212,7 +212,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             ● Meritev
           </button>
           <button className={mode === 'model' ? 'on' : ''} onClick={() => setMode('model')}>
-            Model · moje postaje
+            Moje postaje
           </button>
         </div>
 
