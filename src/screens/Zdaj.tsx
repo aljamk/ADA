@@ -157,7 +157,6 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
         <>
           <div className="section-head">
             <p className="t-sub">Naslednjih 24 ur</p>
-            <span className="chip model">MODEL</span>
           </div>
           <section className="card fc">
             <p className="fc-title">
