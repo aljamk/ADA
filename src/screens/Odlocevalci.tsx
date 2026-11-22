@@ -4,30 +4,6 @@ import { ofDay, type Forecast } from '../forecast'
 import { dateStr, hh } from '../time'
 import { fetchVreme, LEVEL_COLOR, LEVEL_TEXT, oceniDneve, type Vreme } from '../opozorilo'
 
-// Schematic cartogram of the 17 četrtne skupnosti (Figma node 29:2069), positions in a 342-px-wide card.
-const HEX = [
-  { id: 'ŠG', name: 'Šmarna gora', x: 96, y: 47 },
-  { id: 'ŠE', name: 'Šentvid', x: 146, y: 47 },
-  { id: 'ČR', name: 'Črnuče', x: 196, y: 47 },
-  { id: 'DR', name: 'Dravlje', x: 71, y: 78 },
-  { id: 'PO', name: 'Posavje', x: 121, y: 78 },
-  { id: 'BE', name: 'Bežigrad', x: 171, y: 78 },
-  { id: 'JA', name: 'Jarše', x: 221, y: 78 },
-  { id: 'RO', name: 'Rožnik', x: 46, y: 109 },
-  { id: 'ŠI', name: 'Šiška', x: 96, y: 109 },
-  { id: 'CE', name: 'Center', x: 146, y: 109 },
-  { id: 'MO', name: 'Moste', x: 196, y: 109 },
-  { id: 'PL', name: 'Polje', x: 246, y: 109 },
-  { id: 'VI', name: 'Vič', x: 71, y: 140 },
-  { id: 'TR', name: 'Trnovo', x: 121, y: 140 },
-  { id: 'GO', name: 'Golovec', x: 171, y: 140 },
-  { id: 'SO', name: 'Sostro', x: 221, y: 140 },
-  { id: 'RU', name: 'Rudnik', x: 146, y: 171 },
-]
-
-// Sequential scale, one hue light → dark (lower → higher relative exposure)
-const SCALE = ['#f6efd9', '#f0dfae', '#ecc97a', '#e3ad4a', '#d08a2a']
-
 interface Cetrt {
   ime: string
   rel: number // exposure index relative to the city average (1.0)
@@ -48,7 +24,6 @@ interface Ustanova {
   cetrt: string
 }
 
-const fmt = (v: number) => v.toFixed(1).replace('.', ',')
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 /** Tomorrow's hours (6–22h) where the model goes above AQI 100, as one window "6–10h". */
@@ -64,8 +39,8 @@ export function publicNoticeWindow(fc?: Forecast) {
 }
 
 /** 08 · Za odločevalce */
-export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () => void }) {
-  const [sel, setSel] = useState('Šiška')
+export default function Odlocevalci({ fc, cetrt, onBack }: { fc?: Forecast; cetrt?: string | null; onBack: () => void }) {
+  const [sel, setSel] = useState(cetrt || 'Center') // the četrt chosen on Zdaj, switchable here
   const [cetrti, setCetrti] = useState<Cetrt[]>([])
   const [ustanove, setUstanove] = useState<Ustanova[]>([])
   const [vreme, setVreme] = useState<Vreme | null>(null)
@@ -105,15 +80,7 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
     .sort((a, b) => b.n * b.rel - a.n * a.rel)
     .slice(0, 3)
 
-  const data = (name: string) => cetrti.find((c) => same(c.ime, name))
-  const rels = cetrti.map((c) => c.rel).sort((a, b) => a - b)
-  const colorOf = (rel?: number) => {
-    if (rel == null || !rels.length) return 'var(--soft)'
-    const q = rels.findIndex((r) => r >= rel) / rels.length // quantile 0..1
-    return SCALE[Math.min(SCALE.length - 1, Math.floor(q * SCALE.length))]
-  }
 
-  const selected = data(sel)
   return (
     <div className="screen">
       <div className="screen-head">
@@ -179,45 +146,15 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
         )}
       </section>
 
-      <section className="card">
-        <div className="now-top">
-          <p className="t-h3">Izpostavljenost</p>
-          <span className="t-label">Ocena</span>
-        </div>
-        <div className="hexes">
-          {HEX.map((h) => {
-            const d = data(h.name)
-            return (
-              <button
-                key={h.id}
-                className={h.name === sel ? 'hex sel' : 'hex'}
-                style={{ left: `${((h.x - 16) / 310) * 100}%`, top: h.y - 47, ['--fill' as string]: colorOf(d?.rel) }}
-                onClick={() => setSel(h.name)}
-                aria-label={`${h.name}: ${d ? fmt(d.rel) : 'ni podatka'}`}
-                title={d ? `${h.name}: ${fmt(d.rel)} · PM2,5 vir: ${d.vir}` : h.name}
-              >
-                <span>{h.id}</span>
-              </button>
-            )
-          })}
-        </div>
-        <div className="now-top" style={{ marginTop: 6 }}>
-          <b style={{ fontSize: 14 }}>{selected ? `${selected.ime}: ${fmt(selected.rel)} · OCENA` : sel}</b>
-          <span className="t-small" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            Nižje
-            {SCALE.map((c) => <span key={c} style={{ width: 10, height: 10, borderRadius: 2, background: c }} />)}
-            višje
-          </span>
-        </div>
-        <p className="t-small" style={{ fontSize: 10, marginTop: 6 }}>
-          Indeks iz stavb, omrežij, reliefa in meritev (zvezek 04) · 1,0 = povprečje mesta · ne AQI
-          {selected && ` · PM2,5: ${selected.vrsta === 'meritev' ? 'meritev' : 'ocena'} (${selected.vir})`}
-        </p>
-      </section>
 
       <section className="card">
         <div className="section-head" style={{ marginTop: 0 }}>
-          <p className="t-h3">Od kod delci: {sel}</p>
+          <label className="t-h3" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            Od kod delci:
+            <select value={sel} onChange={(e) => setSel(e.target.value)} aria-label="Četrt">
+              {[...cetrti].sort((a, b) => a.ime.localeCompare(b.ime, 'sl')).map((c) => <option key={c.ime} value={c.ime}>{c.ime}</option>)}
+            </select>
+          </label>
           <button className="info-btn" aria-label="Kako nastane ta ocena?" aria-expanded={viriInfo} onClick={() => setViriInfo(!viriInfo)}>
             i
           </button>

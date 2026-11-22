@@ -214,7 +214,7 @@ const hours24 = current && fc ? next24(fc, current.from) : []
       {error && <p className="error" style={{ padding: '12px 24px 0' }}>{error}</p>}
 
       {overlay === 'odlocevalci' ? (
-        <Odlocevalci fc={forecasts.E403} onBack={() => setOverlay(null)} />
+        <Odlocevalci fc={forecasts.E403} cetrt={myCetrt?.ime ?? null} onBack={() => setOverlay(null)} />
       ) : (
         <>
           {tab === 'zdaj' &&

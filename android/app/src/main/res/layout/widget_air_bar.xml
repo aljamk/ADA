@@ -58,7 +58,7 @@
             android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Golob čaka: še 4 naloge"
+            android:text="Robert čaka: še 4 naloge"
             android:textColor="#B9CDC4"
             android:textSize="12sp" />
     </LinearLayout>
@@ -68,7 +68,7 @@
         android:layout_width="44dp"
         android:layout_height="54dp"
         android:layout_marginStart="6dp"
-        android:contentDescription="Golob, maskota"
+        android:contentDescription="Robert, golob"
         android:scaleType="fitCenter"
         android:src="@drawable/golob" />
 </LinearLayout>
