@@ -102,7 +102,7 @@ function Screen({ title, eyebrow, onBack, children, footer }: { title: string; e
   return (
     <div className="screen">
       <div className="screen-head">
-        <button className="back" onClick={onBack} aria-label="Nazaj na Igro">‹ Igra</button>
+        <button className="back" onClick={onBack} aria-label="Nazaj na Igre">‹ Igre</button>
         {eyebrow && <span className="eyebrow">{eyebrow}</span>}
       </div>
       <h1 className="h1">{title}</h1>

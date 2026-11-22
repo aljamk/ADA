@@ -1,7 +1,7 @@
 export const TABS = [
   { key: 'zdaj', label: 'Zdaj', icon: '/figma/nav-zdaj.svg' },
   { key: 'zemljevid', label: 'Zemljevid', icon: '/figma/nav-zemljevid.svg' },
-  { key: 'igra', label: 'Igra', icon: '/figma/nav-igra.svg' },
+  { key: 'igra', label: 'Igre', icon: '/figma/nav-igra.svg' },
   { key: 'cetrti', label: 'Četrti', icon: '/figma/nav-cetrti.svg' },
   { key: 'opozorila', label: 'Opozorila', icon: '/figma/nav-opozorila.svg' },
 ] as const
