@@ -314,12 +314,27 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             </>
           ) : null}
           {info && (
-            <p className="t-small">
-              {mode === 'model'
-                ? 'Vrednosti so izračun modela CAMS (Copernicus), umerjen na zadnjo meritev ARSO na tej postaji. Za vsako uro nazaj in naprej. Prva postaja je tista za četrt z zaslona Zdaj, druge dodaš sam(a), npr. službo.'
-                : `Vrednost je zadnja urna meritev ARSO (${selValue ? `${Number(selValue.time.slice(11, 13))}h` : '–'}) na tej postaji, PM2,5 v µg/m³, AQI po lestvici US EPA.`}
-              {' '}Barvna ploskev je ocena med postajami, ne meritev: polna barva do 3 km od postaje, do 8 km izginja, dlje je ne rišemo.
-            </p>
+            <div className="map-info">
+              <p className="t-small">
+                <b>Od kod številke?</b>
+                <br />
+                {mode === 'model'
+                  ? 'Vrednosti za pretekle in prihodnje ure izračuna model CAMS (Copernicus). Popravimo jih po zadnji meritvi postaje ARSO.'
+                  : `Zadnja urna meritev te postaje${selValue ? ` ob ${Number(selValue.time.slice(11, 13))}h` : ''}: PM2,5 v µg/m³, AQI po lestvici US EPA.`}
+              </p>
+              {mode === 'model' && (
+                <p className="t-small">
+                  <b>Postaje</b>
+                  <br />
+                  Prva je postaja tvoje četrti z zaslona Zdaj. Druge dodaš po želji, na primer tisto pri službi.
+                </p>
+              )}
+              <p className="t-small">
+                <b>Barve na zemljevidu</b>
+                <br />
+                Barva med postajami je ocena, ne meritev. Do 3 km od postaje je polna, do 8 km bledi, dlje je ne rišemo.
+              </p>
+            </div>
           )}
         </section>
       )}

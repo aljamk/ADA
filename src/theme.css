@@ -100,6 +100,8 @@ p { margin: 0; }
 .info-btn[aria-expanded='true'] { background: var(--accent); color: var(--on-accent); }
 .info-btn.on-dark { border-color: var(--hero-text); color: var(--hero-text); }
 .info-btn.on-dark[aria-expanded='true'] { background: var(--hero-text); color: var(--hero-a); }
+.map-info { display: grid; gap: 10px; margin-top: 4px; }
+.map-info b { color: var(--text); }
 .now-info { display: grid; gap: 8px; font-size: 15px; line-height: 1.35; background: rgb(0 0 0 / 0.18); border-radius: 14px; padding: 12px 14px; margin: 4px 0; }
 
 /* Visual scale: five equal segments + marker, words under them */
