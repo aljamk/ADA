@@ -5,7 +5,7 @@ import { shortName, type Reading } from '../../arso'
 import { atHour, type Forecast } from '../../forecast'
 import { totalXp, type GameLog } from '../../game'
 import {
-  direction, guessPoints, loadGuesses, loadTasks, playStreak, saveGuesses, saveTasks, taskTotalPoints,
+  direction, guessPoints, loadGuesses, playStreak, saveGuesses, taskTotalPoints,
   type Guess, type TaskKey, type TaskResult, type TaskLog,
 } from '../../naloge'
 import { GolobMegla } from '../../components/Golob'
@@ -627,9 +627,9 @@ interface Props {
 
 export default function Naloge({ reading, fc, profile, log }: Props) {
   const [view, setView] = useState<View>('home')
-  const [tasks, setTasks] = useState<TaskLog>(loadTasks)
+  // Task progress is kept only while the app is open (not saved yet): a refresh starts the day afresh
+  const [tasks, setTasks] = useState<TaskLog>({})
   const [guesses, setGuesses] = useState<(Guess & { seen?: boolean })[]>(loadGuesses)
-  useEffect(() => { saveTasks(tasks) }, [tasks])
   // The widget shows Golob with red eyes while today's tasks wait
   useEffect(() => {
     const day = dateStr(new Date())
