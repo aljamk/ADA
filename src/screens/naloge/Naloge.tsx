@@ -182,7 +182,7 @@ function Napoved({ reading, fc, guesses, onGuess, onSeen, onBack }: NapovedProps
 
   if (step === 'locked' && mine) {
     return (
-      <Screen title="Napoved oddana" eyebrow={`Jutri ob 8h · ${mine.stationName}`} onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na Igro</button>}>
+      <Screen title="Napoved oddana" eyebrow={`Jutri ob 8h · ${mine.stationName}`} onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na igre</button>}>
         <div className="card">
           <span className="muted">Tvoja napoved</span>
           <p className="h2">{mine.choice == null ? `${mine.value} µg/m³` : ['Boljše', 'Enako', 'Slabše'][mine.choice]}</p>
@@ -275,7 +275,7 @@ function Kviz({ onBack, onDone, saved }: { onBack: () => void; onDone: (r: TaskR
 
   if (index >= QUIZ_LEN)
     return (
-      <Screen title={`${correctCount} od ${QUIZ_LEN} pravilnih`} eyebrow="Kviz dneva" onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na Igro</button>}>
+      <Screen title={`${correctCount} od ${QUIZ_LEN} pravilnih`} eyebrow="Kviz dneva" onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na igre</button>}>
         <div className="card center-col">
           <Drop filled size={36} />
           <p className="body">Kapljica razkadi del megle{correctCount ? ` in prinese +${correctCount * 30} točk` : ''}.</p>
@@ -468,7 +468,7 @@ function Beseda({ onBack, onDone, saved }: { onBack: () => void; onDone: (r: Tas
           </div>
           <button className="btn-soft" onClick={copy}>{copied ? 'Kopirano' : 'Kopiraj rezultat'}</button>
           {msg && <pre className="share-pre">{shareText}</pre>}
-          <button className="btn" onClick={onBack}>Nazaj na Igro</button>
+          <button className="btn" onClick={onBack}>Nazaj na igre</button>
         </div>
       ) : (
         <div className="kbd">
@@ -535,7 +535,7 @@ function Dih({ onBack, onDone, saved, profile }: { onBack: () => void; onDone: (
 
   if (phase === 'end')
     return (
-      <Screen title="Lepo opravljeno." eyebrow="Dih" onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na Igro</button>}>
+      <Screen title="Lepo opravljeno." eyebrow="Dih" onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na igre</button>}>
         <div className="card center-col">
           <Drop filled size={36} />
           <p className="body">Kapljica razkadi del megle.</p>
