@@ -38,7 +38,7 @@ export const QUIZ = [
   { q: 'Kaj je meja EU za PM2,5 od leta 2030?', a: ['10 µg/m³ letno povprečje', '50 µg/m³ letno povprečje', 'Meje ni'], correct: 0, why: 'Nova direktiva EU znižuje letno mejo za PM2,5 na 10 µg/m³. Ljubljana ima povprečje okoli 14.' },
 ]
 
-export const WORDS = ['MEGLA', 'DELCI', 'VETER', 'KISIK', 'IZDIH', 'BURJA', 'PEČKA', 'PELOD', 'OBLAK', 'ASTMA']
+export const WORDS = ['MEGLA', 'DELCI', 'VETER', 'KISIK', 'IZDIH', 'BURJA', 'PEČKA', 'PELOD', 'OBLAK', 'DREVO', 'SONCE']
 export const WORD_FACTS: Record<string, string> = {
   MEGLA: 'Megla pogosto spremlja inverzijo, ko se delci ujamejo pri tleh.',
   DELCI: 'Delci PM2,5 so tako drobni, da pridejo globoko v pljuča.',
@@ -47,9 +47,10 @@ export const WORD_FACTS: Record<string, string> = {
   IZDIH: 'Počasen izdih umiri dihanje in srčni utrip.',
   BURJA: 'Burja je sunkovit veter na Primorskem, ki zrak hitro premeša.',
   PEČKA: 'Stara peč na drva lahko odda več delcev kot sto sodobnih plinskih kotlov.',
-  PELOD: 'Pelod ni delec onesnaženja, a lahko poslabša astmo spomladi.',
+  PELOD: 'Pelod ni onesnaženje. Spomladi ga je največ zjutraj, popoldne je sprehod prijetnejši.',
   OBLAK: 'Oblačne zimske noči so toplejše, zato je inverzija pogosto šibkejša.',
-  ASTMA: 'Ljudje z astmo občutijo slab zrak prej, zato zanje opozarjamo že pri zmernem.',
+  DREVO: 'Eno odraslo drevo vsako leto iz zraka pobere več kilogramov prahu in delcev.',
+  SONCE: 'Sonce čez dan segreje tla, zrak se premeša in delci se razredčijo.',
 }
 
 export interface Breath {
