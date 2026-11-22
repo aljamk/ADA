@@ -4,87 +4,97 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
-    android:orientation="vertical"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
     android:padding="14dp">
 
-    <TextView
-        android:id="@+id/station"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="LJ Bežigrad"
-        android:textColor="#CFE6EF"
-        android:textSize="13sp" />
-
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/dot"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/widget_dot" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/dot"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="6dp"
+                android:src="@drawable/widget_dot" />
+
+            <TextView
+                android:id="@+id/level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nalagam…"
+                android:textColor="#F5F5ED"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="–"
+                android:textColor="#F5F5ED"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="µg/m³ · fini delci PM2,5"
+                android:textColor="#B9CDC4"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/value"
-            android:layout_width="wrap_content"
+            android:id="@+id/range"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="–"
-            android:textColor="#FFFFFF"
-            android:textSize="32sp"
+            android:text="Zmerno = 9–35 µg/m³"
+            android:textColor="#B9CDC4"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/station"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="● MERITEV · Bežigrad · 14:00"
+            android:textColor="#F5F5ED"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/tasks"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:text="µg/m³ PM2.5"
-            android:textColor="#CFE6EF"
+            android:layout_marginTop="4dp"
+            android:text="Golob čaka: še 4 naloge"
+            android:textColor="#B9CDC4"
             android:textSize="12sp" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/level"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Nalagam…"
-        android:textColor="#FFFFFF"
-        android:textSize="13sp" />
-
-    <TextView
-        android:id="@+id/question"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Jutri ob 8h bo zrak…"
-        android:textColor="#CFE6EF"
-        android:textSize="12sp" />
-
-    <LinearLayout
-        android:id="@+id/buttons"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/bet_dober"
-            style="@style/WidgetBet"
-            android:text="Dober" />
-
-        <Button
-            android:id="@+id/bet_zmeren"
-            style="@style/WidgetBet"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="6dp"
-            android:text="Zmeren" />
-
-        <Button
-            android:id="@+id/bet_slab"
-            style="@style/WidgetBet"
-            android:text="Slab" />
-    </LinearLayout>
+    <ImageView
+        android:id="@+id/golob"
+        android:layout_width="72dp"
+        android:layout_height="90dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="Golob, maskota"
+        android:scaleType="fitCenter"
+        android:src="@drawable/golob" />
 </LinearLayout>

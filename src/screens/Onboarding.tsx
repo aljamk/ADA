@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Golob2D } from '../components/Golob'
 import { PROFILES, type ProfileKey } from '../profile'
 
 // Landscape illustration layers, positioned exactly as in Figma node 29:73 (insets in %).
@@ -34,8 +35,11 @@ export default function Onboarding({ onDone }: { onDone: (p: ProfileKey) => void
           Preskoči
         </button>
       </div>
-      <div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
         <p style={{ fontSize: 52, fontWeight: 700, lineHeight: 1.2 }}>Zrak</p>
+        <Golob2D size={88} />
+      </div>
+      <div>
         <p className="t-title">
           Veš, kaj dihaš.
           <br />

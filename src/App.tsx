@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { usAqi } from './aqi'
 import { distanceKm, fetchArso, inBasin, shortName, type Reading } from './arso'
+import { Golob2D } from './components/Golob'
 import StationPicker from './components/StationPicker'
 import TabBar, { TABS, type TabKey } from './components/TabBar'
 import { fetchForecast, next12, type Forecast, type ForecastHour } from './forecast'
@@ -62,6 +63,17 @@ export default function App() {
   const [tab, setTab] = useState<TabKey>(hash === 'ugani' ? 'igra' : hash === 'model' ? 'zemljevid' : TABS.some((t) => t.key === hash) ? (hash as TabKey) : 'zdaj')
   const [overlay, setOverlay] = useState<'odlocevalci' | 'picker' | null>(hash === 'odlocevalci' ? 'odlocevalci' : null)
   const [distance, setDistance] = useState<number>()
+  // Splash: Golob greets on every open, briefly (shorter with reduced motion)
+  const [splash, setSplash] = useState<'in' | 'out' | null>('in')
+  useEffect(() => {
+    const quick = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const a = setTimeout(() => setSplash('out'), quick ? 300 : 1300)
+    const b = setTimeout(() => setSplash(null), quick ? 500 : 1700)
+    return () => {
+      clearTimeout(a)
+      clearTimeout(b)
+    }
+  }, [])
 
   const [onboarded, setOnboarded] = useStored('onboarded', false)
   const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce')
@@ -142,6 +154,13 @@ export default function App() {
 
   return (
     <div className="app">
+      {splash && (
+        <div className={`splash ${splash}`} aria-hidden="true">
+          <Golob2D size={150} className="splash-golob" />
+          <p className="splash-name">Zrak</p>
+          <p className="splash-line">Veš, kaj dihaš.</p>
+        </div>
+      )}
       {error && <p className="error" style={{ padding: '12px 24px 0' }}>{error}</p>}
 
       {overlay === 'odlocevalci' ? (

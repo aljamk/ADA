@@ -242,3 +242,20 @@ p { margin: 0; }
 .picker li button.on { font-weight: 700; color: var(--accent); }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
 .error { color: var(--zeloslabo); font-size: 14px; }
+
+/* Golob, the pigeon mascot */
+.splash { position: fixed; inset: 0; z-index: 2000; display: grid; place-content: center; justify-items: center; gap: 6px; background: var(--bg); color: var(--text); transition: opacity .4s; }
+.splash.out { opacity: 0; pointer-events: none; }
+.splash-golob { animation: splash-in .6s cubic-bezier(.3, 1.4, .5, 1); }
+.splash-name { font-size: 44px; font-weight: 700; line-height: 1.1; }
+.splash-line { font-size: 17px; color: var(--text-2); }
+@keyframes splash-in { from { transform: translateY(24px) scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+.hero-duo { display: grid; grid-template-columns: auto auto; justify-content: center; align-items: end; gap: 0 8px; }
+.hero-duo .hero-line { grid-column: span 2; }
+.golob3d { position: relative; display: grid; justify-items: center; perspective: 520px; touch-action: none; }
+.golob3d-body { position: relative; transform-style: preserve-3d; transition: transform .25s ease-out; animation: golob-idle 5s ease-in-out infinite; }
+.golob3d-body img { position: absolute; inset: 0; }
+.golob3d-shadow { height: 10px; border-radius: 50%; background: radial-gradient(closest-side, rgb(0 0 0 / .35), transparent); margin-top: -2px; }
+.golob3d-line { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); white-space: nowrap; font-size: 12px; font-weight: 700; background: var(--surface); color: var(--text); padding: 5px 10px; border-radius: 12px 12px 12px 3px; box-shadow: 0 2px 6px rgb(0 0 0 / .15); }
+@keyframes golob-idle { 0%, 100% { transform: rotateY(-9deg) translateY(0); } 50% { transform: rotateY(9deg) translateY(-5px); } }
+@media (prefers-reduced-motion: reduce) { .golob3d-body, .splash-golob { animation: none; } }
