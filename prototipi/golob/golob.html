@@ -156,7 +156,7 @@ function GolobRece({ text }) {
   return <div className="golob-rece"><img src={GOLOB} width="72" height="90" alt="" /><p className="golob-bubble">{text}</p></div>
 }
 
-const CETRTI = [['Trnovo', 58], ['Moste', 41], ['Vič', 40], ['Jarše', 35], ['Polje', 35], ['Bežigrad', 33], ['Center', 30], ['Šiška', 27], ['Rudnik', 25], ['Črnuče', 22], ['Posavje', 20], ['Golovec', 19], ['Šentvid', 18], ['Sostro', 16], ['Dravlje', 15], ['Rožnik', 14], ['Šmarna gora', 12]]
+const CETRTI = [['Šmarna gora', 12], ['Rožnik', 14], ['Dravlje', 15], ['Sostro', 16], ['Šentvid', 18], ['Golovec', 19], ['Posavje', 20], ['Črnuče', 22], ['Rudnik', 25], ['Šiška', 27], ['Center', 30], ['Bežigrad', 33], ['Polje', 35], ['Jarše', 35], ['Vič', 40], ['Moste', 41], ['Trnovo', 58]]
 function App() {
   const [done, setDone] = useState(0)
   const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches)
@@ -165,10 +165,9 @@ function App() {
   const [evening, setEvening] = useState(false)
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light' }, [dark])
   const myIdx = CETRTI.findIndex(([n]) => n === mine)
-  const cleanRank = CETRTI.length - myIdx
-  const golobCetrt = cleanRank <= 5
+  const golobCetrt = myIdx < 5
     ? `${mine} je med petimi najčistejšimi. Tukaj bi gnezdil tudi jaz.`
-    : `${mine} je ${myIdx + 1}. od vrha? Jaz bi se preselil. Hecam se. Malo.`
+    : `${mine} je šele ${myIdx + 1}. po čistoči? Jaz bi se preselil. Hecam se. Malo.`
   const golobOpoz = airing && evening ? 'Oglasim se samo dvakrat: ko je vredno odpreti okno in večer pred slabim dnem. Drugače molčim.'
     : airing ? 'Povem ti, kdaj odpreti okno. Ne prej, ne pozneje. Golobi imamo nos za to.'
     : evening ? 'Večer pred slabim dnem ti pošljem opozorilo. Brez panike, samo načrtuj sprehod.'
@@ -195,11 +194,11 @@ function App() {
         </section>
         <section className="panel">
           <h2>Četrti · Golob malce pametuje</h2>
-          <p className="t-label">Ljubljana · od najbolj do najmanj onesnažene</p>
+          <p className="t-label">Ljubljana · od najčistejše do najbolj onesnažene</p>
           <p className="t-title">Četrti</p>
           <GolobRece text={golobCetrt} />
           <div className="rows">
-            {CETRTI.slice(0, 8).map(([n, v], i) => <div key={n} className={`row${n === mine ? ' me' : ''}`}><span className="n">{i + 1}</span><span>{n}{n === mine && <span className="chip">tvoja četrt</span>}</span><span>{v} µg/m³</span></div>)}
+            {CETRTI.slice(0, 12).map(([n, v], i) => <div key={n} className={`row${n === mine ? ' me' : ''}`}><span className="n">{i + 1}</span><span>{n}{n === mine && <span className="chip">tvoja četrt</span>}</span><span>{v} µg/m³</span></div>)}
             <p className="t-small" style={{ padding: '8px 12px' }}>… do 17. mesta</p>
           </div>
         </section>

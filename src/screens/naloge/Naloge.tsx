@@ -1,4 +1,4 @@
-// Zavihek Igra: rastlina v pljučih + štiri dnevne naloge (Napoved, Kviz, Beseda dneva, Dih) + Ugani zrak.
+// Zavihek Igra: Golob v megli + štiri dnevne naloge (Napoved, Kviz, Beseda dneva, Dih). Vsaka naloga razkadi del megle.
 // Prenešeno iz prototipa (prototipi/igra). Stanje ostane na napravi.
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { shortName, type Reading } from '../../arso'
@@ -8,7 +8,7 @@ import {
   direction, guessPoints, loadGuesses, loadTasks, playStreak, saveGuesses, saveTasks, taskTotalPoints,
   type Guess, type TaskKey, type TaskResult, type TaskLog,
 } from '../../naloge'
-import { Golob3D } from '../../components/Golob'
+import { GolobMegla } from '../../components/Golob'
 import { syncWidget } from '../../native'
 import type { ProfileKey } from '../../profile'
 import { dateStr, hh, hourStr, tomorrow8 } from '../../time'
@@ -320,7 +320,7 @@ function Kviz({ onBack, onDone, saved }: { onBack: () => void; onDone: (r: TaskR
       <Screen title={`${correctCount} od ${QUIZ_LEN} pravilnih`} eyebrow="Kviz dneva" onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na Igro</button>}>
         <div className="card center-col">
           <Drop filled size={36} />
-          <p className="body">Kapljica gre tvoji rastlini{correctCount ? ` in +${correctCount * 30} točk` : ''}.</p>
+          <p className="body">Kapljica razkadi del megle{correctCount ? ` in prinese +${correctCount * 30} točk` : ''}.</p>
         </div>
         <ol className="quiz-summary">
           {order.map((q, i) => (
@@ -580,7 +580,7 @@ function Dih({ onBack, onDone, saved, profile }: { onBack: () => void; onDone: (
       <Screen title="Lepo opravljeno." eyebrow="Dih" onBack={onBack} footer={<button className="btn" onClick={onBack}>Nazaj na Igro</button>}>
         <div className="card center-col">
           <Drop filled size={36} />
-          <p className="body">Kapljica gre tvoji rastlini.</p>
+          <p className="body">Kapljica razkadi del megle.</p>
         </div>
       </Screen>
     )
@@ -610,10 +610,9 @@ function Home({ done, onOpen, streak, xp }: {
   const drops = Object.keys(done).length
   return (
     <div className="screen home">
-      <header className="hero hero-duo">
-        <Plant stage={drops} size={150} />
-        <Golob3D size={110} line={drops === 4 ? 'Bravo. Danes si vse opravil(a).' : drops === 0 ? 'Grem s tabo. Štiri naloge.' : `Še ${4 - drops} ${4 - drops === 1 ? 'naloga' : 4 - drops === 2 ? 'nalogi' : 'naloge'}.`} />
-        <p className="hero-line">{drops === 0 ? 'Rastlina je žejna. Ena naloga jo osveži.' : drops === 4 ? 'Rastlina je danes v polnem cvetu.' : 'Rastlina raste z vsako nalogo.'}</p>
+      <header className="hero">
+        <GolobMegla done={drops} size={170} line={drops === 4 ? 'Končno dihamo.' : drops === 0 ? 'Kje si? Nič ne vidim.' : `Še ${4 - drops} ${4 - drops === 1 ? 'naloga' : 4 - drops === 2 ? 'nalogi' : 'naloge'} in bo jasno.`} />
+        <p className="hero-line">{drops === 0 ? 'Golob je v megli. Vsaka naloga razkadi del megle.' : drops === 4 ? 'Megla se je razkadila. Golob diha čist zrak.' : 'Megla se redči z vsako opravljeno nalogo.'}</p>
       </header>
 
       <section className="status">

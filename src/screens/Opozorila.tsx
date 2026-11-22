@@ -1,3 +1,5 @@
+import { GolobRece } from '../components/Golob'
+
 export interface AlertSettings {
   airing: boolean // "Obvesti me, ko je priporočljivo prezračiti"
   airingFrom: number
@@ -52,6 +54,17 @@ export default function Opozorila({ settings, onChange, stationName }: { setting
       </div>
       <p className="t-sub" style={{ marginTop: 8 }}>Samo, ko ti koristi.</p>
       <p className="t-body t-2">Nasveti za {stationName}. Brez sledenja lokaciji v ozadju.</p>
+      <GolobRece
+        text={
+          settings.airing && settings.eveningBefore
+            ? 'Oglasim se samo dvakrat: ko je vredno odpreti okno in večer pred slabim dnem. Drugače molčim.'
+            : settings.airing
+              ? 'Povem ti, kdaj odpreti okno. Ne prej, ne pozneje. Golobi imamo nos za to.'
+              : settings.eveningBefore
+                ? 'Večer pred slabim dnem ti pošljem opozorilo. Brez panike, samo načrtuj sprehod.'
+                : 'Vse izklopljeno? Prav. Golobi znamo biti tiho. Skoraj.'
+        }
+      />
 
       <section className="setting">
         <b className="t-body" style={{ fontWeight: 700 }}>Obvesti me, ko je<br />priporočljivo prezračiti</b>

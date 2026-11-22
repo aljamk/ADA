@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { levelOfPm } from '../aqi'
+import { GolobRece } from '../components/Golob'
 import { distanceKm, shortName, type Reading } from '../arso'
 import { MAP_STATIONS } from './Zemljevid'
 
@@ -34,7 +35,7 @@ interface Props {
 }
 
 /**
- * 10 · Četrti: the 17 četrtne skupnosti of Ljubljana ranked from the most to the least polluted right now.
+ * 10 · Četrti: the 17 četrtne skupnosti of Ljubljana ranked from the cleanest to the most polluted right now.
  * The value per četrt is an ESTIMATE: the current measurement of the three ARSO stations, interpolated
  * to the četrt and scaled by its long-term exposure index. It refreshes with every ARSO hour.
  */
@@ -54,12 +55,22 @@ export default function Cetrti({ readings, station }: Props) {
       const base = idw(c.lat, c.lon, stations)
       return { ...c, pm: base == null ? null : Math.round(base * c.rel) }
     })
-    .sort((a, b) => (b.pm ?? -1) - (a.pm ?? -1))
+    .sort((a, b) => (a.pm ?? Infinity) - (b.pm ?? Infinity))
+
+  // Golob comments on your četrt: praise among the five cleanest, a light tease otherwise
+  const myIdx = rows.findIndex((c) => c.ime === mine)
+  const myRow = myIdx >= 0 ? rows[myIdx] : null
+  const day = Math.floor(Date.now() / 86400000)
+  const golob = !myRow || myRow.pm == null
+    ? 'Še računam. Golobi nismo hitri z matematiko.'
+    : myIdx < 5
+      ? [`${myRow.ime} je med petimi najčistejšimi. Tukaj bi gnezdil tudi jaz.`, `${myRow.ime}: ${myRow.pm} µg/m³. Dihaj, splača se.`, `Lepo. ${myRow.ime} je danes ${myIdx + 1}. najčistejša. Ne hvali se preveč.`][day % 3]
+      : [`${myRow.ime} je šele ${myIdx + 1}. po čistoči? Jaz bi se preselil. Hecam se. Malo.`, `Si res v ${myRow.ime}? Prosim, ne diši pregloboko.`, `${myRow.ime}: ${myRow.pm} µg/m³. Danes letim drugam, brez zamere.`, `${myRow.ime} ni med petimi najčistejšimi. Naloge v Igri ne čistijo zraka, ampak vsaj mene razvedrijo.`][day % 4]
 
   return (
     <div className="screen">
       <div>
-        <p className="t-label">Ljubljana · od najbolj do najmanj onesnažene</p>
+        <p className="t-label">Ljubljana · od najčistejše do najbolj onesnažene</p>
         <p className="t-title">Četrti</p>
       </div>
 
@@ -79,7 +90,9 @@ export default function Cetrti({ readings, station }: Props) {
         )}
       </section>
 
-      <div className="rows" role="table" aria-label="Četrti po onesnaženosti">
+      <GolobRece text={golob} />
+
+      <div className="rows" role="table" aria-label="Četrti po čistoči zraka">
         {rows.map((c, i) => {
           const lvl = c.pm != null ? levelOfPm(c.pm) : null
           return (
