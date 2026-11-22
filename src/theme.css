@@ -287,9 +287,9 @@ p { margin: 0; }
 .golob-mood-figure { position: absolute; inset: 0; transform-origin: 50% 90%; }
 .golob-layer { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .golob-layer.telo { z-index: 1; }
-.golob-layer.krilo { transform-origin: 63.3% 55%; z-index: 2; }
+.golob-layer.krilce { transform-origin: 32% 50%; z-index: 2; } /* folded wing: lifts from its top */
+.golob-layer.krilo { transform-origin: 63.3% 55%; z-index: 3; }
 .golob-part { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.golob-mood-figure .golob-part { z-index: 3; } /* the tongue sits above both layers */
 .golob-mood.dobro .golob-mood-figure { animation: golob-dance 1.1s ease-in-out infinite; }
 .golob-mood.dobro .krilo { animation: golob-flap 0.55s ease-in-out infinite; }
 .golob-mood .note { opacity: 0; animation: golob-note 2.2s ease-out infinite; }
@@ -298,8 +298,10 @@ p { margin: 0; }
 .golob-mood.zmerno .krilo { animation: golob-soso 1.3s ease-in-out infinite; }
 .golob-mood.slabo .golob-mood-figure { animation: golob-shrug-body 2.4s ease-in-out infinite; }
 .golob-mood.slabo .krilo { animation: golob-shrug-wing 2.4s ease-in-out infinite; }
-.golob-mood.zeloslabo .krilo { animation: golob-droop 1.6s ease-in-out infinite; }
-.golob-mood.zeloslabo .tongue { transform-origin: 430px 212px; animation: golob-tongue 0.9s ease-in-out infinite; }
+/* zelo slaba: a shoulder shrug with both wings, twice in a row */
+.golob-mood.zeloslabo .golob-mood-figure { animation: golob-shrug2-body 2.6s ease-in-out infinite; }
+.golob-mood.zeloslabo .krilo { animation: golob-shrug2-wing 2.6s ease-in-out infinite; }
+.golob-mood.zeloslabo .krilce { animation: golob-shrug2-front 2.6s ease-in-out infinite; }
 .golob-mood.nevarno .golob-mood-figure { transform: translateY(26%) scale(0.92); animation: golob-tremble 0.14s linear infinite; }
 .golob-mood.nevarno .krilo { transform: scale(0.72, 0.8) rotate(10deg); }
 .golob-mood.nevarno .nest-back { z-index: 0; }
@@ -311,12 +313,14 @@ p { margin: 0; }
 @keyframes golob-soso { 0%, 100% { transform: scale(1.16, 0.96) rotate(-4deg); } 50% { transform: scale(1.16, 1.04) rotate(4deg); } }
 @keyframes golob-shrug-body { 0%, 55%, 100% { transform: translateY(0); } 70%, 85% { transform: translateY(-4%); } }
 @keyframes golob-shrug-wing { 0%, 55%, 100% { transform: scale(1, 1); } 70%, 85% { transform: scale(1.18, 1.06) rotate(-3deg); } }
-@keyframes golob-droop { 0%, 100% { transform: scale(0.86, 0.9) rotate(8deg); } 50% { transform: scale(0.84, 0.88) rotate(11deg); } }
-@keyframes golob-tongue { 0%, 100% { transform: scaleY(1) rotate(-6deg); } 50% { transform: scaleY(1.15) rotate(6deg); } }
+@keyframes golob-shrug2-body { 0%, 40%, 100% { transform: translateY(0) scaleY(1); } 50%, 60% { transform: translateY(-5%) scaleY(1.04); } 70% { transform: translateY(-1%) scaleY(1.01); } 80%, 90% { transform: translateY(-5%) scaleY(1.04); } }
+@keyframes golob-shrug2-wing { 0%, 40%, 100% { transform: scale(1, 1); } 50%, 60% { transform: scale(1.16, 1.08) rotate(-5deg); } 70% { transform: scale(1.04, 1.02); } 80%, 90% { transform: scale(1.16, 1.08) rotate(-5deg); } }
+@keyframes golob-shrug2-front { 0%, 40%, 100% { transform: translateY(0) rotate(0deg); } 50%, 60% { transform: translateY(-6%) rotate(-8deg); } 70% { transform: translateY(-1%); } 80%, 90% { transform: translateY(-6%) rotate(-8deg); } }
 @keyframes golob-tremble { 0%, 100% { transform: translate(-1.5%, 26%) scale(0.92); } 50% { transform: translate(1.5%, 26%) scale(0.92); } }
 @media (prefers-reduced-motion: reduce) {
-  .golob-mood .golob-mood-figure, .golob-mood .tongue, .golob-mood .krilo { animation: none; }
+  .golob-mood .golob-mood-figure, .golob-mood .krilo, .golob-mood .krilce { animation: none; }
   .golob-mood.zmerno .krilo { transform: scale(1.16, 1); }
-  .golob-mood.zeloslabo .krilo { transform: scale(0.86, 0.9) rotate(8deg); }
+  .golob-mood.zeloslabo .krilo { transform: scale(1.16, 1.08) rotate(-5deg); }
+  .golob-mood.zeloslabo .krilce { transform: translateY(-6%) rotate(-8deg); }
   .golob-mood .note { opacity: 1; animation: none; }
 }

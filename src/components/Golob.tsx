@@ -88,12 +88,12 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
 
 /**
  * The pigeon acting out the air quality (Zdaj, under the advice) with its own wing: the drawing is split into
- * two layers on the same canvas (public/golob-telo.png, public/golob-krilo.png, made by scripts/cut_wings.py)
- * and the raised wing turns around its shoulder. Only the notes, the tongue and the nest are drawn extra.
+ * three layers on the same canvas (public/golob-telo.png, golob-krilce.png = the folded wing on the chest,
+ * golob-krilo.png = the raised wing; scripts/cut_wings.py). Only the notes and the nest are drawn extra.
  *  dobro      dances and flaps (notes)
  *  zmerno     holds the wing out and tilts it ("so-so")
  *  slabo      shrugs: the wing jerks up, the body hops
- *  zeloslabo  wing pointing down, tongue out
+ *  zeloslabo  a shoulder shrug with both wings
  *  nevarno    wing folded, hiding and trembling in a nest
  */
 export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size?: number }) {
@@ -103,7 +103,7 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
     dobro: 'Golob pleše: zrak je dober.',
     zmerno: 'Golob maha s krilom: tako-tako.',
     slabo: 'Golob skomigne: zrak je slab.',
-    zeloslabo: 'Golob kaže s krilom navzdol in moli jezik: zrak je zelo slab.',
+    zeloslabo: 'Golob skomigne z obema kriloma: zrak je zelo slab.',
     nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',
   }
   return (
@@ -115,10 +115,8 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
       )}
       <div className="golob-mood-figure">
         <img className="golob-layer telo" src="/golob-telo.png" alt="" draggable={false} />
+        <img className="golob-layer krilce" src="/golob-krilce.png" alt="" draggable={false} />
         <img className="golob-layer krilo" src="/golob-krilo.png" alt="" draggable={false} />
-        <svg className="golob-part" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
-          {level === 'zeloslabo' && <path className="tongue" d="M408 212 q22 100 44 0 z" fill="#e86f8a" />}
-        </svg>
       </div>
       <svg className="golob-part" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
         {level === 'dobro' && (
