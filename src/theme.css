@@ -126,18 +126,18 @@ p { margin: 0; }
 
 /* Zemljevid */
 /* isolation: Leaflet's panes (z-index 400-1000) stay inside the map, so the sheet below can overlap its bottom edge */
-.map { position: relative; isolation: isolate; height: clamp(300px, 42vh, 429px); height: clamp(300px, 42dvh, 429px); margin: 0 -24px; border-radius: 24px; background: var(--map); overflow: hidden; }
+.map { position: relative; isolation: isolate; height: clamp(300px, 42vh, 429px); height: clamp(300px, 42dvh, 429px); margin: 0 -8px; border-radius: 28px; background: var(--map); overflow: hidden; }
 .map-canvas { position: absolute; inset: 0; background: #1d2a2a; }
 .map-canvas .leaflet-control-attribution { font-size: 9px; line-height: 12px; padding: 0 5px; background: rgb(255 255 255 / 0.75); color: #294b3d; border-radius: 6px 6px 0 0; margin: 0; white-space: nowrap; }
 /* attribution: bottom-right corner, under the zoom buttons (its own Leaflet corner, so it never stacks with them) */
-.map .leaflet-bottom.leaflet-left { bottom: 0; left: auto; right: 8px; }
+.map .leaflet-bottom.leaflet-left { bottom: 0; left: auto; right: 16px; }
 .map .leaflet-bottom.leaflet-right { bottom: 14px; }
 .map .leaflet-control-attribution a { color: inherit; }
 .map .seg, .map .legend { z-index: 1000; }
 .map .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; font-size: 20px; }
 .map .leaflet-marker-icon { z-index: 600 !important; }
 .map-surface { filter: blur(10px); }
-.seg { position: absolute; left: 24px; right: 24px; top: 16px; height: 44px; background: var(--surface); border-radius: 14px; padding: 4px; display: flex; }
+.seg { position: absolute; left: 12px; right: 12px; top: 12px; height: 44px; background: var(--surface); border-radius: 14px; padding: 4px; display: flex; }
 .seg button { flex: 1; border: none; background: none; border-radius: 11px; font-size: 16px; font-weight: 500; color: var(--text-2); }
 .seg button.on { background: var(--soft); color: var(--text); font-weight: 700; }
 .bubble { position: relative; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #00303f; display: grid; place-items: center; font-size: 17px; font-weight: 700; color: #294b3d; padding: 0; }
