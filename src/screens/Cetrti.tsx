@@ -2,22 +2,8 @@ import { useState } from 'react'
 import { levelOfPm } from '../aqi'
 import { GolobRece } from '../components/Golob'
 import { shortName, type Reading } from '../arso'
-import type { Cetrt } from '../cetrti'
+import { estimateFor, type Cetrt } from '../cetrti'
 import { MAP_STATIONS } from './Zemljevid'
-
-/** Inverse-distance estimate of the current PM2.5 at a point, from the Ljubljana stations (km) */
-function idw(lat: number, lon: number, stations: Reading[]) {
-  let num = 0
-  let den = 0
-  for (const s of stations) {
-    const dx = (s.lon - lon) * 111 * Math.cos((lat * Math.PI) / 180)
-    const dy = (s.lat - lat) * 111
-    const w = 1 / Math.max(1, dx * dx + dy * dy)
-    num += w * (s.pm25 as number)
-    den += w
-  }
-  return den ? num / den : null
-}
 
 /** "2026-11-22 09:00" → "22. 11. ob 9h" */
 const when = (t: string) => `${Number(t.slice(8, 10))}. ${Number(t.slice(5, 7))}. ob ${Number(t.slice(11, 13))}h`
@@ -25,7 +11,7 @@ const when = (t: string) => `${Number(t.slice(8, 10))}. ${Number(t.slice(5, 7))}
 interface Props {
   readings: Reading[]
   cetrti: Cetrt[]
-  /** Your četrt: the one nearest to the station chosen on Zdaj (location is chosen only there) */
+  /** Your četrt, chosen on Zdaj (location is chosen only there) */
   mine: string | null
   station: string
 }
@@ -43,8 +29,7 @@ export default function Cetrti({ readings, cetrti, mine, station }: Props) {
   const my = readings.find((r) => r.code === station)
   const rows = cetrti
     .map((c) => {
-      const base = idw(c.lat, c.lon, stations)
-      return { ...c, pm: base == null ? null : Math.round(base * c.rel) }
+      return { ...c, pm: estimateFor(c, stations) }
     })
     .sort((a, b) => (a.pm ?? Infinity) - (b.pm ?? Infinity))
 
@@ -91,7 +76,7 @@ export default function Cetrti({ readings, cetrti, mine, station }: Props) {
               <span>
                 {c.ime}
                 {c.ime === mine && my && (
-                  <span className="chip" style={{ height: 20, fontSize: 11, marginLeft: 8, background: 'var(--accent)', color: 'var(--on-accent)' }} title={`Po postaji ${shortName(my.name)} z zaslona Zdaj`}>
+                  <span className="chip" style={{ height: 20, fontSize: 11, marginLeft: 8, background: 'var(--accent)', color: 'var(--on-accent)' }} title={`Vir na zaslonu Zdaj: ${shortName(my.name)}`}>
                     tvoja četrt
                   </span>
                 )}
@@ -104,7 +89,7 @@ export default function Cetrti({ readings, cetrti, mine, station }: Props) {
       </div>
 
       <p className="t-small" style={{ fontSize: 11 }}>
-Tvoja četrt sledi postaji, izbrani na zaslonu Zdaj. OCENA, ne meritev: v Ljubljani merijo tri uradne postaje ARSO. Vrstni red se spreminja z meritvami, razlike med sosednjimi četrtmi so lahko znotraj napake ocene.
+Četrt izbereš na zaslonu Zdaj. OCENA, ne meritev: v Ljubljani merijo tri uradne postaje ARSO. Vrstni red se spreminja z meritvami, razlike med sosednjimi četrtmi so lahko znotraj napake ocene.
       </p>
     </div>
   )

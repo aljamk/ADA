@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { usAqi } from './aqi'
-import { distanceKm, fetchArso, inBasin, nearest, shortName, type Reading } from './arso'
-import { cetrtOfStation, loadCetrti, type Cetrt } from './cetrti'
-import { fetchCitizen, isCitizen } from './sensors'
+import { distanceKm, fetchArso, inBasin, shortName, type Reading } from './arso'
+import { arsoFor, loadCetrti, sourceFor, type Cetrt } from './cetrti'
+import { fetchCitizen } from './sensors'
 import { Golob2D } from './components/Golob'
+import CetrtPicker from './components/CetrtPicker'
 import StationPicker from './components/StationPicker'
 import TabBar, { TABS, type TabKey } from './components/TabBar'
 import { fetchForecast, next12, type Forecast, type ForecastHour } from './forecast'
@@ -80,12 +81,13 @@ export default function App() {
 
   const [onboarded, setOnboarded] = useStored('onboarded', false)
   const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce')
-  const [station, setStation] = useStored('station', 'E403') // LJ Bežigrad
   const [log] = useStored<GameLog>('ugani', {})
   const [alerts, setAlerts] = useStored<AlertSettings>('alerts', DEFAULT_ALERTS)
   const [mine, setMine] = useStored<string[]>('mojePostaje', ['E403']) // model view on the map: home, work, …
-  // Your četrt follows the station chosen on Zdaj (the only place to choose a location) and is used across the app
+  // Your četrt, chosen on Zdaj (the only place to choose a location), used across the app.
+  // The station or sensor that stands for it is derived: the nearest official one, or a clearly closer citizen sensor.
   const [cetrti, setCetrti] = useState<Cetrt[]>([])
+  const [cetrt, setCetrt] = useStored('cetrt', 'Bežigrad')
   useEffect(() => {
     loadCetrti().then(setCetrti)
   }, [])
@@ -113,7 +115,12 @@ export default function App() {
     }
   }, [])
 
-  // Model forecast for the chosen station, my map stations and the three map stations
+  const all = [...readings, ...citizen]
+  const myCetrt = cetrti.find((c) => c.ime === cetrt) ?? cetrti[0] ?? null
+  const current = myCetrt ? sourceFor(myCetrt, all) ?? undefined : undefined
+  const station = current?.code ?? 'E403'
+
+  // Model forecast for the chosen source, my map stations and the three map stations
   useEffect(() => {
     for (const code of new Set([station, ...mine, ...MAP_STATIONS.map((s) => s.code)])) {
       const r = [...readings, ...citizen].find((x) => x.code === code)
@@ -125,32 +132,31 @@ export default function App() {
     }
   }, [readings, citizen, station, mine, forecasts])
 
-  const all = [...readings, ...citizen]
-  const current = all.find((r) => r.code === station)
-  const myCetrt = current ? cetrtOfStation(cetrti, current) : null
   const fc = forecasts[station]
   const hours12 = current && fc ? next12(fc, current.from) : []
 
-  // The widget reads ARSO itself, so when a citizen sensor is chosen it gets the nearest ARSO station
+  // The widget reads ARSO itself, so it always gets the nearest official station to your četrt
   useEffect(() => {
-    const w = current && isCitizen(current) ? nearest(readings.filter(inBasin), current.lat, current.lon) : current
-    syncWidget({ station: w?.code ?? station, stationName: w ? shortName(w.name) : '' })
-  }, [station, current, readings])
+    const w = myCetrt ? arsoFor(myCetrt, readings) : null
+    syncWidget({ station: w?.code ?? 'E403', stationName: w ? shortName(w.name) : '' })
+  }, [myCetrt, readings])
 
   useEffect(() => {
     if (current && fc) checkAlerts(alerts, hours12, fc, profile)
   }, [alerts, current, fc, hours12, profile])
 
-  // Distance is shown only if the user chose "use my location" in the picker (one-time, not stored)
-  const pickStation = (code: string, at?: { lat: number; lon: number }) => {
+  // Zdaj: choose your četrt. Distance is shown only if the user chose "use my location" (one-time, not stored)
+  const pickCetrt = (name: string, at?: { lat: number; lon: number }) => {
     setOverlay(null)
-    if (pickFor === 'zemljevid') {
-      if (!mine.includes(code)) setMine([...mine, code])
-      return
-    }
-    setStation(code)
-    const r = all.find((x) => x.code === code)
-    setDistance(at && r ? distanceKm(at.lat, at.lon, r.lat, r.lon) : undefined)
+    setCetrt(name)
+    const c = cetrti.find((x) => x.ime === name)
+    const src = c ? sourceFor(c, all) : null
+    setDistance(at && src ? distanceKm(at.lat, at.lon, src.lat, src.lon) : undefined)
+  }
+  // Map: add a station or sensor to "my stations"
+  const addStation = (code: string) => {
+    setOverlay(null)
+    if (!mine.includes(code)) setMine([...mine, code])
   }
 
 
@@ -189,7 +195,8 @@ export default function App() {
                 hours={hours12}
                 profile={profile}
                 distance={distance}
-                cetrt={myCetrt}
+                cetrt={myCetrt?.ime ?? null}
+                sourceKm={current && myCetrt ? distanceKm(current.lat, current.lon, myCetrt.lat, myCetrt.lon) : undefined}
                 onStation={() => { setPickFor('zdaj'); setOverlay('picker') }}
                 onDecisionMakers={() => setOverlay('odlocevalci')}
               />
@@ -200,7 +207,7 @@ export default function App() {
             <Zemljevid readings={all} forecasts={forecasts} station={station} mine={mine} onMine={setMine} onAddStation={() => { setPickFor('zemljevid'); setOverlay('picker') }} initialMode={hash === 'model' ? 'model' : 'meritev'} />
           )}
           {tab === 'igra' && <Naloge reading={current} fc={fc} profile={profile} log={log} />}
-          {tab === 'cetrti' && <Cetrti readings={readings} cetrti={cetrti} mine={myCetrt} station={station} />}
+          {tab === 'cetrti' && <Cetrti readings={readings} cetrti={cetrti} mine={myCetrt?.ime ?? null} station={station} />}
           {tab === 'opozorila' && (
             <Opozorila settings={alerts} onChange={setAlerts} stationName={current ? shortName(current.name) : 'tvojo postajo'} />
           )}
@@ -208,7 +215,11 @@ export default function App() {
       )}
 
       {overlay === 'picker' && (
-        <StationPicker readings={all.filter(inBasin)} value={station} onPick={pickStation} onClose={() => setOverlay(null)} />
+        (pickFor === 'zdaj' ? (
+          <CetrtPicker cetrti={cetrti} readings={all} value={myCetrt?.ime ?? null} onPick={pickCetrt} onClose={() => setOverlay(null)} />
+        ) : (
+          <StationPicker readings={all.filter(inBasin)} value={station} onPick={addStation} onClose={() => setOverlay(null)} />
+        ))
       )}
 
       <TabBar
