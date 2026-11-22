@@ -79,7 +79,8 @@ export default function App() {
     }
   }, [])
 
-  const [onboarded, setOnboarded] = useStored('onboarded', false)
+  // The welcome screen (who are the advice for?) opens on every launch, with the saved choice preselected
+  const [intro, setIntro] = useState(true)
   const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce') // the most sensitive chosen group
   const [profiles, setProfiles] = useStored<ProfileKey[]>('profiles', []) // every chosen group, for the advice card
   const groups = profiles.length ? profiles : [profile]
@@ -166,15 +167,25 @@ const hours24 = current && fc ? next24(fc, current.from) : []
   }
 
 
+  const splashEl = splash && (
+    <div className={`splash ${splash}`} aria-hidden="true">
+      <Golob2D size={150} className="splash-golob" />
+      <p className="splash-name">Kaj dihaš?</p>
+      <p className="splash-line">Zrak v Ljubljani. Veš, kdaj ven.</p>
+    </div>
+  )
+
   // ?intro=0 skips the welcome screen (demos and screenshots)
-  if (!onboarded && new URLSearchParams(location.search).get('intro') !== '0')
+  if (intro && new URLSearchParams(location.search).get('intro') !== '0')
     return (
       <div className="app">
+        {splashEl}
         <Onboarding
+          initial={groups}
           onDone={(keys) => {
             setProfiles(keys)
             setProfile(primaryProfile(keys))
-            setOnboarded(true)
+            setIntro(false)
           }}
         />
       </div>
@@ -182,13 +193,7 @@ const hours24 = current && fc ? next24(fc, current.from) : []
 
   return (
     <div className="app">
-      {splash && (
-        <div className={`splash ${splash}`} aria-hidden="true">
-          <Golob2D size={150} className="splash-golob" />
-          <p className="splash-name">Kaj dihaš?</p>
-          <p className="splash-line">Zrak v Ljubljani. Veš, kdaj ven.</p>
-        </div>
-      )}
+      {splashEl}
       {error && <p className="error" style={{ padding: '12px 24px 0' }}>{error}</p>}
 
       {overlay === 'odlocevalci' ? (

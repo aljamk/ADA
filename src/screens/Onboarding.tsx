@@ -26,8 +26,8 @@ export function Landscape() {
 }
 
 /** 01 · Dobrodošli: optional profile, no account, nothing leaves the device. */
-export default function Onboarding({ onDone }: { onDone: (p: ProfileKey[]) => void }) {
-  const [pick, setPick] = useState<ProfileKey[]>([])
+export default function Onboarding({ onDone, initial = [] }: { onDone: (p: ProfileKey[]) => void; initial?: ProfileKey[] }) {
+  const [pick, setPick] = useState<ProfileKey[]>(initial.filter((k) => k !== 'nihce'))
   // Several groups can be chosen (e.g. older and asthma); "Nihče posebej" clears the others
   const toggle = (k: ProfileKey) =>
     setPick((cur) => (k === 'nihce' ? ['nihce'] : cur.includes(k) ? cur.filter((x) => x !== k) : [...cur.filter((x) => x !== 'nihce'), k]))
