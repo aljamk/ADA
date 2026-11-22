@@ -302,10 +302,12 @@ p { margin: 0; }
 .golob-mood.slabo .golob-mood-figure { animation: golob-ruffle 2.6s ease-in-out infinite; }
 .golob-mood.slabo .krilo { animation: golob-ruffle-wing 2.6s ease-in-out infinite; }
 .golob-mood.slabo .krilce { animation: golob-ruffle-front 2.6s ease-in-out infinite; }
-/* zelo slaba: hunched, head pulled in, wing drooping, breathing heavily, a head shake now and then */
+/* zelo slaba: hunched with the head pulled in, breathing heavily, both wings beating up and down. The wings
+   pivot at the bottom of the line where they join the body, so the lower side never comes off. */
 .golob-mood.zeloslabo .golob-mood-figure { animation: golob-breathe 2.4s ease-in-out infinite; }
 .golob-mood.zeloslabo .glava { animation: golob-hunch 4.8s ease-in-out infinite; }
-.golob-mood.zeloslabo .krilo { transform: rotate(7deg) scale(0.96, 0.96); }
+.golob-mood.zeloslabo .krilo { transform-origin: 65% 80%; animation: golob-beat-wing 0.6s ease-in-out infinite; }
+.golob-mood.zeloslabo .krilce { transform-origin: 31% 87%; animation: golob-beat-front 0.6s ease-in-out infinite; }
 /* nevarna: in the nest, trembling */
 .golob-mood.nevarno .golob-mood-figure { transform: translateY(26%) scale(0.92); animation: golob-tremble 0.14s linear infinite; }
 .golob-mood.nevarno .krilo { transform: scale(0.72, 0.8) rotate(10deg); }
@@ -319,11 +321,14 @@ p { margin: 0; }
 @keyframes golob-ruffle { 0%, 45%, 100% { transform: scale(1, 1) rotate(0deg); } 55% { transform: scale(1.06, 1.04) rotate(-3deg); } 61% { transform: scale(1.06, 1.04) rotate(3deg); } 67% { transform: scale(1.06, 1.04) rotate(-3deg); } 73% { transform: scale(1.06, 1.04) rotate(3deg); } 85% { transform: scale(1.03, 1.02) rotate(0deg); } }
 @keyframes golob-ruffle-wing { 0%, 45%, 100% { transform: scale(1, 1); } 55% { transform: scale(1.08, 1.06) rotate(-5deg); } 61% { transform: scale(1.08, 1.06) rotate(4deg); } 67% { transform: scale(1.08, 1.06) rotate(-5deg); } 73% { transform: scale(1.08, 1.06) rotate(4deg); } 85% { transform: scale(1.02, 1.02); } }
 @keyframes golob-ruffle-front { 0%, 45%, 100% { transform: translateY(0); } 55% { transform: translateY(-3%) rotate(-4deg); } 61% { transform: translateY(-3%) rotate(4deg); } 67% { transform: translateY(-3%) rotate(-4deg); } 73% { transform: translateY(-3%) rotate(4deg); } 85% { transform: translateY(0); } }
+@keyframes golob-beat-wing { 0%, 100% { transform: scaleY(1.1) rotate(-3deg); } 50% { transform: scaleY(0.94) rotate(2.5deg); } }
+@keyframes golob-beat-front { 0%, 100% { transform: scaleY(1.07) rotate(-3deg); } 50% { transform: scaleY(0.95) rotate(2deg); } }
 @keyframes golob-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.025, 1.035); } }
 @keyframes golob-hunch { 0%, 100% { transform: translateY(5%) rotate(0deg); } 78% { transform: translateY(5%) rotate(0deg); } 81% { transform: translateY(5%) rotate(-7deg); } 84% { transform: translateY(5%) rotate(7deg); } 87% { transform: translateY(5%) rotate(-5deg); } 90% { transform: translateY(5%) rotate(0deg); } }
 @keyframes golob-tremble { 0%, 100% { transform: translate(-1.5%, 26%) scale(0.92); } 50% { transform: translate(1.5%, 26%) scale(0.92); } }
 @media (prefers-reduced-motion: reduce) {
   .golob-mood .golob-mood-figure, .golob-mood .krilo, .golob-mood .krilce, .golob-mood .glava { animation: none; }
   .golob-mood.zeloslabo .glava { transform: translateY(5%); }
+  .golob-mood.zeloslabo .krilo, .golob-mood.zeloslabo .krilce { transform: none; }
   .golob-mood .note { opacity: 1; animation: none; }
 }

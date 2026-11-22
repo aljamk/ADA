@@ -93,7 +93,7 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
  *  dobro      dances and flaps (notes)
  *  zmerno     stands still and bobs its head
  *  slabo      ruffles: puffs up and shakes its feathers
- *  zeloslabo  hunched: head pulled in, wing drooping, heavy breathing, a head shake now and then
+ *  zeloslabo  hunched: head pulled in, heavy breathing, both wings beating up and down
  *  nevarno    wing folded, hiding and trembling in a nest
  */
 export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size?: number }) {
@@ -103,7 +103,7 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
     dobro: 'Golob pleše: zrak je dober.',
     zmerno: 'Golob ziba z glavo: tako-tako.',
     slabo: 'Golob se ščeperi in otresa perje: zrak je slab.',
-    zeloslabo: 'Golob je sključen in težko diha: zrak je zelo slab.',
+    zeloslabo: 'Golob je sključen, težko diha in prhuta z obema kriloma: zrak je zelo slab.',
     nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',
   }
   return (
