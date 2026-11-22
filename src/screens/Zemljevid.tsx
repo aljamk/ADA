@@ -143,7 +143,8 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     L.control.attribution({ position: 'topright', prefix: false }).addTo(m)
     L.tileLayer(SAT, { attribution: ATTR, maxZoom: 18 }).addTo(m)
     L.tileLayer(PLACES, { maxZoom: 18, opacity: 0.9 }).addTo(m)
-    m.fitBounds(VIEW, { padding: [8, 8] })
+    // Keep the bubbles out of the strips covered by the segment control (top) and the legend + sheet (bottom)
+    m.fitBounds(VIEW, { paddingTopLeft: [12, 72], paddingBottomRight: [12, 120] })
     markers.current = L.layerGroup().addTo(m)
     map.current = m
     return () => {
@@ -220,7 +221,10 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   useEffect(() => {
     const m = map.current
     if (!m || !selReading) return
-    if (!m.getBounds().pad(-0.15).contains([selReading.lat, selReading.lon])) m.panTo([selReading.lat, selReading.lon])
+    // The visible part of the map is between the segment control and the legend/sheet
+    const size = m.getSize()
+    const inner = L.latLngBounds(m.containerPointToLatLng([30, 80]), m.containerPointToLatLng([size.x - 30, size.y - 130]))
+    if (!inner.contains([selReading.lat, selReading.lon])) m.panTo([selReading.lat, selReading.lon])
   }, [selReading])
 
   const pick = (code: string) => setSel(code)
