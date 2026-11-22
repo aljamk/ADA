@@ -144,24 +144,38 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
                 ? `✓ Prezračuj med ${Number(hh(hours[w.best].time))}h in ${(Number(hh(hours[w.best + 2].time)) + 1) % 24}h`
                 : 'Zračenje: počakaj do jutra'}
             </p>
-            <div className="fc-bars">
+            {/* One column per hour: the value on top, a bar coloured by its level, the hour below.
+                The airing window and the evening peak are bands behind exactly those columns. */}
+            <div className="fc-grid" role="img" aria-label={hours.map((h) => `${hh(h.time)}h ${h.value} µg/m³ ${levelOfPm(h.value).label}`).join(', ')}>
               {w.best >= 0 && (
-                <div className="fc-band" style={{ background: 'var(--good-bg)', left: `${(w.best / 12) * 100}%`, width: '25%' }} />
+                <div className="fc-band good" style={{ gridColumn: `${w.best + 1} / span 3` }}>
+                  <span>Prezračuj</span>
+                </div>
               )}
               {w.peakAqi > 50 && w.peak !== w.best && (
-                <div className="fc-band" style={{ background: 'var(--peak-bg)', left: `${(w.peak / 12) * 100}%`, width: '25%' }} />
+                <div className="fc-band peak" style={{ gridColumn: `${w.peak + 1} / span 3` }}>
+                  <span>Vrh</span>
+                </div>
               )}
-              {hours.map((h) => (
-                <div
-                  key={h.time}
-                  className="fc-bar"
-                  title={`${hh(h.time)}h: ~${h.value} µg/m³ (${levelOfPm(h.value).label})`}
-                  style={{ height: `${Math.max(12, (h.value / max) * 100)}%`, background: levelOfPm(h.value).color }}
-                />
-              ))}
+              {hours.map((h, i) => {
+                const lvl = levelOfPm(h.value)
+                return (
+                  <div key={h.time} className="fc-col" style={{ gridColumn: i + 1 }} title={`${hh(h.time)}h: ~${h.value} µg/m³ (${lvl.label})`}>
+                    <span className="fc-val" style={{ color: lvl.color }}>{h.value}</span>
+                    <span className="fc-bar" style={{ height: `${Math.max(10, (h.value / max) * 100)}%`, background: lvl.color }} />
+                    <span className="fc-hour">{hh(h.time)}</span>
+                  </div>
+                )
+              })}
             </div>
-            <div className="fc-labels">
-              {[0, 3, 6, 9, 11].map((i) => hours[i] && <span key={i}>{hh(hours[i].time)}h</span>)}
+            <div className="fc-legend">
+              <span>µg/m³ PM2,5 na uro</span>
+              <span>
+                {(['Dobro', 'Zmerno', 'Slabo'] as const).map((l) => {
+                  const lv = [levelOfPm(5), levelOfPm(20), levelOfPm(40)].find((x) => x.label === l)!
+                  return <i key={l}><b style={{ background: lv.color }} />{l}</i>
+                })}
+              </span>
             </div>
           </section>
         </>
