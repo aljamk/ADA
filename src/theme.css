@@ -152,8 +152,9 @@ p { margin: 0; }
 /* isolation: Leaflet's panes (z-index 400-1000) stay inside the map, so the sheet below can overlap its bottom edge */
 .map { position: relative; isolation: isolate; height: clamp(300px, 42vh, 429px); height: clamp(300px, 42dvh, 429px); margin: 0 -24px; border-radius: 24px; background: var(--map); overflow: hidden; }
 .map-canvas { position: absolute; inset: 0; background: #1d2a2a; }
-.map-canvas .leaflet-control-attribution { font-size: 9px; line-height: 12px; padding: 0 5px; background: rgb(255 255 255 / 0.75); color: #294b3d; border-radius: 6px 6px 0 0; margin: 0 0 0 24px; white-space: nowrap; }
-.map .leaflet-bottom.leaflet-left { bottom: 0; }
+.map-canvas .leaflet-control-attribution { font-size: 9px; line-height: 12px; padding: 0 5px; background: rgb(255 255 255 / 0.75); color: #294b3d; border-radius: 6px 6px 0 0; margin: 0; white-space: nowrap; }
+/* attribution: bottom-right corner, under the zoom buttons (its own Leaflet corner, so it never stacks with them) */
+.map .leaflet-bottom.leaflet-left { bottom: 0; left: auto; right: 24px; }
 .map .leaflet-bottom.leaflet-right { bottom: 14px; }
 .map .leaflet-control-attribution a { color: inherit; }
 .map .seg, .map .legend { z-index: 1000; }
