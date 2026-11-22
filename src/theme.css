@@ -123,30 +123,6 @@ p { margin: 0; }
 .now-foot .link { color: var(--hero-text-2); font-size: 12px; }
 .section-head { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
 
-.fc { padding: 13px 14px 8px; }
-.fc-title { font-size: 17px; font-weight: 700; color: var(--accent); }
-/* 24-hour forecast: a 24-column grid, one bar per hour, bands behind whole columns, a slider that reads one hour */
-.fc-read { font-size: 15px; margin-top: 8px; }
-.fc-read b { font-size: 17px; }
-.fc-grid { display: grid; grid-template-rows: 64px; column-gap: 4px; margin-top: 26px; }
-.fc-band { grid-row: 1; position: relative; border-radius: 8px; margin: -4px -2px; z-index: 0; }
-.fc-band.good { background: rgb(59 178 115 / 0.28); box-shadow: inset 0 0 0 1.5px rgb(59 178 115 / 0.7); }
-.fc-band.peak { background: rgb(242 153 74 / 0.2); box-shadow: inset 0 0 0 1.5px rgb(242 153 74 / 0.55); }
-.fc-band span { position: absolute; left: -20px; right: -20px; top: -18px; text-align: center; font-size: 10px; font-weight: 700; white-space: nowrap; }
-.fc-band.good span { color: #3bb273; }
-.fc-band.peak span { color: #f2994a; }
-.fc-col { grid-row: 1; display: flex; align-items: flex-end; justify-content: center; z-index: 1; padding: 0; border: none; background: none; }
-.fc-col.sel .fc-bar { box-shadow: 0 0 0 2px var(--text); }
-.fc-bar { display: block; width: 100%; max-width: 18px; border-radius: 4px 4px 2px 2px; }
-.fc-pan { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.fc-pan .t-small { font-size: 10px; }
-.fc-slider { flex: 1; margin: 0; accent-color: var(--accent); }
-.fc-ticks { position: relative; height: 14px; margin-top: 4px; font-size: 10px; color: var(--text-2); }
-.fc-ticks span { position: absolute; transform: translateX(-50%); }
-.fc-legend { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; font-size: 10px; color: var(--text-2); }
-.fc-legend span:last-child { display: flex; gap: 8px; }
-.fc-legend i { font-style: normal; display: inline-flex; align-items: center; gap: 4px; }
-.fc-legend b { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
 
 /* Zemljevid */
 /* isolation: Leaflet's panes (z-index 400-1000) stay inside the map, so the sheet below can overlap its bottom edge */
