@@ -4,7 +4,7 @@ import { levelOfAqi, usAqi } from '../aqi'
 import Lestvica from '../components/Lestvica'
 import { shortName, type Reading } from '../arso'
 import type { ForecastHour } from '../forecast'
-import { adviceFor, profileOf, type ProfileKey } from '../profile'
+import { adviceFor, airingText, profileOf, type ProfileKey } from '../profile'
 import { whyText } from '../zakaj'
 
 interface Props {
@@ -35,7 +35,6 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
-  const h12 = hours.slice(0, 12) // the advice looks at the next 12 hours
   const name = shortName(reading.name)
   const ocena = reading.kind === 'OCENA'
   const tag = ocena ? '○ OCENA' : '● MERITEV'
@@ -122,13 +121,15 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
         <section className="card-soft">
           <p className="t-h3">{profiles.length > 1 ? 'Nasveti' : 'Nasvet'}</p>
           <ul className="advice">
-            {profiles.map((k) => (
-              <li key={k}>
-                <b>{k === 'nihce' ? 'Za vse' : profileOf(k).label}</b>
-                <span>{adviceFor(pm, h12, k)}</span>
+            {/* Groups with the same advice share one line */}
+            {[...new Map(profiles.map((k) => [adviceFor(pm, hours, k), k] as const)).keys()].map((text) => (
+              <li key={text}>
+                <b>{profiles.filter((k) => adviceFor(pm, hours, k) === text).map((k) => (k === 'nihce' ? 'Za vse' : profileOf(k).label)).join(', ')}</b>
+                <span>{text}</span>
               </li>
             ))}
           </ul>
+          {airingText(hours) && <p className="t-body" style={{ marginTop: 12 }}>{airingText(hours)}</p>}
         </section>
       )}
     </div>
