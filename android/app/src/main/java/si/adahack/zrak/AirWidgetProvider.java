@@ -21,8 +21,9 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Home-screen widget: the latest ARSO hourly PM2.5 for the station chosen in the app, the level
- * word and the value, and Golob, the pigeon mascot. Golob gets red eyes while today's tasks in
+ * Home-screen widgets in three sizes (this class is the large 4 x 2; AirWidgetBar 4 x 1 and
+ * AirWidgetSquare 2 x 2 reuse it with their own layout): the latest ARSO hourly PM2.5 for the
+ * station chosen in the app, the level word and the value, and Golob, the pigeon mascot. Golob gets red eyes while today's tasks in
  * the Igra tab are not all done.
  *
  * Shared state lives in the SharedPreferences file "CapacitorStorage", which the web app writes
@@ -45,24 +46,39 @@ public class AirWidgetProvider extends AppWidgetProvider {
         Double pm25 = null;
     }
 
+    /** The layout of this widget size; subclasses return theirs. */
+    protected int layout() {
+        return R.layout.widget_air;
+    }
+
     @Override
     public void onUpdate(Context ctx, AppWidgetManager mgr, int[] ids) {
         final PendingResult pending = goAsync();
+        final int layout = layout();
         new Thread(() -> {
             try {
-                render(ctx, mgr, ids, fetch(station(ctx)));
+                render(ctx, mgr, ids, fetch(station(ctx)), layout);
             } finally {
                 pending.finish();
             }
         }).start();
     }
 
-    /** Called from the app (WidgetBridge plugin) when the station or the tasks change. */
+    /** Called from the app (WidgetBridge plugin) when the station or the tasks change: every size. */
     static void updateAll(Context ctx) {
         AppWidgetManager mgr = AppWidgetManager.getInstance(ctx);
-        int[] ids = mgr.getAppWidgetIds(new ComponentName(ctx, AirWidgetProvider.class));
-        if (ids.length == 0) return;
-        new Thread(() -> render(ctx, mgr, ids, fetch(station(ctx)))).start();
+        Class<?>[] kinds = {AirWidgetProvider.class, AirWidgetBar.class, AirWidgetSquare.class};
+        int[] layouts = {R.layout.widget_air, R.layout.widget_air_bar, R.layout.widget_air_square};
+        boolean any = false;
+        for (Class<?> k : kinds) any |= mgr.getAppWidgetIds(new ComponentName(ctx, k)).length > 0;
+        if (!any) return;
+        new Thread(() -> {
+            Reading r = fetch(station(ctx));
+            for (int i = 0; i < kinds.length; i++) {
+                int[] ids = mgr.getAppWidgetIds(new ComponentName(ctx, kinds[i]));
+                if (ids.length > 0) render(ctx, mgr, ids, r, layouts[i]);
+            }
+        }).start();
     }
 
     private static String station(Context ctx) {
@@ -120,28 +136,26 @@ public class AirWidgetProvider extends AppWidgetProvider {
         return r;
     }
 
-    private static String shortName(String name) {
-        return name.replace("LJ ", "").replace("MB ", "").replace("CE ", "").trim();
-    }
-
-    private static void render(Context ctx, AppWidgetManager mgr, int[] ids, Reading r) {
+    private static void render(Context ctx, AppWidgetManager mgr, int[] ids, Reading r, int layout) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_air);
-        String info;
+        RemoteViews v = new RemoteViews(ctx.getPackageName(), layout);
+        boolean large = layout == R.layout.widget_air;
+        boolean square = layout == R.layout.widget_air_square;
+        int[] segs = {R.id.s1, R.id.s2, R.id.s3, R.id.s4, R.id.s5};
 
         if (r == null || r.pm25 == null) {
             v.setTextViewText(R.id.level, r == null ? "Ni povezave" : "Ni meritve");
             v.setTextViewText(R.id.value, "–");
-            info = (r == null ? "ARSO trenutno ni dosegljiv" : "Postaja ne meri PM2,5") + " · " + p.getString("stationName", "Zrak").replace("\"", "");
             v.setInt(R.id.dot, "setColorFilter", 0xFF5D7168);
+            if (large) for (int id : segs) v.setInt(id, "setAlpha", 60);
         } else {
             int lvl = 0;
             while (lvl < LEVEL_MAX.length - 1 && r.pm25 > LEVEL_MAX[lvl]) lvl++;
             v.setTextViewText(R.id.level, LEVEL_LABEL[lvl].toUpperCase(Locale.ROOT));
             v.setTextViewText(R.id.value, Math.round(r.pm25) + " µg/m³");
-            String time = r.from.length() >= 5 ? r.from.substring(r.from.length() - 5) : "";
-            info = "● MERITEV · " + shortName(r.name) + " · " + time;
             v.setInt(R.id.dot, "setColorFilter", LEVEL_COLOR[lvl]);
+            // the colour scale (large widget): the current step lit, the others dimmed
+            if (large) for (int i = 0; i < segs.length; i++) v.setInt(segs[i], "setAlpha", i == lvl ? 255 : 90);
         }
 
         // Golob: red eyes while today's tasks wait
@@ -149,14 +163,12 @@ public class AirWidgetProvider extends AppWidgetProvider {
         int left = TASKS_TOTAL - done;
         if (left <= 0) {
             v.setImageViewResource(R.id.golob, R.drawable.golob);
-            info += " · Naloge opravljene";
+            v.setTextViewText(R.id.tasks, square ? "Naloge opravljene" : "Vse naloge opravljene. Golob je miren.");
         } else {
             v.setImageViewResource(R.id.golob, R.drawable.golob_rdece);
             String n = left == 1 ? "še 1 naloga" : left == 2 ? "še 2 nalogi" : "še " + left + " naloge";
-            info += " · Golob čaka: " + n;
+            v.setTextViewText(R.id.tasks, square ? n.substring(0, 1).toUpperCase(Locale.ROOT) + n.substring(1) : "Golob čaka: " + n);
         }
-
-        v.setTextViewText(R.id.info, info);
 
         // Tap opens the app
         Intent open = new Intent(ctx, MainActivity.class);
