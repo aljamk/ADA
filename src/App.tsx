@@ -7,7 +7,7 @@ import { Golob2D } from './components/Golob'
 import CetrtPicker from './components/CetrtPicker'
 import StationPicker from './components/StationPicker'
 import TabBar, { TABS, type TabKey } from './components/TabBar'
-import { fetchForecast, next12, type Forecast, type ForecastHour } from './forecast'
+import { fetchForecast, next12, next24, type Forecast, type ForecastHour } from './forecast'
 import type { GameLog } from './game'
 import { onResume, syncWidget } from './native'
 import { thresholdAqi, type ProfileKey } from './profile'
@@ -137,6 +137,7 @@ export default function App() {
 
   const fc = forecasts[station]
   const hours12 = current && fc ? next12(fc, current.from) : []
+const hours24 = current && fc ? next24(fc, current.from) : []
 
   // The widget reads ARSO itself, so it always gets the nearest official station to your četrt
   useEffect(() => {
@@ -195,7 +196,7 @@ export default function App() {
             (current ? (
               <Zdaj
                 reading={current}
-                hours={hours12}
+                hours={hours24}
                 profile={profile}
                 distance={distance}
                 cetrt={myCetrt?.ime ?? null}

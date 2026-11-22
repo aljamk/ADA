@@ -44,6 +44,7 @@ const firstAfter = (fc: Forecast, from: string) => {
 
 /** The 12 hours after the last measured hour */
 export const next12 = (fc: Forecast, from: string) => fc.hours.slice(firstAfter(fc, from), firstAfter(fc, from) + 12)
+export const next24 = (fc: Forecast, from: string) => fc.hours.slice(firstAfter(fc, from), firstAfter(fc, from) + 24)
 
 /** The 24 hours up to and including the last measured hour */
 export const past24 = (fc: Forecast, from: string) => {

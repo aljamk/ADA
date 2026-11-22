@@ -9,7 +9,7 @@ import { hh } from '../time'
 
 interface Props {
   reading: Reading
-  hours: ForecastHour[] // next 12 h, calibrated model
+  hours: ForecastHour[] // next 24 h, calibrated model
   profile: ProfileKey
   distance?: number // km to nearest station, only if the user shared location once
   cetrt?: string | null // your četrt (the only location choice)
@@ -51,8 +51,11 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
-  const w = hours.length >= 3 ? windows(hours) : null
+  const h12 = hours.slice(0, 12) // the airing window and the advice look at the next 12 hours
+  const w = h12.length >= 3 ? windows(h12) : null
   const max = Math.max(1, ...hours.map((h) => h.value))
+  const [sel, setSel] = useState(0) // hour under the slider
+  const at = hours[Math.min(sel, hours.length - 1)]
   const winter = [11, 12, 1, 2, 3].includes(new Date().getMonth() + 1)
   const name = shortName(reading.name)
   const ocena = reading.kind === 'OCENA'
@@ -118,7 +121,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
                 </p>
               </div>
             )}
-            <p className="now-advice">{adviceFor(pm, hours, profile)}</p>
+            <p className="now-advice">{adviceFor(pm, h12, profile)}</p>
           </>
         ) : (
           <p className="now-level">Ta postaja ne meri PM2,5</p>
@@ -135,18 +138,22 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
       {w && (
         <>
           <div className="section-head">
-            <p className="t-sub">Naslednjih 12 ur</p>
+            <p className="t-sub">Naslednjih 24 ur</p>
             <span className="chip model">MODEL</span>
           </div>
           <section className="card fc">
             <p className="fc-title">
               {w.best >= 0
-                ? `✓ Prezračuj med ${Number(hh(hours[w.best].time))}h in ${(Number(hh(hours[w.best + 2].time)) + 1) % 24}h`
+                ? `✓ Prezračuj med ${Number(hh(h12[w.best].time))}h in ${(Number(hh(h12[w.best + 2].time)) + 1) % 24}h`
                 : 'Zračenje: počakaj do jutra'}
             </p>
-            {/* One column per hour: the value on top, a bar coloured by its level, the hour below.
-                The airing window and the evening peak are bands behind exactly those columns. */}
-            <div className="fc-grid" role="img" aria-label={hours.map((h) => `${hh(h.time)}h ${h.value} µg/m³ ${levelOfPm(h.value).label}`).join(', ')}>
+            {/* 24 columns, one per hour, no digits on the columns: the slider below reads the exact hour and value.
+                The airing window and the evening peak are bands behind exactly their three columns. */}
+            <p className="fc-read" aria-live="polite">
+              <b>{Number(hh(at.time))}h</b> · {at.value} µg/m³ · <span style={{ color: levelOfPm(at.value).color }}>{levelOfPm(at.value).symbol} {levelOfPm(at.value).label}</span>
+              {sel === 0 && <span className="t-2"> · naslednja ura</span>}
+            </p>
+            <div className="fc-grid" style={{ gridTemplateColumns: `repeat(${hours.length}, 1fr)` }} role="img" aria-label={hours.map((h) => `${hh(h.time)}h ${h.value} µg/m³ ${levelOfPm(h.value).label}`).join(', ')}>
               {w.best >= 0 && (
                 <div className="fc-band good" style={{ gridColumn: `${w.best + 1} / span 3` }}>
                   <span>Prezračuj</span>
@@ -157,19 +164,34 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
                   <span>Vrh</span>
                 </div>
               )}
-              {hours.map((h, i) => {
-                const lvl = levelOfPm(h.value)
-                return (
-                  <div key={h.time} className="fc-col" style={{ gridColumn: i + 1 }} title={`${hh(h.time)}h: ~${h.value} µg/m³ (${lvl.label})`}>
-                    <span className="fc-val" style={{ color: lvl.color }}>{h.value}</span>
-                    <span className="fc-bar" style={{ height: `${Math.max(10, (h.value / max) * 100)}%`, background: lvl.color }} />
-                    <span className="fc-hour">{hh(h.time)}</span>
-                  </div>
-                )
-              })}
+              {hours.map((h, i) => (
+                <button
+                  key={h.time}
+                  type="button"
+                  className={`fc-col${i === sel ? ' sel' : ''}`}
+                  style={{ gridColumn: i + 1 }}
+                  aria-label={`${hh(h.time)}h: ${h.value} µg/m³, ${levelOfPm(h.value).label}`}
+                  onClick={() => setSel(i)}
+                >
+                  <span className="fc-bar" style={{ height: `${Math.max(8, (h.value / max) * 100)}%`, background: levelOfPm(h.value).color }} />
+                </button>
+              ))}
+            </div>
+            <input
+              type="range"
+              className="fc-slider"
+              min={0}
+              max={hours.length - 1}
+              value={sel}
+              onChange={(e) => setSel(Number(e.target.value))}
+              aria-label="Ura napovedi"
+              aria-valuetext={`${hh(at.time)}h, ${at.value} µg/m³`}
+            />
+            <div className="fc-ticks">
+              {[0, 6, 12, 18, hours.length - 1].map((i) => hours[i] && <span key={i} style={{ left: `${((i + 0.5) / hours.length) * 100}%` }}>{Number(hh(hours[i].time))}h</span>)}
             </div>
             <div className="fc-legend">
-              <span>µg/m³ PM2,5 na uro</span>
+              <span>PM2,5 v µg/m³</span>
               <span>
                 {(['Dobro', 'Zmerno', 'Slabo'] as const).map((l) => {
                   const lv = [levelOfPm(5), levelOfPm(20), levelOfPm(40)].find((x) => x.label === l)!
