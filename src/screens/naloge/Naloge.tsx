@@ -8,6 +8,8 @@ import {
   direction, guessPoints, loadGuesses, loadTasks, playStreak, saveGuesses, saveTasks, taskTotalPoints,
   type Guess, type TaskKey, type TaskResult, type TaskLog,
 } from '../../naloge'
+import { Golob3D } from '../../components/Golob'
+import { syncWidget } from '../../native'
 import type { ProfileKey } from '../../profile'
 import { dateStr, hh, hourStr, tomorrow8 } from '../../time'
 import { BREATH, LEVELS, QUIZ, QUIZ_SOURCE, TASKS, WORD_FACTS, WORDS, levelOf, type Level } from './vsebina'
@@ -608,8 +610,9 @@ function Home({ done, onOpen, streak, xp }: {
   const drops = Object.keys(done).length
   return (
     <div className="screen home">
-      <header className="hero">
-        <Plant stage={drops} size={176} />
+      <header className="hero hero-duo">
+        <Plant stage={drops} size={150} />
+        <Golob3D size={110} line={drops === 4 ? 'Bravo. Danes si vse opravil(a).' : drops === 0 ? 'Grem s tabo. Štiri naloge.' : `Še ${4 - drops} ${4 - drops === 1 ? 'naloga' : 4 - drops === 2 ? 'nalogi' : 'naloge'}.`} />
         <p className="hero-line">{drops === 0 ? 'Rastlina je žejna. Ena naloga jo osveži.' : drops === 4 ? 'Rastlina je danes v polnem cvetu.' : 'Rastlina raste z vsako nalogo.'}</p>
       </header>
 
@@ -666,6 +669,11 @@ export default function Naloge({ reading, fc, profile, log }: Props) {
   const [tasks, setTasks] = useState<TaskLog>(loadTasks)
   const [guesses, setGuesses] = useState<(Guess & { seen?: boolean })[]>(loadGuesses)
   useEffect(() => { saveTasks(tasks) }, [tasks])
+  // The widget shows Golob with red eyes while today's tasks wait
+  useEffect(() => {
+    const day = dateStr(new Date())
+    void syncWidget({ tasksDone: String(Object.keys(tasks[day] ?? {}).length), tasksDay: day })
+  }, [tasks])
   useEffect(() => { saveGuesses(guesses) }, [guesses])
   useEffect(() => { window.scrollTo(0, 0) }, [view])
 

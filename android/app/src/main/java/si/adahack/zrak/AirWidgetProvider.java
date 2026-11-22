@@ -8,10 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Xml;
-import android.view.View;
 import android.widget.RemoteViews;
 
-import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.io.InputStream;
@@ -23,27 +21,25 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * Home-screen widget. Fetches the latest ARSO hourly reading for the station chosen in the app
- * and lets the user answer tomorrow's "Napovej jutri" question with one tap, without opening the app.
+ * Home-screen widget: the latest ARSO hourly PM2.5 for the station chosen in the app, the level
+ * word with its range, and Golob, the pigeon mascot. Golob gets red eyes while today's tasks in
+ * the Igra tab are not all done.
  *
  * Shared state lives in the SharedPreferences file "CapacitorStorage", which the web app writes
- * through @capacitor/preferences (keys: station, stationName, betTarget, betBucket, widgetBet).
+ * through @capacitor/preferences (keys: station, stationName, tasksDone, tasksDay).
  */
 public class AirWidgetProvider extends AppWidgetProvider {
 
     private static final String ARSO_URL = "https://www.arso.gov.si/xml/zrak/ones_zrak_urni_podatki_zadnji.xml";
     private static final String PREFS = "CapacitorStorage";
-    private static final String ACTION_BET = "si.adahack.zrak.BET";
-    private static final String EXTRA_BUCKET = "bucket";
+    private static final int TASKS_TOTAL = 4;
 
-    private static final String[] BUCKET_KEYS = {"dober", "zmeren", "slab"};
-    private static final String[] BUCKET_LABELS = {"Dober", "Zmeren", "Slab"};
-    private static final int[] BUTTON_IDS = {R.id.bet_dober, R.id.bet_zmeren, R.id.bet_slab};
-
-    // EEA PM2.5 bands, same as src/arso.ts
-    private static final int[] LEVEL_MIN = {0, 5, 15, 50, 90, 140};
-    private static final String[] LEVEL_LABEL = {"Dober", "Sprejemljiv", "Zmeren", "Slab", "Zelo slab", "Izjemno slab"};
-    private static final int[] LEVEL_COLOR = {0xFF50F0E6, 0xFF50CCAA, 0xFFF0E641, 0xFFFF5050, 0xFF960032, 0xFF7D2181};
+    // US EPA AQI breakpoints for PM2.5 (2024), the same levels and colours as src/aqi.ts
+    private static final double[] LEVEL_MAX = {9.0, 35.4, 55.4, 125.4, Double.MAX_VALUE};
+    private static final String[] LEVEL_LABEL = {"Dobro", "Zmerno", "Slabo", "Zelo slabo", "Nevarno"};
+    private static final String[] LEVEL_SYMBOL = {"○", "−", "△", "▲", "■"};
+    private static final String[] LEVEL_RANGE = {"0–9", "9–35", "35–55", "55–125", "nad 125"};
+    private static final int[] LEVEL_COLOR = {0xFF3BB273, 0xFFF2C94C, 0xFFF2994A, 0xFFE5484D, 0xFF8E4EC6};
 
     static class Reading {
         String name = "";
@@ -63,29 +59,7 @@ public class AirWidgetProvider extends AppWidgetProvider {
         }).start();
     }
 
-    @Override
-    public void onReceive(Context ctx, Intent intent) {
-        super.onReceive(ctx, intent);
-        if (!ACTION_BET.equals(intent.getAction())) return;
-        String bucket = intent.getStringExtra(EXTRA_BUCKET);
-        if (bucket == null) return;
-        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        String target = tomorrow8();
-        if (hasBet(p, target)) return;
-        try {
-            JSONObject bet = new JSONObject();
-            bet.put("station", station(ctx));
-            bet.put("stationName", p.getString("stationName", ""));
-            bet.put("target", target);
-            bet.put("bucket", bucket);
-            // The app picks this up on next launch/resume and adds it to the game
-            p.edit().putString("widgetBet", bet.toString()).apply();
-        } catch (Exception ignored) {
-        }
-        updateAll(ctx);
-    }
-
-    /** Called from the app (WidgetBridge plugin) when the station or bet changes. */
+    /** Called from the app (WidgetBridge plugin) when the station or the tasks change. */
     static void updateAll(Context ctx) {
         AppWidgetManager mgr = AppWidgetManager.getInstance(ctx);
         int[] ids = mgr.getAppWidgetIds(new ComponentName(ctx, AirWidgetProvider.class));
@@ -97,27 +71,22 @@ public class AirWidgetProvider extends AppWidgetProvider {
         return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("station", "E403");
     }
 
-    private static String tomorrow8() {
+    private static String today() {
         Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Europe/Ljubljana"));
-        c.add(Calendar.DAY_OF_MONTH, 1);
         SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
         f.setTimeZone(c.getTimeZone());
-        return f.format(c.getTime()) + " 08:00";
+        return f.format(c.getTime());
     }
 
-    /** Bet for tomorrow placed in the app (betTarget/betBucket) or in the widget (widgetBet)? Returns its bucket. */
-    private static String betBucket(SharedPreferences p, String target) {
-        if (target.equals(p.getString("betTarget", ""))) return p.getString("betBucket", null);
+    /** Tasks done today in the app (0 if the stored day is not today). Capacitor stores strings as JSON. */
+    private static int tasksDone(SharedPreferences p) {
+        String day = p.getString("tasksDay", "").replace("\"", "");
+        if (!today().equals(day)) return 0;
         try {
-            JSONObject w = new JSONObject(p.getString("widgetBet", "{}"));
-            if (target.equals(w.optString("target"))) return w.optString("bucket");
-        } catch (Exception ignored) {
+            return Integer.parseInt(p.getString("tasksDone", "0").replace("\"", "").trim());
+        } catch (Exception e) {
+            return 0;
         }
-        return null;
-    }
-
-    private static boolean hasBet(SharedPreferences p, String target) {
-        return betBucket(p, target) != null;
     }
 
     private static Reading fetch(String code) {
@@ -153,42 +122,44 @@ public class AirWidgetProvider extends AppWidgetProvider {
         return r;
     }
 
+    private static String shortName(String name) {
+        return name.replace("LJ ", "").replace("MB ", "").replace("CE ", "").trim();
+    }
+
     private static void render(Context ctx, AppWidgetManager mgr, int[] ids, Reading r) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_air);
 
         if (r == null || r.pm25 == null) {
-            v.setTextViewText(R.id.station, p.getString("stationName", "Zrak"));
+            v.setTextViewText(R.id.level, r == null ? "Ni povezave" : "Ni meritve");
             v.setTextViewText(R.id.value, "–");
-            v.setTextViewText(R.id.level, r == null ? "Ni povezave z ARSO" : "Postaja ne meri PM2.5");
-            v.setInt(R.id.dot, "setColorFilter", 0xFF5B7380);
+            v.setTextViewText(R.id.range, r == null ? "ARSO trenutno ni dosegljiv" : "Postaja ne meri PM2,5");
+            v.setTextViewText(R.id.station, "● MERITEV · " + p.getString("stationName", "Zrak").replace("\"", ""));
+            v.setInt(R.id.dot, "setColorFilter", 0xFF5D7168);
         } else {
             int lvl = 0;
-            for (int i = 0; i < LEVEL_MIN.length; i++) if (r.pm25 >= LEVEL_MIN[i]) lvl = i;
-            v.setTextViewText(R.id.station, r.name);
+            while (lvl < LEVEL_MAX.length - 1 && r.pm25 > LEVEL_MAX[lvl]) lvl++;
+            v.setTextViewText(R.id.level, LEVEL_SYMBOL[lvl] + " " + LEVEL_LABEL[lvl].toUpperCase(Locale.ROOT));
             v.setTextViewText(R.id.value, String.valueOf(Math.round(r.pm25)));
-            v.setTextViewText(R.id.level, LEVEL_LABEL[lvl] + " · meritev ARSO " + r.from.substring(Math.max(0, r.from.length() - 5)));
+            v.setTextViewText(R.id.range, LEVEL_LABEL[lvl] + " = " + LEVEL_RANGE[lvl] + " µg/m³");
+            String time = r.from.length() >= 5 ? r.from.substring(r.from.length() - 5) : "";
+            v.setTextViewText(R.id.station, "● MERITEV · " + shortName(r.name) + " · " + time);
             v.setInt(R.id.dot, "setColorFilter", LEVEL_COLOR[lvl]);
         }
 
-        // Tomorrow's bet: three buttons, or the answer already given
-        String bucket = betBucket(p, tomorrow8());
-        if (bucket != null) {
-            String label = bucket;
-            for (int i = 0; i < BUCKET_KEYS.length; i++) if (BUCKET_KEYS[i].equals(bucket)) label = BUCKET_LABELS[i];
-            v.setTextViewText(R.id.question, "✔ Jutri 8h: " + label + " · razreši se ob ~9:45");
-            v.setViewVisibility(R.id.buttons, View.GONE);
+        // Golob: red eyes while today's tasks wait
+        int done = tasksDone(p);
+        int left = TASKS_TOTAL - done;
+        if (left <= 0) {
+            v.setImageViewResource(R.id.golob, R.drawable.golob);
+            v.setTextViewText(R.id.tasks, "Vse naloge opravljene. Golob je miren.");
         } else {
-            v.setTextViewText(R.id.question, "Jutri ob 8h bo zrak…");
-            v.setViewVisibility(R.id.buttons, View.VISIBLE);
-            for (int i = 0; i < BUCKET_KEYS.length; i++) {
-                Intent bet = new Intent(ctx, AirWidgetProvider.class).setAction(ACTION_BET).putExtra(EXTRA_BUCKET, BUCKET_KEYS[i]);
-                v.setOnClickPendingIntent(BUTTON_IDS[i], PendingIntent.getBroadcast(ctx, i + 1, bet,
-                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-            }
+            v.setImageViewResource(R.id.golob, R.drawable.golob_rdece);
+            String n = left == 1 ? "še 1 naloga" : left == 2 ? "še 2 nalogi" : "še " + left + " naloge";
+            v.setTextViewText(R.id.tasks, "Golob čaka: " + n);
         }
 
-        // Tap anywhere else opens the app
+        // Tap opens the app
         Intent open = new Intent(ctx, MainActivity.class);
         v.setOnClickPendingIntent(R.id.root, PendingIntent.getActivity(ctx, 0, open,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
