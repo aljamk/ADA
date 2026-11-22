@@ -258,10 +258,12 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
           </button>
         </div>
 
-        <div className="legend">
-          <span>{mode === 'meritev' ? `● ${official.length} postaje · ○ ${withPm.length - official.length} senzorjev` : `MODEL · ${mine.length} ${mine.length === 1 ? 'postaja' : mine.length === 2 ? 'postaji' : 'postaje'}`}</span>
-          <span>{points.length >= 3 ? 'Ploskev: ocena' : 'Za ploskev dodaj 3 postaje'}</span>
-        </div>
+        {mode === 'meritev' && (
+          <div className="legend">
+            <span>● {official.length} postaje · ○ {withPm.length - official.length} senzorjev</span>
+            <span>{points.length >= 3 ? 'Ploskev: ocena' : 'Za ploskev dodaj 3 postaje'}</span>
+          </div>
+        )}
       </div>
 
       {selReading && (
