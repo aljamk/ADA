@@ -27,6 +27,7 @@ Neposredne povezave (za pitch): `#zdaj`, `#zemljevid`, `#igra`, `#ugani` (takoj 
 ## Viri podatkov
 
 - **ARSO XML** (`ones_zrak_urni_podatki_zadnji.xml`): zadnja ura vseh postaj, odprt CORS, osvežitev vsakih 15 min.
+- **Občanski senzorji** samo po paketu ARSOhack (`01_meritve`): seznam naprav Sensor.Community in PurpleAir ter koeficienti umerjanja (`senzorji_umerjanje_koeficienti.csv`) → `public/data/senzorji.json` s skripto `scripts/build_senzorji.py`. Sprotna vrednost iz živega API-ja Sensor.Community, ki ga navaja paket (bbox kotline), umerjena linearno (metoda b, sezona `vse`) na najbližjo postajo ARSO; nezanesljive naprave ostanejo neumerjene. PurpleAir brez ključa nima sprotnih podatkov in je le naveden. Oznaka OCENA.
 - **CAMS prek Open-Meteo**: urni model PM2,5. CAMS pozimi v Ljubljani precenjuje (+70 %), zato ga umerimo z razmerjem meritev/model ob zadnji izmerjeni uri na isti postaji (omejeno na 0,3–2). Vedno označeno kot MODEL.
 - **Podatkovni paket** [vidacex/ARSOhack](https://github.com/vidacex/ARSOhack) → `public/data/` s skripto:
   ```bash

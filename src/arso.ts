@@ -9,9 +9,18 @@ export interface Reading {
   lon: number
   pm25: number | null
   pm10: number | null
-  /** MERITEV = official ARSO station (default), OCENA = uncalibrated citizen sensor */
+  /** MERITEV = official ARSO station (default), OCENA = citizen sensor */
   kind?: 'MERITEV' | 'OCENA'
+  /** ARSO (default), SC = Sensor.Community, PA = PurpleAir (listed only, no live feed) */
+  vir?: 'ARSO' | 'SC' | 'PA'
+  /** Citizen sensor: the raw value before calibration, whether the package's calibration was applied, and to which ARSO station */
+  raw?: number
+  umerjen?: boolean
+  ref?: string
 }
+
+/** Short names of the ARSO stations of Ljubljana (calibration reference of the citizen sensors) */
+export const ARSO_NAMES: Record<string, string> = { E403: 'Bežigrad', E405: 'Celovška', E404: 'Vič' }
 
 function num(el: Element, tag: string): number | null {
   const t = el.getElementsByTagName(tag)[0]?.textContent?.trim()
