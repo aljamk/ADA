@@ -1,0 +1,13 @@
+# Netlify: a static Vite build, nothing server-side. Live data (ARSO, Sensor.Community, Open-Meteo) is fetched by the browser.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# The app is a single page (hash navigation); any deep path still serves it.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
