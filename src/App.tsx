@@ -33,7 +33,7 @@ function notifyOnce(key: string, body: string) {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
   const id = `${dateStr(new Date())}|${key}`
   if (load('lastNotified_' + key, '') === id) return
-  new Notification('Kaj dihaš?', { body, icon: '/icon.svg' })
+  new Notification('Kaj dihaš?', { body, icon: '/icon-192.png' })
   save('lastNotified_' + key, id)
 }
 
@@ -46,7 +46,7 @@ function notifySeason(key: string, from: { m: number; d: number }, body: string)
   if (days < 0 || days > 7) return
   if (load('season_' + key, '') === String(y)) return
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
-  new Notification('Kaj dihaš?', { body, icon: '/icon.svg' })
+  new Notification('Kaj dihaš?', { body, icon: '/icon-192.png' })
   save('season_' + key, String(y))
 }
 
