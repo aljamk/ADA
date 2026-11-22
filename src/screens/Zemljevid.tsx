@@ -143,12 +143,12 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     if (!mapEl.current || map.current) return
     const m = L.map(mapEl.current, { zoomControl: false, attributionControl: false, minZoom: 7, maxZoom: 15, zoomSnap: 0.25 })
     L.control.zoom({ position: 'bottomright' }).addTo(m)
-    L.control.attribution({ position: 'topright', prefix: false }).addTo(m)
+    L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(m) // the strip under the legend
     L.tileLayer(SAT, { attribution: ATTR, maxZoom: 18 }).addTo(m)
     L.tileLayer(PLACES, { maxZoom: 18, opacity: 0.9 }).addTo(m)
     // Keep the bubbles out of the strips covered by the segment control + attribution (top), the zoom
     // buttons (right) and the legend (bottom). Fractional zoom so a narrow phone still gets a tight fit.
-    m.fitBounds(VIEW, { paddingTopLeft: [12, 86], paddingBottomRight: [60, 64] })
+    m.fitBounds(VIEW, { paddingTopLeft: [12, 72], paddingBottomRight: [60, 64] })
     markers.current = L.layerGroup().addTo(m)
     map.current = m
     return () => {
@@ -228,7 +228,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     if (!m || !selReading) return
     // The visible part of the map is between the segment control and the legend/sheet
     const size = m.getSize()
-    const inner = L.latLngBounds(m.containerPointToLatLng([30, 94]), m.containerPointToLatLng([size.x - 60, size.y - 76]))
+    const inner = L.latLngBounds(m.containerPointToLatLng([30, 80]), m.containerPointToLatLng([size.x - 60, size.y - 76]))
     if (!inner.contains([selReading.lat, selReading.lon])) m.panTo([selReading.lat, selReading.lon])
   }, [selReading])
 
@@ -251,7 +251,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
 
         <div className="seg">
           <button className={mode === 'meritev' ? 'on' : ''} onClick={() => { setMode('meritev'); setStep(0) }}>
-            ● Meritev
+            ● Meritve
           </button>
           <button className={mode === 'model' ? 'on' : ''} onClick={() => setMode('model')}>
             Moje postaje
