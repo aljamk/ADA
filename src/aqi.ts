@@ -27,6 +27,8 @@ export interface Level {
   color: string
 }
 
+export type LevelKey = 'dobro' | 'zmerno' | 'slabo' | 'zeloslabo' | 'nevarno'
+
 export const LEVELS: Level[] = [
   { key: 'dobro', label: 'Dobro', labelF: 'Dobra', symbol: '○', color: 'var(--dobro)' },
   { key: 'zmerno', label: 'Zmerno', labelF: 'Zmerna', symbol: '−', color: 'var(--zmerno)' },
