@@ -88,12 +88,12 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
 
 /**
  * The pigeon acting out the air quality (Zdaj, under the advice) with its own wing: the drawing is split into
- * three layers on the same canvas (public/golob-telo.png, golob-krilce.png = the folded wing on the chest,
- * golob-krilo.png = the raised wing; scripts/cut_wings.py). Only the notes and the nest are drawn extra.
+ * four layers on the same canvas (public/golob-telo.png, golob-glava.png = head and neck, golob-krilce.png = the
+ * folded wing on the chest, golob-krilo.png = the raised wing; scripts/cut_wings.py). Only the notes and the nest are drawn extra.
  *  dobro      dances and flaps (notes)
- *  zmerno     holds the wing out and tilts it ("so-so")
- *  slabo      shrugs: the wing jerks up, the body hops
- *  zeloslabo  beats both wings up and down
+ *  zmerno     struts in place: the head bobs, the body sways
+ *  slabo      ruffles: puffs up and shakes its feathers
+ *  zeloslabo  hunched: head pulled in, wing drooping, heavy breathing, a head shake now and then
  *  nevarno    wing folded, hiding and trembling in a nest
  */
 export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size?: number }) {
@@ -101,9 +101,9 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
   const H = 1127
   const caption: Record<LevelKey, string> = {
     dobro: 'Golob pleše: zrak je dober.',
-    zmerno: 'Golob maha s krilom: tako-tako.',
-    slabo: 'Golob skomigne: zrak je slab.',
-    zeloslabo: 'Golob prhuta z obema kriloma: zrak je zelo slab.',
+    zmerno: 'Golob se sprehaja in ziba z glavo: tako-tako.',
+    slabo: 'Golob se ščeperi in otresa perje: zrak je slab.',
+    zeloslabo: 'Golob je sključen in težko diha: zrak je zelo slab.',
     nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',
   }
   return (
@@ -115,6 +115,7 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
       )}
       <div className="golob-mood-figure">
         <img className="golob-layer telo" src="/golob-telo.png" alt="" draggable={false} />
+        <img className="golob-layer glava" src="/golob-glava.png" alt="" draggable={false} />
         <img className="golob-layer krilce" src="/golob-krilce.png" alt="" draggable={false} />
         <img className="golob-layer krilo" src="/golob-krilo.png" alt="" draggable={false} />
       </div>

@@ -1,4 +1,4 @@
-"""Cut public/golob.png into three layers on the same 900x1127 canvas: body, the raised wing and the folded front wing.
+"""Cut public/golob.png into four layers on the same 900x1127 canvas: body, head, the raised wing and the folded front wing.
 The body gets a body-coloured patch where a wing was, so nothing shows through when a wing moves."""
 import os
 from PIL import Image, ImageDraw
@@ -21,6 +21,20 @@ def layer(poly):
     return out, mask
 
 raised, m_r = layer(RAISED)
+# the head and neck, cut across the neck; it bobs and hunches by a few percent
+# The head layer reaches down to y=470 with its bottom edge faded out (400..470), the body keeps its pixels
+# from y=400 down: the faded overlap hides the seam while the head moves a few percent.
+HEAD = [(265, 0), (560, 0), (560, 380), (545, 395), (545, 470), (265, 470)]
+HEAD_CUT = [(265, 0), (560, 0), (560, 380), (545, 395), (545, 400), (265, 400)]
+head, m_h = layer(HEAD)
+FADE_TOP, FADE_BOTTOM = 400, 470
+px = head.load()
+for y in range(FADE_TOP, FADE_BOTTOM):
+    k = (FADE_BOTTOM - y) / (FADE_BOTTOM - FADE_TOP)
+    for x in range(265, 561):
+        r, g_, b_, a_ = px[x, y]
+        px[x, y] = (r, g_, b_, int(a_ * k))
+PATCH_H = [(285, 330), (530, 330), (540, 405), (275, 405)]
 # the folded wing on the chest is the darker oval; it lifts a little for a shoulder shrug
 FRONT_BOX = (188, 553, 380, 988)
 m_f = Image.new('L', (W, H), 0)
@@ -33,18 +47,21 @@ alpha = body.split()[3]
 d = ImageDraw.Draw(body)
 d.polygon(RAISED, fill=(0, 0, 0, 0))
 d.ellipse(FRONT_BOX, fill=(0, 0, 0, 0))
+d.polygon(HEAD_CUT, fill=(0, 0, 0, 0))
 patch = Image.new('RGBA', (W, H), (0, 0, 0, 0))
 pd = ImageDraw.Draw(patch)
 pd.polygon(PATCH_R, fill=BODY)
 pd.ellipse(FRONT_BOX, fill=BODY)
+pd.polygon(PATCH_H, fill=BODY)
 body = Image.alpha_composite(body, patch)
 body.save('public/golob-telo.png', optimize=True)
 raised.save('public/golob-krilo.png', optimize=True)
 front.save('public/golob-krilce.png', optimize=True)
+head.save('public/golob-glava.png', optimize=True)
 # a preview with the raised wing rotated, to check the cut
 prev = body.copy()
 rw = raised.rotate(-70, center=(560, 420), resample=Image.BICUBIC)
 prev = Image.alpha_composite(prev, rw)
 prev.save(r'C:\Users\Alja\AppData\Local\Temp\claude\a1080d1396e4a37e\2c8f9bdd-8ba9-45b1-beea-04ae119678bb\scratchpad\wings_preview.png')
-for f in ('public/golob-telo.png', 'public/golob-krilo.png', 'public/golob-krilce.png'):
+for f in ('public/golob-telo.png', 'public/golob-glava.png', 'public/golob-krilo.png', 'public/golob-krilce.png'):
     print(f, os.path.getsize(f))
