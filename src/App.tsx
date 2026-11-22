@@ -83,7 +83,8 @@ export default function App() {
   const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce')
   const [log] = useStored<GameLog>('ugani', {})
   const [alerts, setAlerts] = useStored<AlertSettings>('alerts', DEFAULT_ALERTS)
-  const [mine, setMine] = useStored<string[]>('mojePostaje', ['E403']) // model view on the map: home, work, …
+  // Extra stations for the map's "Moje postaje" (work, …). The first one is always the station behind the četrt chosen on Zdaj.
+  const [extra, setExtra] = useStored<string[]>('mojePostaje', [])
   // Your četrt, chosen on Zdaj (the only place to choose a location), used across the app.
   // The station or sensor that stands for it is derived: the nearest official one, or a clearly closer citizen sensor.
   const [cetrti, setCetrti] = useState<Cetrt[]>([])
@@ -119,6 +120,8 @@ export default function App() {
   const myCetrt = cetrti.find((c) => c.ime === cetrt) ?? cetrti[0] ?? null
   const current = myCetrt ? sourceFor(myCetrt, all) ?? undefined : undefined
   const station = current?.code ?? 'E403'
+  const mine = [station, ...extra.filter((c) => c !== station)]
+  const setMine = (codes: string[]) => setExtra(codes.filter((c) => c !== station))
 
   // Model forecast for the chosen source, my map stations and the three map stations
   useEffect(() => {
@@ -130,7 +133,7 @@ export default function App() {
         .then((fc) => setForecasts((f) => ({ ...f, [code]: fc })))
         .catch((e) => setError(`Napoved ni na voljo: ${e}`))
     }
-  }, [readings, citizen, station, mine, forecasts])
+  }, [readings, citizen, station, extra, forecasts])
 
   const fc = forecasts[station]
   const hours12 = current && fc ? next12(fc, current.from) : []
