@@ -34,6 +34,14 @@ interface Cetrt {
   vir: string
   vrsta: string // "meritev" or "ocena (umerjen senzor)"
 }
+/** public/data/viri.json (scripts/build_viri.py): local PM10 contribution of heating and traffic by hour of day */
+interface Viri {
+  b_kurisca: number
+  c_promet: number
+  cetrti: Record<string, { kurisca: (number | null)[]; promet: (number | null)[] }>
+}
+const sumHours = (xs: (number | null)[], from: number, to: number) => xs.slice(from, to + 1).reduce<number>((s, v) => s + (v ?? 0), 0)
+
 interface Ustanova {
   vrsta: string
   ime: string
@@ -63,13 +71,28 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
   const [vreme, setVreme] = useState<Vreme | null>(null)
   const [vremeErr, setVremeErr] = useState(false)
   const [warnInfo, setWarnInfo] = useState(false) // the explanation behind the round i
+  const [viri, setViri] = useState<Viri | null>(null)
+  const [viriInfo, setViriInfo] = useState(false)
 
   // Built from the data package by scripts/build_data.py
   useEffect(() => {
     fetch('/data/cetrti.json').then((r) => r.json()).then(setCetrti).catch(() => {})
     fetch('/data/ustanove.json').then((r) => r.json()).then(setUstanove).catch(() => {})
     fetchVreme().then(setVreme).catch(() => setVremeErr(true))
+    fetch('/data/viri.json').then((r) => r.json()).then(setViri).catch(() => {})
   }, [])
+
+  // Where the particles come from in the selected četrt: heating vs traffic, by hour (winter, GRAL 2021)
+  const vir = viri?.cetrti[Object.keys(viri.cetrti).find((k) => same(k, sel)) ?? ''] ?? null
+  const share = (from: number, to: number) => {
+    if (!vir) return null
+    const k = sumHours(vir.kurisca, from, to)
+    const p = sumHours(vir.promet, from, to)
+    return k + p > 0 ? Math.round((k / (k + p)) * 100) : null
+  }
+  const eveningHeating = share(18, 23)
+  const morningHeating = share(6, 9)
+  const virMax = vir ? Math.max(1, ...vir.kurisca.map((v, h) => (v ?? 0) + (vir.promet[h] ?? 0))) : 1
 
   // Early warning: the next days from the weather rule and the model threshold (src/opozorilo.ts)
   const dnevi = oceniDneve(vreme, fc)
@@ -129,12 +152,11 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
 
       <section className="card" style={{ background: 'var(--info)' }}>
         <div className="section-head" style={{ marginTop: 0 }}>
-          <p className="t-label">Zgodnje opozorilo · naslednjih 48 ur</p>
+          <span className="chip model">NAPOVED</span>
           <button className="info-btn" aria-label="Kako nastane opozorilo?" aria-expanded={warnInfo} onClick={() => setWarnInfo(!warnInfo)}>
             i
           </button>
         </div>
-        <span className="chip model" style={{ marginTop: 8 }}>NAPOVED</span>
         {warnInfo && (
           <div className="map-info" style={{ marginTop: 12 }}>
             <p className="t-small">
@@ -217,6 +239,62 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
           Indeks iz stavb, omrežij, reliefa in meritev (zvezek 04) · 1,0 = povprečje mesta · ne AQI
           {selected && ` · PM2,5: ${selected.vrsta === 'meritev' ? 'meritev' : 'ocena'} (${selected.vir})`}
         </p>
+      </section>
+
+      <section className="card">
+        <div className="section-head" style={{ marginTop: 0 }}>
+          <p className="t-h3">Od kod delci: {sel}</p>
+          <button className="info-btn" aria-label="Kako nastane ta ocena?" aria-expanded={viriInfo} onClick={() => setViriInfo(!viriInfo)}>
+            i
+          </button>
+        </div>
+        <span className="chip model" style={{ marginTop: 8 }}>OCENA · MODEL GRAL</span>
+        {viriInfo && (
+          <div className="map-info" style={{ marginTop: 10 }}>
+            <p className="t-small">
+              <b>Od kod ocena?</b>
+              <br />
+              Model GRAL (ARSO) za leto 2021 loči, koliko delcev PM10 v četrti dodajo mala kurišča in koliko osebni promet, po urah. Prikazane so zimske ure (januar–marec, oktober–december), umerjene na meritve postaje Bežigrad.
+            </p>
+            <p className="t-small">
+              <b>Kaj ne vidimo?</b>
+              <br />
+              Samo lokalni prispevek obeh virov; ozadje iz regije (11–19 µg/m³) ni vključeno. Jutranji vrh, ki ga model napove, se v meritvah ne pozna; večerni se ujema s kurišči.
+            </p>
+          </div>
+        )}
+        {!vir ? (
+          <p className="t-body t-2" style={{ marginTop: 10 }}>{viri ? 'Za to četrt ni podatka (zunaj mreže modela).' : 'Nalagam…'}</p>
+        ) : (
+          <>
+            <p className="t-body" style={{ marginTop: 10 }}>
+              <b>Zvečer (18–23h): {eveningHeating ?? '–'} % kurišča.</b>
+              <br />
+              <b>Zjutraj (6–9h): {morningHeating != null ? 100 - morningHeating : '–'} % promet.</b>
+            </p>
+            <div className="viri-grid" role="img" aria-label={`Prispevek kurišč in prometa po urah v četrti ${sel}`}>
+              {vir.kurisca.map((k, h) => (
+                <div key={h} className="viri-col" title={`${h}h: kurišča ${k ?? 0} µg/m³, promet ${vir.promet[h] ?? 0} µg/m³`}>
+                  <span className="viri-k" style={{ height: `${((k ?? 0) / virMax) * 100}%` }} />
+                  <span className="viri-p" style={{ height: `${((vir.promet[h] ?? 0) / virMax) * 100}%` }} />
+                </div>
+              ))}
+            </div>
+            <div className="viri-ticks">{[0, 6, 12, 18].map((h) => <span key={h} style={{ left: `${((h + 0.5) / 24) * 100}%` }}>{h}h</span>)}<span style={{ left: '98%' }}>23h</span></div>
+            <div className="fc-legend" style={{ marginTop: 6 }}>
+              <span>Prispevek k PM10, µg/m³</span>
+              <span><i><b style={{ background: '#f2994a' }} />Kurišča</i><i><b style={{ background: '#7ec8e3' }} />Promet</i></span>
+            </div>
+            <p className="t-body" style={{ marginTop: 10 }}>
+              {eveningHeating != null && eveningHeating >= 60
+                ? 'Zvečer odločajo kurišča: ukrep, ki cilja pravi vir, je zamenjava starih peči in obveščanje o kurjenju.'
+                : eveningHeating != null && eveningHeating <= 40
+                  ? 'Zvečer prevladuje promet: učinkovit ukrep je omejitev prometa, ne peči.'
+                  : 'Zvečer sta vira približno enakovredna: ukrep naj cilja oba.'}
+              {morningHeating != null && 100 - morningHeating >= 50 ? ' Zjutraj prevladuje promet: šolske ulice in omejitve ob konicah.' : ''}
+            </p>
+          </>
+        )}
       </section>
 
       <p className="t-sub">Občutljive ustanove</p>

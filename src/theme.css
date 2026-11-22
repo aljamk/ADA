@@ -345,3 +345,14 @@ p { margin: 0; }
   .golob-mood .golob-mood-figure, .golob-mood .krilo, .golob-mood .krilce, .golob-mood .glava, .golob-mood .krilo-l, .golob-mood .krilo-d, .golob-mood .zenici, .golob-mood .klic { animation: none; }
   .golob-mood .note { opacity: 1; animation: none; }
 }
+/* Od kod delci: 24 stacked columns (heating on top of traffic), hour ticks under them */
+.viri-grid { display: grid; grid-template-columns: repeat(24, 1fr); column-gap: 2px; height: 72px; margin-top: 10px; align-items: end; }
+.viri-col { display: flex; flex-direction: column-reverse; height: 100%; }
+.viri-k { display: block; background: #f2994a; border-radius: 2px 2px 0 0; }
+.viri-p { display: block; background: #7ec8e3; }
+.viri-ticks { position: relative; height: 14px; margin-top: 4px; font-size: 10px; color: var(--text-2); }
+.viri-ticks span { position: absolute; transform: translateX(-50%); }
+.fc-legend { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 10px; color: var(--text-2); }
+.fc-legend span:last-child { display: flex; gap: 8px; }
+.fc-legend i { font-style: normal; display: inline-flex; align-items: center; gap: 4px; }
+.fc-legend b { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
