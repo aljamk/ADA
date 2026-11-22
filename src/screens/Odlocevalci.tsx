@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { usAqi } from '../aqi'
 import { ofDay, type Forecast } from '../forecast'
 import { dateStr, hh } from '../time'
+import { fetchVreme, LEVEL_COLOR, LEVEL_TEXT, oceniDneve, type Vreme } from '../opozorilo'
 
 // Schematic cartogram of the 17 četrtne skupnosti (Figma node 29:2069), positions in a 342-px-wide card.
 const HEX = [
@@ -59,12 +60,26 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
   const [sel, setSel] = useState('Šiška')
   const [cetrti, setCetrti] = useState<Cetrt[]>([])
   const [ustanove, setUstanove] = useState<Ustanova[]>([])
+  const [vreme, setVreme] = useState<Vreme | null>(null)
+  const [vremeErr, setVremeErr] = useState(false)
 
   // Built from the data package by scripts/build_data.py
   useEffect(() => {
     fetch('/data/cetrti.json').then((r) => r.json()).then(setCetrti).catch(() => {})
     fetch('/data/ustanove.json').then((r) => r.json()).then(setUstanove).catch(() => {})
+    fetchVreme().then(setVreme).catch(() => setVremeErr(true))
   }, [])
+
+  // Early warning: the next days from the weather rule and the model threshold (src/opozorilo.ts)
+  const dnevi = oceniDneve(vreme, fc)
+  const worst = Math.max(...dnevi.map((d) => d.level)) as 0 | 1 | 2
+  const fmtDate = (d: string) => `${Number(d.slice(8, 10))}. ${Number(d.slice(5, 7))}.`
+  // Whom to notify first: the četrti with the most sensitive institutions, weighted by exposure
+  const notify = cetrti
+    .map((c) => ({ ime: c.ime, n: ustanove.filter((u) => same(u.cetrt, c.ime)).length, rel: c.rel }))
+    .filter((c) => c.n > 0)
+    .sort((a, b) => b.n * b.rel - a.n * a.rel)
+    .slice(0, 3)
 
   const data = (name: string) => cetrti.find((c) => same(c.ime, name))
   const rels = cetrti.map((c) => c.rel).sort((a, b) => a - b)
@@ -89,9 +104,10 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
 
   const window = publicNoticeWindow(fc)
   const prepare = async () => {
-    const text = window
-      ? `Obvestilo: jutri med ${window} se pričakuje slabši zrak (napoved modela CAMS, umerjena na meritve ARSO). Občutljive skupine naj omejijo daljši napor na prostem.`
-      : 'Jutri ne pričakujemo slabšega zraka (napoved modela CAMS).'
+    const jutri = dnevi[1]
+    const text = jutri.level > 0
+      ? `Opozorilo: jutri (${fmtDate(jutri.date)}) je ${jutri.level === 2 ? 'verjetna' : 'možna'} epizoda onesnaženega zraka v Ljubljani${window ? `, najslabše med ${window}` : ''}. Napoved, ne meritev: vremenska napoved in model CAMS, umerjen na meritve ARSO. Občutljive skupine naj omejijo daljši napor na prostem; zvečer ne kurite v starih pečeh.`
+      : `Jutri (${fmtDate(jutri.date)}) ne pričakujemo epizode onesnaženega zraka (napoved vremena in modela CAMS).`
     try {
       if (navigator.share) await navigator.share({ text })
       else await navigator.clipboard.writeText(text)
@@ -111,10 +127,45 @@ export default function Odlocevalci({ fc, onBack }: { fc?: Forecast; onBack: () 
       </div>
 
       <section className="card" style={{ background: 'var(--info)' }}>
-        <p className="t-label">Model · jutri</p>
-        <p className="t-h3" style={{ marginTop: 10 }}>
-          {!fc ? 'Nalagam napoved…' : window ? `Priporočamo obvestilo javnosti: jutri ${window}.` : 'Jutri obvestilo javnosti ni potrebno.'}
-        </p>
+        <p className="t-label">Zgodnje opozorilo · naslednjih 48 ur · NAPOVED</p>
+        <div className="rows" style={{ marginTop: 10, gap: 8 }}>
+          {dnevi.map((d) => (
+            <div key={d.date} className="warn-day">
+              <span className="dot" style={{ background: LEVEL_COLOR[d.level] }} />
+              <span>
+                <b>{d.label} · {fmtDate(d.date)}</b>
+                <span className="t-body" style={{ display: 'block' }}>{d.stagnant == null && d.modelWarn == null ? (vremeErr ? 'Vremenska napoved ni dosegljiva.' : 'Nalagam…') : LEVEL_TEXT[d.level]}</span>
+                <span className="t-small" style={{ display: 'block', fontSize: 11 }}>
+                  {d.wind != null && d.blh != null && d.rain != null
+                    ? `Veter ${Math.round(d.wind)} km/h · mejna plast ${Math.round(d.blh)} m · ${d.rain < 0.5 ? 'brez padavin' : `padavine ${d.rain.toFixed(1).replace('.', ',')} mm`}`
+                    : 'Vreme: ni podatka'}
+                  {d.model != null ? ` · model ${d.model} µg/m³` : ' · model: ni napovedi za ta dan'}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+        {worst > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <p className="t-label">Predlog ukrepa</p>
+            <p className="t-body" style={{ marginTop: 6 }}>
+              Do 18h obvesti vrtce, šole in domove za starejše{notify.length ? ` v četrtih ${notify.map((c) => c.ime).join(', ')}` : ''} (večerni vrh delcev je med 21h in 23h).
+              {worst === 2 ? ' Objavi poziv, naj se zvečer ne kuri v starih pečeh, in pripravi omejitev prometa v središču.' : ' Pripravi besedilo obvestila za primer, da se napoved potrdi.'}
+            </p>
+          </div>
+        )}
+        <div className="map-info" style={{ marginTop: 12 }}>
+          <p className="t-small">
+            <b>Kako nastane opozorilo?</b>
+            <br />
+            Dva znaka iz podatkovnega paketa: vremensko pravilo (veter pod 6 km/h, mejna plast pod 300 m, brez padavin) in model CAMS, umerjen na meritve ARSO, z dnevno vrednostjo nad 25 µg/m³. En znak pomeni možno, oba verjetno epizodo.
+          </p>
+          <p className="t-small">
+            <b>Kako zanesljivo?</b>
+            <br />
+            Vremensko pravilo ujame okoli tri četrtine preseganj, a so tri četrtine opozoril lažne, ker je preseganje redek dogodek. Prag modela ujame 94 % preseganj s 70 % lažnih opozoril. Zato je to napoved za pripravo, ne potrditev.
+          </p>
+        </div>
       </section>
 
       <section className="card">
