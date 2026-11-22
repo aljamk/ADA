@@ -93,7 +93,7 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
  *  dobro      dances and flaps (notes)
  *  zmerno     stands still and bobs its head
  *  slabo      ruffles: puffs up and shakes its feathers
- *  zeloslabo  hunched: head pulled in, heavy breathing, both wings beating up and down
+ *  zeloslabo  hunched: head pulled in, heavy breathing, both wings open and beating symmetrically
  *  nevarno    wing folded, hiding and trembling in a nest
  */
 export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size?: number }) {
@@ -118,6 +118,12 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
         <img className="golob-layer glava" src="/golob-glava.png" alt="" draggable={false} />
         <img className="golob-layer krilce" src="/golob-krilce.png" alt="" draggable={false} />
         <img className="golob-layer krilo" src="/golob-krilo.png" alt="" draggable={false} />
+        {level === 'zeloslabo' && (
+          /* the same wing mirrored to the left side (behind the body), moving exactly like the right one */
+          <div className="golob-mirror" aria-hidden="true">
+            <img className="golob-layer krilo" src="/golob-krilo.png" alt="" draggable={false} />
+          </div>
+        )}
       </div>
       <svg className="golob-part" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
         {level === 'dobro' && (
