@@ -45,7 +45,7 @@ export const searchText = (r: Reading) => `${r.name} ${CITY[r.name.split(' ')[0]
 /** Nearest station (equirectangular distance is plenty for Slovenia) */
 // The challenge is about Ljubljana: the app offers only the stations of the Ljubljana basin
 export const LJ = { lat: 46.0569, lon: 14.5058 }
-export const LJ_RADIUS_KM = 25
+export const LJ_RADIUS_KM = 12 // the three Ljubljana stations; Grosuplje (~17 km) and Kranj (~23 km) are out
 export const inBasin = (r: Reading) => distanceKm(r.lat, r.lon, LJ.lat, LJ.lon) <= LJ_RADIUS_KM
 
 export function nearest(readings: Reading[], lat: number, lon: number) {
