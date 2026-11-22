@@ -114,8 +114,14 @@ export default function Predstavitev() {
 
       <div className="pr-phone-col">
         <div className="pr-phone">
-          <div className="pr-island" />
+          <div className="pr-statusbar">
+            <span>9:41</span>
+            <div className="pr-island" />
+          </div>
           <iframe className="pr-screen" src={src} title="Kaj dihaš? v telefonu" />
+          <div className="pr-homebar">
+            <span />
+          </div>
         </div>
         <div className="pr-actions">
           <button className="pr-btn" aria-pressed={widgets} onClick={() => setWidgets(!widgets)}>
