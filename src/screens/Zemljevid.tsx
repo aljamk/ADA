@@ -131,7 +131,8 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   const selValue = valueAt(selected)
   const withPm = readings.filter((r) => r.pm25 != null && inBasin(r))
   const shown = mode === 'meritev' ? withPm : readings.filter((r) => mine.includes(r.code))
-  const points: Point[] = shown.filter((r) => !isCitizen(r)).flatMap((r) => {
+  // The estimate surface always comes from the official stations, in both modes (model values follow the slider)
+  const points: Point[] = withPm.filter((r) => !isCitizen(r)).flatMap((r) => {
     const v = valueAt(r.code)
     return v ? [{ lat: r.lat, lon: r.lon, pm: v.pm }] : []
   })
