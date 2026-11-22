@@ -25,11 +25,9 @@ const when = (t: string) => `${Number(t.slice(8, 10))}. ${Number(t.slice(5, 7))}
 interface Props {
   readings: Reading[]
   cetrti: Cetrt[]
-  /** Your četrt (linked with the station on Zdaj) */
+  /** Your četrt: the one nearest to the station chosen on Zdaj (location is chosen only there) */
   mine: string | null
   station: string
-  /** Tap a četrt to make it yours; Zdaj moves to its nearest station */
-  onPick: (name: string) => void
 }
 
 /**
@@ -37,7 +35,7 @@ interface Props {
  * The value per četrt is an ESTIMATE: the current measurement of the three ARSO stations, interpolated
  * to the četrt and scaled by its long-term exposure index. It refreshes with every ARSO hour.
  */
-export default function Cetrti({ readings, cetrti, mine, station, onPick }: Props) {
+export default function Cetrti({ readings, cetrti, mine, station }: Props) {
   const [info, setInfo] = useState(false)
 
   const stations = readings.filter((r) => MAP_STATIONS.some((s) => s.code === r.code) && r.pm25 != null)
@@ -88,25 +86,25 @@ export default function Cetrti({ readings, cetrti, mine, station, onPick }: Prop
         {rows.map((c, i) => {
           const lvl = c.pm != null ? levelOfPm(c.pm) : null
           return (
-            <button key={c.ime} role="row" className={`row station${c.ime === mine ? ' me' : ''}`} style={{ height: 52 }} aria-current={c.ime === mine ? 'true' : undefined} onClick={() => onPick(c.ime)} aria-label={`${c.ime}: izberi kot svojo četrt`}>
+            <div key={c.ime} role="row" className={c.ime === mine ? 'row me' : 'row'} style={{ height: 52 }} aria-current={c.ime === mine ? 'true' : undefined}>
               <span className="n">{i + 1}</span>
               <span>
                 {c.ime}
                 {c.ime === mine && my && (
-                  <span className="chip" style={{ height: 20, fontSize: 11, marginLeft: 8, background: 'var(--accent)', color: 'var(--on-accent)' }} title={`Najbližja postaja: ${shortName(my.name)}, enaka kot na zaslonu Zdaj`}>
+                  <span className="chip" style={{ height: 20, fontSize: 11, marginLeft: 8, background: 'var(--accent)', color: 'var(--on-accent)' }} title={`Po postaji ${shortName(my.name)} z zaslona Zdaj`}>
                     tvoja četrt
                   </span>
                 )}
                 {lvl && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>{lvl.symbol} {lvl.label} · ocena</span>}
               </span>
               <span className="p" style={{ color: lvl?.color }}>{c.pm != null ? `${c.pm} µg/m³` : '–'}</span>
-            </button>
+            </div>
           )
         })}
       </div>
 
       <p className="t-small" style={{ fontSize: 11 }}>
-        Dotakni se četrti, da postane tvoja; zaslon Zdaj se preklopi na njej najbližjo postajo. OCENA, ne meritev: v Ljubljani merijo tri uradne postaje ARSO. Vrstni red se spreminja z meritvami, razlike med sosednjimi četrtmi so lahko znotraj napake ocene.
+Tvoja četrt sledi postaji, izbrani na zaslonu Zdaj. OCENA, ne meritev: v Ljubljani merijo tri uradne postaje ARSO. Vrstni red se spreminja z meritvami, razlike med sosednjimi četrtmi so lahko znotraj napake ocene.
       </p>
     </div>
   )

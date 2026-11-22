@@ -1,5 +1,5 @@
 // The 17 četrtne skupnosti of Ljubljana (public/data/cetrti.json, from the ARSOhack package).
-import { distanceKm, inBasin, type Reading } from './arso'
+import { distanceKm, type Reading } from './arso'
 
 export interface Cetrt {
   ime: string
@@ -19,6 +19,3 @@ const closest = <T extends { lat: number; lon: number }>(items: T[], lat: number
 
 /** The četrt whose centre is nearest to a station */
 export const cetrtOfStation = (cetrti: Cetrt[], r: Reading) => closest(cetrti, r.lat, r.lon)?.ime ?? null
-
-/** The basin station that measures PM2.5 nearest to a četrt */
-export const stationOfCetrt = (readings: Reading[], c: Cetrt) => closest(readings.filter((r) => inBasin(r) && r.pm25 != null), c.lat, c.lon)?.code ?? null
