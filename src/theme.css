@@ -152,7 +152,7 @@ p { margin: 0; }
 .map-canvas { position: absolute; inset: 0; background: #1d2a2a; }
 .map-canvas .leaflet-control-attribution { font-size: 9px; line-height: 12px; padding: 0 5px; background: rgb(255 255 255 / 0.75); color: #294b3d; border-radius: 6px 6px 0 0; margin: 0 0 0 24px; white-space: nowrap; }
 .map .leaflet-bottom.leaflet-left { bottom: 0; }
-.map .leaflet-bottom.leaflet-right { bottom: 56px; }
+.map .leaflet-bottom.leaflet-right { bottom: 14px; }
 .map .leaflet-control-attribution a { color: inherit; }
 .map .seg, .map .legend { z-index: 1000; }
 .map .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; font-size: 20px; }

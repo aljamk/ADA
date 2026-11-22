@@ -130,7 +130,6 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
   const selReading = readings.find((r) => r.code === selected)
   const selValue = valueAt(selected)
   const withPm = readings.filter((r) => r.pm25 != null && inBasin(r))
-  const official = withPm.filter((r) => !isCitizen(r))
   const shown = mode === 'meritev' ? withPm : readings.filter((r) => mine.includes(r.code))
   const points: Point[] = shown.filter((r) => !isCitizen(r)).flatMap((r) => {
     const v = valueAt(r.code)
@@ -148,7 +147,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     L.tileLayer(PLACES, { maxZoom: 18, opacity: 0.9 }).addTo(m)
     // Keep the bubbles out of the strips covered by the segment control + attribution (top), the zoom
     // buttons (right) and the legend (bottom). Fractional zoom so a narrow phone still gets a tight fit.
-    m.fitBounds(VIEW, { paddingTopLeft: [12, 72], paddingBottomRight: [60, 64] })
+    m.fitBounds(VIEW, { paddingTopLeft: [12, 72], paddingBottomRight: [60, 32] })
     markers.current = L.layerGroup().addTo(m)
     map.current = m
     return () => {
@@ -228,7 +227,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
     if (!m || !selReading) return
     // The visible part of the map is between the segment control and the legend/sheet
     const size = m.getSize()
-    const inner = L.latLngBounds(m.containerPointToLatLng([30, 80]), m.containerPointToLatLng([size.x - 60, size.y - 76]))
+    const inner = L.latLngBounds(m.containerPointToLatLng([30, 80]), m.containerPointToLatLng([size.x - 60, size.y - 44]))
     if (!inner.contains([selReading.lat, selReading.lon])) m.panTo([selReading.lat, selReading.lon])
   }, [selReading])
 
@@ -258,12 +257,6 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
           </button>
         </div>
 
-        {mode === 'meritev' && (
-          <div className="legend">
-            <span>● {official.length} postaje · ○ {withPm.length - official.length} senzorjev</span>
-            <span>{points.length >= 3 ? 'Ploskev: ocena' : 'Za ploskev dodaj 3 postaje'}</span>
-          </div>
-        )}
       </div>
 
       {selReading && (
@@ -340,7 +333,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             {withPm.map((r) => (
               <button key={r.code} className={`row station${r.code === selected ? ' me' : ''}`} onClick={() => pick(r.code)}>
                 <span className="n" style={{ color: levelOfPm(r.pm25 as number).color }}>{levelOfPm(r.pm25 as number).symbol}</span>
-                <span>{shortName(r.name)}{isCitizen(r) && <span className="t-small" style={{ display: 'block', fontSize: 11 }}>○ OCENA · občanski senzor</span>}</span>
+                <span>{shortName(r.name)}<span className="t-small" style={{ display: 'block', fontSize: 11 }}>{isCitizen(r) ? 'občanski senzor' : 'uradna postaja ARSO'}</span></span>
                 <span className="p">{r.pm25} µg/m³</span>
               </button>
             ))}
@@ -348,7 +341,7 @@ export default function Zemljevid({ readings, forecasts, station, mine, onMine, 
             {readings.filter((r) => inBasin(r) && r.pm25 == null).map((r) => (
               <div key={r.code} className="row station" style={{ opacity: 0.6 }} aria-disabled>
                 <span className="n">·</span>
-                <span>{shortName(r.name)}<span className="t-small" style={{ display: 'block', fontSize: 11 }}>○ OCENA · trenutno ne oddaja</span></span>
+                <span>{shortName(r.name)}<span className="t-small" style={{ display: 'block', fontSize: 11 }}>občanski senzor · trenutno ne oddaja</span></span>
                 <span className="p t-2">–</span>
               </div>
             ))}
