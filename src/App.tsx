@@ -71,8 +71,8 @@ export default function App() {
   const [splash, setSplash] = useState<'in' | 'out' | null>('in')
   useEffect(() => {
     const quick = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const a = setTimeout(() => setSplash('out'), quick ? 300 : 4000)
-    const b = setTimeout(() => setSplash(null), quick ? 500 : 4400)
+    const a = setTimeout(() => setSplash('out'), quick ? 300 : 8000)
+    const b = setTimeout(() => setSplash(null), quick ? 500 : 8400)
     return () => {
       clearTimeout(a)
       clearTimeout(b)
