@@ -1,4 +1,4 @@
-import { levelOfAqi } from '../aqi'
+import { LEVELS, levelOfAqi } from '../aqi'
 
 // AQI bands of the five levels (US EPA): 0–50, 51–100, 101–150, 151–200, 201+
 const BANDS = [0, 50, 100, 150, 200, 300]
@@ -14,7 +14,7 @@ export default function Lestvica({ aqi, onDark = false }: { aqi: number; onDark?
   const hi = BANDS[i + 1]
   const pos = ((i + Math.min(1, (aqi - lo) / (hi - lo))) / 5) * 100
   return (
-    <div className={`lestvica${onDark ? ' on-dark' : ''}`} role="img" aria-label={`Kakovost zraka je ${['dobra', 'zmerna', 'slaba', 'zelo slaba', 'nevarna'][i]}, AQI ${aqi} (${lo}–${hi})`}>
+    <div className={`lestvica${onDark ? ' on-dark' : ''}`} role="img" aria-label={`Kakovost zraka je ${LEVELS[i].labelF.toLowerCase()}, AQI ${aqi} (${lo}–${hi})`}>
       <div className="lestvica-bar">
         {[0, 1, 2, 3, 4].map((k) => (
           <span key={k} style={{ background: levelOfAqi(BANDS[k] + 1).color, opacity: k === i ? 1 : 0.45 }} />
@@ -22,8 +22,8 @@ export default function Lestvica({ aqi, onDark = false }: { aqi: number; onDark?
         <i style={{ left: `${pos}%` }} />
       </div>
       <div className="lestvica-ticks" aria-hidden="true">
-        {['Dobra', 'Zmerna', 'Slaba', 'Zelo slaba', 'Nevarna'].map((w, k) => (
-          <span key={w} style={{ fontWeight: k === i ? 700 : 400 }}>{w}</span>
+        {LEVELS.map((l, k) => (
+          <span key={l.key} style={{ fontWeight: k === i ? 700 : 400 }}>{l.labelF}</span>
         ))}
       </div>
     </div>

@@ -113,7 +113,7 @@ export default function Zdaj({ reading, hours, profile, distance, cetrt, sourceK
         {aqi != null && level && pm != null ? (
           <>
             <p className="now-level" style={{ color: level.color }}>
-              {level.symbol} {level.label}
+              {level.labelF}
             </p>
             <div className="now-nums">
               <span className="now-aqi">{aqi}</span>

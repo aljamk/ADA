@@ -21,30 +21,32 @@ export function usAqi(pm25: number) {
 export interface Level {
   key: 'dobro' | 'zmerno' | 'slabo' | 'zeloslabo' | 'nevarno'
   label: string
+  /** The same word agreeing with "kakovost" (feminine): Dobra, Zmerna, … */
+  labelF: string
   symbol: string // shape so the level is never colour-only
   color: string
 }
 
-const L: Level[] = [
-  { key: 'dobro', label: 'Dobro', symbol: '○', color: 'var(--dobro)' },
-  { key: 'zmerno', label: 'Zmerno', symbol: '−', color: 'var(--zmerno)' },
-  { key: 'slabo', label: 'Slabo', symbol: '△', color: 'var(--slabo)' },
-  { key: 'zeloslabo', label: 'Zelo slabo', symbol: '▲', color: 'var(--zeloslabo)' },
-  { key: 'nevarno', label: 'Nevarno', symbol: '■', color: 'var(--nevarno)' },
+export const LEVELS: Level[] = [
+  { key: 'dobro', label: 'Dobro', labelF: 'Dobra', symbol: '○', color: 'var(--dobro)' },
+  { key: 'zmerno', label: 'Zmerno', labelF: 'Zmerna', symbol: '−', color: 'var(--zmerno)' },
+  { key: 'slabo', label: 'Slabo', labelF: 'Slaba', symbol: '△', color: 'var(--slabo)' },
+  { key: 'zeloslabo', label: 'Zelo slabo', labelF: 'Zelo slaba', symbol: '▲', color: 'var(--zeloslabo)' },
+  { key: 'nevarno', label: 'Nevarno', labelF: 'Nevarna', symbol: '■', color: 'var(--nevarno)' },
 ]
 
 /** Level from AQI: 0–50, 51–100, 101–150, 151–200, >200 */
 export function levelOfAqi(aqi: number) {
-  return L[aqi <= 50 ? 0 : aqi <= 100 ? 1 : aqi <= 150 ? 2 : aqi <= 200 ? 3 : 4]
+  return LEVELS[aqi <= 50 ? 0 : aqi <= 100 ? 1 : aqi <= 150 ? 2 : aqi <= 200 ? 3 : 4]
 }
 export const levelOfPm = (pm25: number) => levelOfAqi(usAqi(pm25))
 
 /** Game learning scale in µg/m³ (0–100): 0–15, 15–25, 25–50, 50–75, 75+ */
 export const LEARN = [
-  { from: 0, to: 15, level: L[0] },
-  { from: 15, to: 25, level: L[1] },
-  { from: 25, to: 50, level: L[2] },
-  { from: 50, to: 75, level: L[3] },
-  { from: 75, to: 100, level: L[4] },
+  { from: 0, to: 15, level: LEVELS[0] },
+  { from: 15, to: 25, level: LEVELS[1] },
+  { from: 25, to: 50, level: LEVELS[2] },
+  { from: 50, to: 75, level: LEVELS[3] },
+  { from: 75, to: 100, level: LEVELS[4] },
 ]
 export const learnLevel = (pm25: number) => (LEARN.find((s) => pm25 < s.to) ?? LEARN[4]).level
