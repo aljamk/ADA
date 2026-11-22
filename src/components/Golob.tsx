@@ -92,8 +92,8 @@ export function GolobMegla({ done, total = 4, size = 170, line }: { done: number
  * folded wing on the chest, golob-krilo.png = the raised wing; scripts/cut_wings.py). Only the notes and the nest are drawn extra.
  *  dobro      dances and flaps (notes)
  *  zmerno     stands still and bobs its head
- *  slabo      ruffles: puffs up and shakes its feathers
- *  zeloslabo  hunched: head pulled in, heavy breathing, both wings open and beating symmetrically
+ *  slabo      the frontal pigeon with its wings crossed on the chest, like crossed arms, rolling its eyes
+ *  zeloslabo  the frontal pigeon (Figma 102:97) with both wings open, beating them; black eyes
  *  nevarno    wing folded, hiding and trembling in a nest
  */
 export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size?: number }) {
@@ -102,8 +102,8 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
   const caption: Record<LevelKey, string> = {
     dobro: 'Golob pleše: zrak je dober.',
     zmerno: 'Golob ziba z glavo: tako-tako.',
-    slabo: 'Golob se ščeperi in otresa perje: zrak je slab.',
-    zeloslabo: 'Golob je sključen, težko diha in prhuta z obema kriloma: zrak je zelo slab.',
+    slabo: 'Golob s prekrižanimi krili zavija z očmi: zrak je slab.',
+    zeloslabo: 'Golob z razprtima kriloma prhuta: zrak je zelo slab.',
     nevarno: 'Golob se skriva in trese v gnezdu: zrak je nevaren.',
   }
   return (
@@ -113,18 +113,34 @@ export function GolobRazpolozenje({ level, size = 170 }: { level: LevelKey; size
           <ellipse cx="450" cy="930" rx="430" ry="150" fill="#6e4a24" />
         </svg>
       )}
-      <div className="golob-mood-figure">
-        <img className="golob-layer telo" src="/golob-telo.png" alt="" draggable={false} />
-        <img className="golob-layer glava" src="/golob-glava.png" alt="" draggable={false} />
-        <img className="golob-layer krilce" src="/golob-krilce.png" alt="" draggable={false} />
-        <img className="golob-layer krilo" src="/golob-krilo.png" alt="" draggable={false} />
-        {level === 'zeloslabo' && (
-          /* the same wing mirrored to the left side (behind the body), moving exactly like the right one */
-          <div className="golob-mirror" aria-hidden="true">
-            <img className="golob-layer krilo" src="/golob-krilo.png" alt="" draggable={false} />
-          </div>
-        )}
-      </div>
+      {level === 'slabo' ? (
+        /* the frontal pigeon with the wings turned across the chest (in front of the body) and moving pupils */
+        <div className="golob-mood-figure spredaj">
+          <img className="golob-layer telo2" src="/golob2-telo-oci.png" alt="" draggable={false} />
+          <img className="golob-layer krilo-l" src="/golob2-krilo-l.png" alt="" draggable={false} />
+          <img className="golob-layer krilo-d" src="/golob2-krilo-d.png" alt="" draggable={false} />
+          <svg className="golob-part oci" viewBox="0 0 620 746" aria-hidden="true">
+            <g className="zenici">
+              <circle cx="279" cy="96" r="23" fill="#181818" />
+              <circle cx="340" cy="97" r="23" fill="#181818" />
+            </g>
+          </svg>
+        </div>
+      ) : level === 'zeloslabo' ? (
+        /* the frontal pigeon: two wings behind the body, cut along the body's outline (scripts/cut_front.py) */
+        <div className="golob-mood-figure spredaj">
+          <img className="golob-layer krilo-l" src="/golob2-krilo-l.png" alt="" draggable={false} />
+          <img className="golob-layer krilo-d" src="/golob2-krilo-d.png" alt="" draggable={false} />
+          <img className="golob-layer telo2" src="/golob2-telo.png" alt="" draggable={false} />
+        </div>
+      ) : (
+        <div className="golob-mood-figure">
+          <img className="golob-layer telo" src="/golob-telo.png" alt="" draggable={false} />
+          <img className="golob-layer glava" src="/golob-glava.png" alt="" draggable={false} />
+          <img className="golob-layer krilce" src="/golob-krilce.png" alt="" draggable={false} />
+          <img className="golob-layer krilo" src="/golob-krilo.png" alt="" draggable={false} />
+        </div>
+      )}
       <svg className="golob-part" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
         {level === 'dobro' && (
           <g className="notes" fill="#f2c94c" fontSize="150" fontWeight="700">
