@@ -17,5 +17,8 @@ export function loadCetrti() {
 const closest = <T extends { lat: number; lon: number }>(items: T[], lat: number, lon: number) =>
   items.reduce<T | null>((best, c) => (!best || distanceKm(c.lat, c.lon, lat, lon) < distanceKm(best.lat, best.lon, lat, lon) ? c : best), null)
 
-/** The četrt whose centre is nearest to a station */
-export const cetrtOfStation = (cetrti: Cetrt[], r: Reading) => closest(cetrti, r.lat, r.lon)?.ime ?? null
+/** The četrt each Ljubljana station stands in (the nearest centroid would put Vič into Trnovo) */
+const STATION_CETRT: Record<string, string> = { E403: 'Bežigrad', E405: 'Šiška', E404: 'Vič' }
+
+/** The četrt of a station: by the fixed table for the Ljubljana stations, otherwise the nearest centre */
+export const cetrtOfStation = (cetrti: Cetrt[], r: Reading) => STATION_CETRT[r.code] ?? closest(cetrti, r.lat, r.lon)?.ime ?? null
