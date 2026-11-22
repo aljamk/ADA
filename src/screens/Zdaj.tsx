@@ -15,6 +15,7 @@ interface Props {
   cetrt?: string | null // your četrt (the only location choice)
   sourceKm?: number // distance from the četrt centre to the source
   onStation: () => void
+  onProfiles: () => void // reopen the welcome screen to change the groups
   onDecisionMakers: () => void
 }
 
@@ -34,7 +35,7 @@ function useLjubljanaClock() {
 /** The level word agreeing with "zrak" (masculine), for "AQI 77 · zmeren" */
 const LEVEL_M: Record<LevelKey, string> = { dobro: 'dober', zmerno: 'zmeren', slabo: 'slab', zeloslabo: 'zelo slab', nevarno: 'nevaren' }
 
-export default function Zdaj({ reading, hours, profiles, distance, cetrt, sourceKm, onStation, onDecisionMakers }: Props) {
+export default function Zdaj({ reading, hours, profiles, distance, cetrt, sourceKm, onStation, onProfiles, onDecisionMakers }: Props) {
   const pm = reading.pm25
   const aqi = pm != null ? usAqi(pm) : null
   const level = aqi != null ? levelOfAqi(aqi) : null
@@ -127,9 +128,12 @@ export default function Zdaj({ reading, hours, profiles, distance, cetrt, source
           <p className="t-h3">{profiles.length > 1 ? 'Nasveti' : 'Nasvet'}</p>
           <ul className="advice">
             {/* Groups with the same advice share one line */}
-            {[...new Map(profiles.map((k) => [adviceFor(pm, hours, k), k] as const)).keys()].map((text) => (
+            {[...new Map(profiles.map((k) => [adviceFor(pm, hours, k), k] as const)).keys()].map((text, i) => (
               <li key={text}>
-                <b>{profiles.filter((k) => adviceFor(pm, hours, k) === text).map((k) => (k === 'nihce' ? 'Za vse' : profileOf(k).label)).join(', ')}</b>
+                <span className="advice-head">
+                  <b>{profiles.filter((k) => adviceFor(pm, hours, k) === text).map((k) => (k === 'nihce' ? 'Za vse' : profileOf(k).label)).join(', ')}</b>
+                  {i === 0 && <button className="link" style={{ fontSize: 13 }} onClick={onProfiles}>Spremeni</button>}
+                </span>
                 <span>{text}</span>
               </li>
             ))}

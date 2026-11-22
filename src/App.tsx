@@ -79,8 +79,9 @@ export default function App() {
     }
   }, [])
 
-  // The welcome screen (who are the advice for?) opens on every launch, with the saved choice preselected
-  const [intro, setIntro] = useState(true)
+  // The welcome screen (who are the advice for?) opens on the first launch; later "Spremeni" on Zdaj reopens it
+  const [onboarded, setOnboarded] = useStored('onboarded', false)
+  const [intro, setIntro] = useState(false)
   const [profile, setProfile] = useStored<ProfileKey>('profile', 'nihce') // the most sensitive chosen group
   const [profiles, setProfiles] = useStored<ProfileKey[]>('profiles', []) // every chosen group, for the advice card
   const groups = profiles.length ? profiles : [profile]
@@ -176,7 +177,7 @@ const hours24 = current && fc ? next24(fc, current.from) : []
   )
 
   // ?intro=0 skips the welcome screen (demos and screenshots)
-  if (intro && new URLSearchParams(location.search).get('intro') !== '0')
+  if ((!onboarded || intro) && new URLSearchParams(location.search).get('intro') !== '0')
     return (
       <div className="app">
         {splashEl}
@@ -185,6 +186,7 @@ const hours24 = current && fc ? next24(fc, current.from) : []
           onDone={(keys) => {
             setProfiles(keys)
             setProfile(primaryProfile(keys))
+            setOnboarded(true)
             setIntro(false)
           }}
         />
@@ -210,6 +212,7 @@ const hours24 = current && fc ? next24(fc, current.from) : []
                 cetrt={myCetrt?.ime ?? null}
                 sourceKm={current && myCetrt ? distanceKm(current.lat, current.lon, myCetrt.lat, myCetrt.lon) : undefined}
                 onStation={() => { setPickFor('zdaj'); setOverlay('picker') }}
+                onProfiles={() => setIntro(true)}
                 onDecisionMakers={() => setOverlay('odlocevalci')}
               />
             ) : (
