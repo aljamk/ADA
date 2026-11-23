@@ -1,4 +1,5 @@
 import { hru } from '../zvok'
+import { askPermission } from '../obvestila'
 import { GolobRece } from '../components/Golob'
 
 export interface AlertSettings {
@@ -51,10 +52,7 @@ export default function Opozorila({ settings, onChange }: { settings: AlertSetti
   type Key = 'airing' | 'eveningBefore' | 'heating' | 'tourist'
   const toggle = async (key: Key) => {
     if (settings[key]) return set({ [key]: false })
-    if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
-      const p = await Notification.requestPermission()
-      if (p !== 'granted') return
-    }
+    if (!(await askPermission())) return
     set({ [key]: true })
     hru() // so the user hears what an alert will sound like
   }
