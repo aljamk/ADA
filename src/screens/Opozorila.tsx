@@ -1,3 +1,4 @@
+import { hru } from '../zvok'
 import { GolobRece } from '../components/Golob'
 
 export interface AlertSettings {
@@ -55,6 +56,7 @@ export default function Opozorila({ settings, onChange }: { settings: AlertSetti
       if (p !== 'granted') return
     }
     set({ [key]: true })
+    hru() // so the user hears what an alert will sound like
   }
 
   const Switch = ({ k }: { k: Key }) => (
