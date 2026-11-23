@@ -1,84 +1,54 @@
-"""Robert's coo, "hru hru hruuu", synthesised from scratch (no samples, no licences) into public/golob-hru.wav.
+"""Robert's coo for notifications: a real pigeon, cut from a public domain recording.
 
-A feral pigeon's coo is a low, throaty tone that rises and falls, starts with a short rolled "hr"
-and has a soft breathy edge. Each syllable here is a gliding fundamental with a few harmonics,
-a fast tremolo for the roll, a little filtered noise for the breath and a gentle envelope.
-Pure standard library, so it runs anywhere: python scripts/build_hru.py
+Source: "Dove cooing" by mary905, public domain (pdsounds.org), on Wikimedia Commons:
+https://commons.wikimedia.org/wiki/File:Dove_cooing.ogg
+No attribution is required; it is credited in the README anyway.
+
+The recording (7.9 s) holds three coo phrases. We keep the first two (1.0-4.95 s), fade the edges
+and normalise it, then write public/golob-hru.wav and the Android notification sound
+android/app/src/main/res/raw/golob_hru.wav.
+
+The .ogg has to be decoded to a 22.05 kHz mono 16-bit WAV first (any audio tool, or Chrome's
+decodeAudioData). Then:  python scripts/build_hru.py path/to/dove_cooing.wav
 """
 import math
-import random
+import shutil
 import struct
+import sys
 import wave
 
-RATE = 22050
-random.seed(7)
+START, END = 1.0, 4.95  # seconds kept from the recording
+FADE_IN, FADE_OUT = 0.03, 0.25
+PEAK = 0.89  # about -1 dBFS
 
 
-def syllable(dur, f0, f_peak, f_end, roll=0.12):
-    """One "hru": pitch glides f0 -> f_peak (at 35 %) -> f_end, amplitude rolls during the first `roll` seconds."""
-    n = int(dur * RATE)
+def main(src):
+    with wave.open(src, 'rb') as w:
+        assert w.getnchannels() == 1 and w.getsampwidth() == 2, 'expects 16-bit mono WAV'
+        rate = w.getframerate()
+        raw = w.readframes(w.getnframes())
+    x = list(struct.unpack('<%dh' % (len(raw) // 2), raw))[int(START * rate):int(END * rate)]
+    n = len(x)
+    fi, fo = int(FADE_IN * rate), int(FADE_OUT * rate)
+    peak = max(abs(v) for v in x) or 1
+    gain = PEAK * 32767 / peak
     out = []
-    phase = 0.0
-    noise = 0.0
-    for i in range(n):
-        t = i / RATE
-        x = i / n
-        # pitch contour: up quickly, then a slow sag
-        if x < 0.35:
-            f = f0 + (f_peak - f0) * math.sin(x / 0.35 * math.pi / 2)
-        else:
-            f = f_peak + (f_end - f_peak) * ((x - 0.35) / 0.65) ** 1.3
-        f *= 1 + 0.012 * math.sin(2 * math.pi * 6 * t)  # slight wobble
-        phase += 2 * math.pi * f / RATE
-        # throaty timbre: fundamental plus soft harmonics
-        s = math.sin(phase) + 0.45 * math.sin(2 * phase + 0.3) + 0.18 * math.sin(3 * phase + 0.7) + 0.06 * math.sin(4 * phase)
-        # rolled "hr" at the start: fast tremolo that fades out
-        if t < roll:
-            depth = 1 - t / roll
-            s *= 1 - 0.75 * depth * (0.5 + 0.5 * math.sin(2 * math.pi * 34 * t))
-        # breath: low-passed noise, stronger at the start
-        noise = 0.92 * noise + 0.08 * (random.random() * 2 - 1)
-        s += noise * (0.9 if t < roll else 0.35)
-        # envelope: 35 ms attack, gentle swell, soft 30 % release
-        att = min(1.0, t / 0.035)
-        rel = 1.0 if x < 0.7 else math.cos((x - 0.7) / 0.3 * math.pi / 2) ** 2
-        swell = 0.8 + 0.2 * math.sin(x * math.pi)
-        out.append(s * att * rel * swell)
-    return out
-
-
-def silence(dur):
-    return [0.0] * int(dur * RATE)
-
-
-def lowpass(xs, a=0.35):
-    """One-pole low-pass to round off the edges, a pigeon is a soft sound."""
-    y = 0.0
-    res = []
-    for x in xs:
-        y += a * (x - y)
-        res.append(y)
-    return res
-
-
-def main():
-    sig = []
-    sig += syllable(0.34, 330, 420, 360)
-    sig += silence(0.10)
-    sig += syllable(0.34, 340, 430, 365)
-    sig += silence(0.12)
-    sig += syllable(0.70, 330, 440, 300, roll=0.15)  # the long, falling "hruuu"
-    sig += silence(0.15)
-    sig = lowpass(sig)
-    peak = max(abs(v) for v in sig) or 1
-    gain = 0.7 * 32767 / peak
-    with wave.open('public/golob-hru.wav', 'wb') as w:
+    for i, v in enumerate(x):
+        g = gain
+        if i < fi:
+            g *= math.sin(i / fi * math.pi / 2) ** 2
+        if i > n - fo:
+            g *= math.cos((i - (n - fo)) / fo * math.pi / 2) ** 2
+        out.append(max(-32767, min(32767, int(v * g))))
+    dst = 'public/golob-hru.wav'
+    with wave.open(dst, 'wb') as w:
         w.setnchannels(1)
         w.setsampwidth(2)
-        w.setframerate(RATE)
-        w.writeframes(b''.join(struct.pack('<h', int(v * gain)) for v in sig))
-    print('public/golob-hru.wav', round(len(sig) / RATE, 2), 's')
+        w.setframerate(rate)
+        w.writeframes(struct.pack('<%dh' % len(out), *out))
+    shutil.copyfile(dst, 'android/app/src/main/res/raw/golob_hru.wav')
+    print(dst, round(n / rate, 2), 's, gain x', round(gain, 2))
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])

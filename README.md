@@ -33,6 +33,8 @@ Vsi podatki so iz paketa [vidacex/ARSOhack](https://github.com/vidacex/ARSOhack)
 
 Lestvica: US EPA AQI iz urne meritve PM2,5.
 
+Robertovo gruljenje ob obvestilih je posnetek pravega goloba: "Dove cooing" avtorja mary905, javna domena ([Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Dove_cooing.ogg)).
+
 ## Zagon
 
 ```bash
