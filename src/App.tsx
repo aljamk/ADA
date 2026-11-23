@@ -9,7 +9,7 @@ import StationPicker from './components/StationPicker'
 import TabBar, { TABS, type TabKey } from './components/TabBar'
 import { fetchForecast, next12, next24, type Forecast, type ForecastHour } from './forecast'
 import type { GameLog } from './game'
-import { onResume, syncWidget } from './native'
+import { isNative, onResume, syncWidget } from './native'
 import { primaryProfile, thresholdAqi, type ProfileKey } from './profile'
 import Cetrti from './screens/Cetrti'
 import Naloge from './screens/naloge/Naloge'
@@ -20,7 +20,7 @@ import Zdaj from './screens/Zdaj'
 import Zemljevid, { MAP_STATIONS } from './screens/Zemljevid'
 import { load, save } from './storage'
 import { dateStr, hh } from './time'
-import { hru } from './zvok'
+import { cancelPlan, planAt, showNow, type NotifKey } from './obvestila'
 
 /** Small hook: state that is persisted to localStorage */
 function useStored<T>(key: string, init: T) {
@@ -29,35 +29,71 @@ function useStored<T>(key: string, init: T) {
   return [v, setV] as const
 }
 
-/** Show a system notification at most once per key per day (only while the app is open; no push server). */
-function notifyOnce(key: string, body: string) {
-  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+/** Web: show a notification at most once per key per day (only while the page is open). */
+function notifyOnce(key: NotifKey, body: string) {
   const id = `${dateStr(new Date())}|${key}`
   if (load('lastNotified_' + key, '') === id) return
-  new Notification('Kaj dihaš?', { body, icon: '/icon-192.png' })
-  hru()
+  showNow(key, body)
   save('lastNotified_' + key, id)
 }
 
-/** A notification once per season per year: the first time the app opens inside the season's first week */
-function notifySeason(key: string, from: { m: number; d: number }, body: string) {
+const SEASONS = {
+  heating: { m: 10, d: 15, body: 'Začela se je kurilna sezona. Zvečer, ko sosedje zakurijo, je delcev tudi dvakrat več: zrači čez dan, sprehod načrtuj pred 20h.' },
+  tourist: { m: 6, d: 1, body: 'Začela se je turistična sezona. V središču je več prometa; za sprehod raje izberi park ali obrobje.' },
+} as const
+
+/** A notification once per season per year: inside the season's first week (web), or planned for its first day at 9h (Android) */
+function notifySeason(key: 'heating' | 'tourist') {
+  const { m, d, body } = SEASONS[key]
   const now = new Date()
   const y = now.getFullYear()
-  const start = new Date(y, from.m - 1, from.d)
+  const start = new Date(y, m - 1, d, 9)
+  if (isNative) {
+    // the next season start that is still ahead
+    const at = start.getTime() > now.getTime() ? start : new Date(y + 1, m - 1, d, 9)
+    planAt(key, at, body)
+    return
+  }
   const days = (now.getTime() - start.getTime()) / 86400000
-  if (days < 0 || days > 7) return
+  if (days < -0.4 || days > 7) return
   if (load('season_' + key, '') === String(y)) return
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
-  new Notification('Kaj dihaš?', { body, icon: '/icon-192.png' })
-  hru()
+  showNow(key, body)
   save('season_' + key, String(y))
 }
 
 const inRange = (h: number, from: number, to: number) => (from <= to ? h >= from && h < to : h >= from || h < to)
+/** "2026-11-21 16:00" -> local Date */
+const toDate = (t: string) => new Date(Number(t.slice(0, 4)), Number(t.slice(5, 7)) - 1, Number(t.slice(8, 10)), Number(t.slice(11, 13)))
 
-function checkAlerts(s: AlertSettings, hours: ForecastHour[], fc: Forecast | undefined, profile: ProfileKey) {
-  if (s.heating) notifySeason('heating', { m: 10, d: 15 }, 'Začela se je kurilna sezona. Zvečer, ko sosedje zakurijo, je delcev tudi dvakrat več: zrači čez dan, sprehod načrtuj pred 20h.')
-  if (s.tourist) notifySeason('tourist', { m: 6, d: 1 }, 'Začela se je turistična sezona. V središču je več prometa; za sprehod raje izberi park ali obrobje.')
+function checkAlerts(s: AlertSettings, hours: ForecastHour[], hours24: ForecastHour[], fc: Forecast | undefined, profile: ProfileKey) {
+  if (s.heating) notifySeason('heating')
+  else cancelPlan('heating')
+  if (s.tourist) notifySeason('tourist')
+  else cancelPlan('tourist')
+
+  if (isNative) {
+    // Android: plan today's notifications ahead, so they arrive with the app closed
+    const today = dateStr(new Date())
+    if (s.airing) {
+      // the cleanest 3-hour window later today that starts inside the airing hours and outside the quiet hours
+      let best: { at: Date; avg: number; until: number } | null = null
+      for (let i = 0; i + 3 <= hours24.length; i++) {
+        const t = hours24[i].time
+        const h = Number(hh(t))
+        if (t.slice(0, 10) !== today || !inRange(h, s.airingFrom, s.airingTo) || inRange(h, s.quietFrom, s.quietTo)) continue
+        const avg = hours24.slice(i, i + 3).reduce((a, x) => a + x.value, 0) / 3
+        if (usAqi(avg) <= thresholdAqi(profile) && (!best || avg < best.avg)) best = { at: toDate(t), avg, until: (h + 3) % 24 }
+      }
+      if (best) planAt('airing', best.at, `Zdaj je dober čas za zračenje, do ${best.until}h.`)
+      else cancelPlan('airing')
+    } else cancelPlan('airing')
+    const w = s.eveningBefore && !inRange(s.eveningAt, s.quietFrom, s.quietTo) ? publicNoticeWindow(fc) : null
+    if (w) planAt('evening', new Date(new Date().setHours(s.eveningAt, 0, 0, 0)), `Jutri bo zrak slab med ${w}. Načrtuj sprehod izven teh ur.`)
+    else cancelPlan('evening')
+    return
+  }
+
   const now = new Date().getHours()
   if (inRange(now, s.quietFrom, s.quietTo)) return
   if (s.airing && inRange(now, s.airingFrom, s.airingTo) && hours.length >= 3) {
@@ -168,8 +204,8 @@ const hours24 = current && fc ? next24(fc, current.from) : []
   }, [myCetrt, readings])
 
   useEffect(() => {
-    if (current && fc) checkAlerts(alerts, hours12, fc, profile)
-  }, [alerts, current, fc, hours12, profile])
+    if (current && fc) checkAlerts(alerts, hours12, hours24, fc, profile)
+  }, [alerts, current, fc, hours12, hours24, profile])
 
   // Zdaj: choose your četrt. Distance is shown only if the user chose "use my location" (one-time, not stored)
   const pickCetrt = (name: string, at?: { lat: number; lon: number }) => {
