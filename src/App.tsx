@@ -20,6 +20,7 @@ import Zdaj from './screens/Zdaj'
 import Zemljevid, { MAP_STATIONS } from './screens/Zemljevid'
 import { load, save } from './storage'
 import { dateStr, hh } from './time'
+import { hru } from './zvok'
 
 /** Small hook: state that is persisted to localStorage */
 function useStored<T>(key: string, init: T) {
@@ -34,6 +35,7 @@ function notifyOnce(key: string, body: string) {
   const id = `${dateStr(new Date())}|${key}`
   if (load('lastNotified_' + key, '') === id) return
   new Notification('Kaj dihaš?', { body, icon: '/icon-192.png' })
+  hru()
   save('lastNotified_' + key, id)
 }
 
@@ -47,6 +49,7 @@ function notifySeason(key: string, from: { m: number; d: number }, body: string)
   if (load('season_' + key, '') === String(y)) return
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
   new Notification('Kaj dihaš?', { body, icon: '/icon-192.png' })
+  hru()
   save('season_' + key, String(y))
 }
 
